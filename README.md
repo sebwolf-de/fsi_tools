@@ -1,6 +1,6 @@
-# README #
+# fsi_tools #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+This code that I am sharing isn't meant to be or ether become a library. On the other hand I needed a modern way to share my code this is why I created this page. I said this code can't become a library. "Unfortunately" this code started as my Python playground and I would have never bet a penny that it would have taken me this far. This code isn't enough "thought in advance" to become a library. It is good enough to be shared with students and to prototype. This was my first python code, but #nonsonopoicosipirla.  
 
 ### What is this repository for? ###
 
