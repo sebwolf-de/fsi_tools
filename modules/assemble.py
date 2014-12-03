@@ -6,12 +6,11 @@
 
 import numpy as np
 from scipy import sparse
-from shapely.geometry import Point
+#from shapely.geometry import Point
 
 # nicola modules
-#import shape_func as basis
 import la_utils
-import geom_utils as geom
+#import geom_utils as geom
 import basis_func as basis
 
 def local_p1_p1_mass_tri(x_l,y_l):
@@ -411,143 +410,143 @@ def ibm_force(XY_str,s_lgr,topo_u,x_u,y_u,point_in_tri):
         force_y[nds] += stiff_y * phi.transpose()
     return force_x, force_y
 
-def u_s_p1(topo_u,x_u,y_u,
-           topo_s,x_s,y_s,s_lgr,ieq_s,
-           str_segments,fluid_id):
-
-    r = max(ieq_s)+1
-    #print r
-
-    GT = sparse.csr_matrix((x_u.shape[0],r[0]))
-
-    str_iel = 0
-    for str_el in str_segments:
-        s_dofs = ieq_s[topo_s[str_iel,:]]
-        s_l = s_lgr[topo_s[str_iel,:]]
-        el_list = fluid_id[str_iel]
-        #print '================='
-        #print s_l
-        #print el_list
-        iel = 0
-        for segment in str_el:
-            f_id = el_list[iel]
-            u_dofs = topo_u[f_id,:]
-            l = list(segment.coords)
-            sp = geom.get_reference_coords(topo_s,x_s,y_s,s_lgr,str_iel,l)
-            (ds_psi,psi,omega) = basis.lin_p1(s_l,sp)
-            x_ul = x_u[topo_u[f_id,:]]
-            y_ul = y_u[topo_u[f_id,:]]
-            p0 = Point(l[0])
-            p1 = Point(l[1])
-            eval_p = np.zeros((2,2))
-            eval_p[0,0] = p0.x
-            eval_p[0,1] = p0.y
-            eval_p[1,0] = p1.x
-            eval_p[1,1] = p1.y
-            (phi_dx,phi_dy,phi,omega) = basis.tri_p1(x_ul,y_ul,eval_p)
-            #print '-----------------'
-            #print f_id
-            #print s_dofs
-            #print u_dofs
-            #print sp
-            #print psi
-            for i in range(0,2):#loop over quadrature points
-                cln = np.zeros((3,1))
-                row = np.zeros((1,2))
-                cln[:,0] = phi[i,:]
-                row[0,:] = psi[i,:]
-                local_matrix = .5 * segment.length * np.dot(cln,row)
-                GT = la_utils.add_local_to_global(GT,local_matrix,u_dofs,s_dofs)
-                #print '***'
-                #print row
-                #print cln
-                #print local_matrix*8
-                #print '***'
-            #
-            #print segment.length
-            #print x_ul
-            #print f_id
-            #print psi
-            #print phi
-            iel += 1
-            #
-        str_iel+=1
-        #break
-
-    return GT
-
-def u_s_p1_thick(x_u,y_u,topo_u,
-                 s_lgr,t_lgr,
-                 x_str,y_str,topo_s,ie_s,
-                 str_segments,fluid_id):
-    
-    #(rows,cols) = la_utils.fluid_str_sparsity_pattern(
-    #topo_u,topo_s,ie_s,fluid_id)
-
-    #print rows
-    #print cols
-
-    righe = x_u.shape[0]
-    colonne = max(ie_s)+1
-
-    GT = sparse.csr_matrix((righe,colonne))
-
-    #values = np.zeros(rows.shape)
-    
-    str_id = 0
-    for chunks in str_segments:
-        #print '======================'
-        #print 'els = ' + str(str_id)
-        nds = topo_s[str_id,:]
-        xs_l = x_str[nds]
-        ys_l = y_str[nds]
-        s_l = s_lgr[nds]
-        t_l = t_lgr[nds]
-        tri_map = geom.tri_lin_map(xs_l,ys_l,s_l,t_l)
-        #print s_l
-        #print t_l
-        ies_l = ie_s[nds]
-        chunk_id = 0
-        for poly in chunks:
-            if poly.area>1e-10:
-                elf = fluid_id[str_id][chunk_id]
-                #print 'elf = ' + str(elf)
-                ndf = topo_u[elf,:]
-                xu_l = x_u[ndf]
-                yu_l = y_u[ndf]
-                #print xu_l
-                #print yu_l
-                triangles = geom.triangulate(poly)
-                local_matrix = np.zeros((3,3))
-                for tri in triangles:
-                    #print '----------------------'
-                    tmp = np.array(list(tri.exterior.coords)[0:3])
-                    #print tmp
-                    lm = local_fluid_str_coupling(tmp,xu_l,yu_l,s_l,t_l,tri_map)
-                    #lm = local_mass_matrix_tri(tmp,xu_l,yu_l,xs_l,ys_l)
-                    local_matrix += lm
-                #print local_matrix*24*6*6
-                GT = la_utils.add_local_to_global(GT,local_matrix,ndf,ies_l)
-                #values = la_utils.add_local_to_global_coo(rows,cols,values,
-                #                ndf,ies_l,local_matrix)
-                    #break
-                    #print eval_p
-                    #values = la_utils.add_local_to_global_coo(rows,cols,values,
-                    #            ndf,ies_l,lm)
-                    #print 'triangle'
-                #for tri in triangles:
-                #    print len(tri.exterior.coords)
-                #print chunk_id
-            chunk_id+=1
-            #break
-            #break
-        str_id += 1
-        #break
-    #MT = sparse.coo_matrix((values,(rows,cols)),shape=(righe,colonne))
-    GT.tocsr()
-    #print GT
-    #print MT  
-    return GT
+#def u_s_p1(topo_u,x_u,y_u,
+#           topo_s,x_s,y_s,s_lgr,ieq_s,
+#           str_segments,fluid_id):
+#
+#    r = max(ieq_s)+1
+#    #print r
+#
+#    GT = sparse.csr_matrix((x_u.shape[0],r[0]))
+#
+#    str_iel = 0
+#    for str_el in str_segments:
+#        s_dofs = ieq_s[topo_s[str_iel,:]]
+#        s_l = s_lgr[topo_s[str_iel,:]]
+#        el_list = fluid_id[str_iel]
+#        #print '================='
+#        #print s_l
+#        #print el_list
+#        iel = 0
+#        for segment in str_el:
+#            f_id = el_list[iel]
+#            u_dofs = topo_u[f_id,:]
+#            l = list(segment.coords)
+#            sp = geom.get_reference_coords(topo_s,x_s,y_s,s_lgr,str_iel,l)
+#            (ds_psi,psi,omega) = basis.lin_p1(s_l,sp)
+#            x_ul = x_u[topo_u[f_id,:]]
+#            y_ul = y_u[topo_u[f_id,:]]
+#            p0 = Point(l[0])
+#            p1 = Point(l[1])
+#            eval_p = np.zeros((2,2))
+#            eval_p[0,0] = p0.x
+#            eval_p[0,1] = p0.y
+#            eval_p[1,0] = p1.x
+#            eval_p[1,1] = p1.y
+#            (phi_dx,phi_dy,phi,omega) = basis.tri_p1(x_ul,y_ul,eval_p)
+#            #print '-----------------'
+#            #print f_id
+#            #print s_dofs
+#            #print u_dofs
+#            #print sp
+#            #print psi
+#            for i in range(0,2):#loop over quadrature points
+#                cln = np.zeros((3,1))
+#                row = np.zeros((1,2))
+#                cln[:,0] = phi[i,:]
+#                row[0,:] = psi[i,:]
+#                local_matrix = .5 * segment.length * np.dot(cln,row)
+#                GT = la_utils.add_local_to_global(GT,local_matrix,u_dofs,s_dofs)
+#                #print '***'
+#                #print row
+#                #print cln
+#                #print local_matrix*8
+#                #print '***'
+#            #
+#            #print segment.length
+#            #print x_ul
+#            #print f_id
+#            #print psi
+#            #print phi
+#            iel += 1
+#            #
+#        str_iel+=1
+#        #break
+#
+#    return GT
+#
+#def u_s_p1_thick(x_u,y_u,topo_u,
+#                 s_lgr,t_lgr,
+#                 x_str,y_str,topo_s,ie_s,
+#                 str_segments,fluid_id):
+#    
+#    #(rows,cols) = la_utils.fluid_str_sparsity_pattern(
+#    #topo_u,topo_s,ie_s,fluid_id)
+#
+#    #print rows
+#    #print cols
+#
+#    righe = x_u.shape[0]
+#    colonne = max(ie_s)+1
+#
+#    GT = sparse.csr_matrix((righe,colonne))
+#
+#    #values = np.zeros(rows.shape)
+#    
+#    str_id = 0
+#    for chunks in str_segments:
+#        #print '======================'
+#        #print 'els = ' + str(str_id)
+#        nds = topo_s[str_id,:]
+#        xs_l = x_str[nds]
+#        ys_l = y_str[nds]
+#        s_l = s_lgr[nds]
+#        t_l = t_lgr[nds]
+#        tri_map = geom.tri_lin_map(xs_l,ys_l,s_l,t_l)
+#        #print s_l
+#        #print t_l
+#        ies_l = ie_s[nds]
+#        chunk_id = 0
+#        for poly in chunks:
+#            if poly.area>1e-10:
+#                elf = fluid_id[str_id][chunk_id]
+#                #print 'elf = ' + str(elf)
+#                ndf = topo_u[elf,:]
+#                xu_l = x_u[ndf]
+#                yu_l = y_u[ndf]
+#                #print xu_l
+#                #print yu_l
+#                triangles = geom.triangulate(poly)
+#                local_matrix = np.zeros((3,3))
+#                for tri in triangles:
+#                    #print '----------------------'
+#                    tmp = np.array(list(tri.exterior.coords)[0:3])
+#                    #print tmp
+#                    lm = local_fluid_str_coupling(tmp,xu_l,yu_l,s_l,t_l,tri_map)
+#                    #lm = local_mass_matrix_tri(tmp,xu_l,yu_l,xs_l,ys_l)
+#                    local_matrix += lm
+#                #print local_matrix*24*6*6
+#                GT = la_utils.add_local_to_global(GT,local_matrix,ndf,ies_l)
+#                #values = la_utils.add_local_to_global_coo(rows,cols,values,
+#                #                ndf,ies_l,local_matrix)
+#                    #break
+#                    #print eval_p
+#                    #values = la_utils.add_local_to_global_coo(rows,cols,values,
+#                    #            ndf,ies_l,lm)
+#                    #print 'triangle'
+#                #for tri in triangles:
+#                #    print len(tri.exterior.coords)
+#                #print chunk_id
+#            chunk_id+=1
+#            #break
+#            #break
+#        str_id += 1
+#        #break
+#    #MT = sparse.coo_matrix((values,(rows,cols)),shape=(righe,colonne))
+#    GT.tocsr()
+#    #print GT
+#    #print MT  
+#    return GT
 
 def u_v_lin_p1(topo_s,s_lgr,ieq_s):
     r = max(ieq_s)+1
