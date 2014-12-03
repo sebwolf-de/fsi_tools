@@ -12,7 +12,7 @@ This code that I am sharing isn't meant to be or ether become a library. On the 
 
 * Summary of set up
 * Configuration
-* Dependencies
+* * Dependencies
 * Database configuration
 * How to run tests
 * Deployment instructions
