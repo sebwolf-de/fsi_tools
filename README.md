@@ -8,11 +8,12 @@ This code that I am sharing isn't meant to be or ether become a library. On the 
 * Version
 * [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
 
-### How do I get set up? ###
+## How do I get set up? ##
 
+This not really "software", this more "code to be shared", so you do not really need to install it. Nevertheless it relies on several popular packages that has to installed. Let's start listing our dependences. 
 
-## Dependencies: ##
-  * git is a vestion control, if you do not have it, the usual apt get should be good enough:
+### Dependencies: ###
+  * git: the code is in a "git repository" so it can be easily shared and contributed. You should have it installed by default. If not the usual apt get should be good enought. 
 ```
 #!shell
 sudo apt-get install git-core
