@@ -23,18 +23,14 @@ sudo apt-get install git-core
    * SciPy: sparse numerical package. Specific instructions are much better than what I can possibly write here. The usual sudo apt get instal might be good enough.
    * matplotlib. plotting. Why all of that work without plotting?!?! Specific instructions are much better than what I can possibly write here. The usual sudo apt get instal might be good enough.
    * Shapely: intersection of polygons. This is a bit more sophisticated. Let me postopone and elaborate later.
-   
 
+### Building the Documentation ###
 
-* Deployment instructions
+* Assuming you are in ``fsi_tools`` directory, move to doc, ``cd doc``.
+* Type ``make html``.
+* ``build/html/`` and open ``index.html`` with your browser. 
 
-### Contribution guidelines ###
+### Running a test ###
 
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+* Go to ``fsi_tools/tests`` directory.
+* Type ``python ex_laplace.py``.
