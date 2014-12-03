@@ -28,7 +28,7 @@ sudo apt-get install git-core
 
 * Assuming you are in ``fsi_tools`` directory, move to doc, ``cd doc``.
 * Type ``make html``.
-* ``build/html/`` and open ``index.html`` with your browser. 
+* Go to ``build/html/`` directory and open ``index.html`` with your browser. 
 
 ### Running a test ###
 
