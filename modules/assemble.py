@@ -6,7 +6,6 @@
 
 import numpy as np
 from scipy import sparse
-from shapely.geometry import Point
 
 # nicola modules
 #import shape_func as basis
@@ -371,6 +370,8 @@ def divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,
         el_id += 1
 
     return B1, B2
+
+from shapely.geometry import Point
 
 def ibm_force(XY_str,s_lgr,topo_u,x_u,y_u,point_in_tri):
     node_s = XY_str.shape[0]
