@@ -4,7 +4,7 @@ This code that I am sharing isn't meant to be or ether become a library. On the 
 
 ## How do I get set up? ##
 
-This not really "software", this more "code to be shared", so you do not really need to install it. Nevertheless it relies on several popular packages that has to installed. Let's start listing our dependences. 
+This not really "software", this more "code to be shared", so you do not really need to install it. Nevertheless it relies on several popular packages that has to installed. Let's be more specific. 
 
 ### How to get the code###
 Assuming you have **git** installed (if not see the first point of dependences) you can get the code  with: 
