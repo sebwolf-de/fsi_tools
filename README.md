@@ -10,11 +10,19 @@ This code that I am sharing isn't meant to be or ether become a library. On the 
 
 ### How do I get set up? ###
 
-* Summary of set up
-* Configuration
-* * Dependencies
-* Database configuration
-* How to run tests
+* Get the code with: git clone https://nicolaalessandro@bitbucket.org/nicolaalessandro/fsi_tools.git
+* Dependencies
+* * numpy: specific instructions are much better than what I can possibly write here.
+* * SciPy: specific instructions are much better than what I can possibly write here.
+* * Shapely: intersection of polygons. Maybe here I will complement a bit.
+* * matplotlib. plotting :)
+* 
+```
+#!shell
+
+cd fsi_tools
+```
+
 * Deployment instructions
 
 ### Contribution guidelines ###
