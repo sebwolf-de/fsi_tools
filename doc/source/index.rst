@@ -15,7 +15,6 @@ Contents:
    laplacian
    basis_func
    assemble
-   geom_utils
 
 
 
