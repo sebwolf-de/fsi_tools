@@ -17,7 +17,7 @@ This code that I am sharing isn't meant to be or ether become a library. On the 
 #!shell
 sudo apt-get install git-core
 ```
-   * numpy: specific instructions are much better than what I can possibly write here.
+   ** numpy: specific instructions are much better than what I can possibly write here.
    * SciPy: specific instructions are much better than what I can possibly write here.
    * Shapely: intersection of polygons. Maybe here I will complement a bit.
    * matplotlib. plotting :)
