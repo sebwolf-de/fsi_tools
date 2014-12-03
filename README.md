@@ -10,13 +10,20 @@ This code that I am sharing isn't meant to be or ether become a library. On the 
 
 ### How do I get set up? ###
 
-* Get the code with: git clone https://nicolaalessandro@bitbucket.org/nicolaalessandro/fsi_tools.git
-* Dependencies
+
+* Dependencies:
+* * git is a vestion control, if you do not have it, the usual apt get should be good enough:
+```
+#!shell
+
+sudo apt-get install git-core
+```
 * * numpy: specific instructions are much better than what I can possibly write here.
 * * SciPy: specific instructions are much better than what I can possibly write here.
 * * Shapely: intersection of polygons. Maybe here I will complement a bit.
 * * matplotlib. plotting :)
-* 
+* Get the code with: git clone https://nicolaalessandro@bitbucket.org/nicolaalessandro/fsi_tools.git
+ 
 ```
 #!shell
 
