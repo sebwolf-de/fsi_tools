@@ -14,15 +14,26 @@ git clone https://nicolaalessandro@bitbucket.org/nicolaalessandro/fsi_tools.git
 ```
 
 ### Dependencies: ###
-  * git: the code is in a "git repository" so it can be easily shared and contributed. You should have it installed by default. If not the usual apt get should be good enought. 
+  * git: the code is in a "git repository" so it can be easily shared and contributed. You should have it installed by default. If not: 
 ```
 #!shell
-sudo apt-get install git-core
+sudo apt-get install git
 ```
-   * numpy: numerical package for python. Specific instructions are much better than what I can possibly write here. The usual sudo apt get instal might be good enough.
-   * SciPy: sparse numerical package. Specific instructions are much better than what I can possibly write here. The usual sudo apt get instal might be good enough.
-   * matplotlib. plotting. Why all of that work without plotting?!?! Specific instructions are much better than what I can possibly write here. The usual sudo apt get instal might be good enough.
-   * Shapely: intersection of polygons. This is a bit more sophisticated. Let me postopone and elaborate later.
+   * numpy: numerical package for python. 
+```
+#!shell
+sudo apt-get install python-numpy
+```
+   * SciPy: sparse numerical package. 
+```
+#!shell
+sudo apt-get install python-scipy
+```
+   * matplotlib. plotting. 
+```
+#!shell
+sudo apt-get install python-matplotlib
+```
 
 ### Building the Documentation ###
 
