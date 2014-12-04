@@ -8,6 +8,7 @@ This library requires the following library
 1. Numpy X.X.X
 2. Scipy X.X.X
 3. Matplotlib 1.3.0
+4. Sphinx X.X.X
 
 Please, check also the version number!
 
