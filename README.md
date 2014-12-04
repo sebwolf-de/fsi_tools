@@ -1,16 +1,16 @@
 # fsi_tools #
 
-This code that I am sharing isn't meant to be or ether become a library. On the other hand I needed a modern way to share my code this is why I created this page. I said this code can't become a library. "Unfortunately" this code started as my Python playground and I would have never bet a penny that it would have taken me this far. This code isn't enough "thought in advance" to become a library. It is good enough to be shared with students and to prototype. This was my first python code, but #nonsonopoicosipirla.  
+This code that I am sharing isn't meant to be, or ether become, a library. On the other hand I needed a modern way to share my code, this is why I created this page. I said this code can't become a library. "Unfortunately" this code started as my Python playground, and I would have never bet a penny that it would have taken me this far. This code isn't enough "thought in advance" to become a library. It is good enough to be shared with students and to prototype. This was my first python code, but #nonsonopoicosipirla.  
 
 ## Required Dependencies ##
-This library requires the following library
+This pieces of code requires the following library
 
 1. Numpy X.X.X
 2. Scipy X.X.X
 3. Matplotlib 1.3.0
 4. Sphinx X.X.X
 
-Please, check also the version number!
+Nicola: I have compiled source most of them. At the current stage, the standard packages coming with and Ubuntu distribution should be ok. You are invited to contribute with the version numbers that work for you.
 
 ## How do I get set up? ##
 
