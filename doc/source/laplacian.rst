@@ -2,7 +2,7 @@
 =======================================
 
 The usual way to learn about finite elements 
-is to fist solve the Laplace operator. This is 
+is to first solve the Laplace operator. This is 
 simple enough to be understood, but it encapsulates most of the 
 difficulties in coding finite elements.\
 
