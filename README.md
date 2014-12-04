@@ -19,23 +19,26 @@ Invoke the python interpreter, type ``python`` on the terminal:
 ```
 #!python
 
-import numpy as np
-np.__version__
+>>> import numpy as np
+>>> np.__version__
 ```
 ```
 #!python
 
-import scipy as sp
-sp.__version__
+>>> import scipy as sp
+>>> sp.__version__
 ```
 ```
 #!python
 
-import matplotlib as mp
-mp.__version__
+>>> import matplotlib as mp
+>>> mp.__version__
 ```
-
-
+```
+#!python
+>>> import sphinx as sx
+>>> sx_vesion__
+```
 ## How do I get set up? ##
 
 This not really "software", this more "code to be shared", so you do not really need to install it. Nevertheless it relies on several popular packages that have to installed. Let's be more specific. 
