@@ -25,7 +25,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> 
 
 ```
-
+The ``>>>`` is now your command line. If you want to have fun type ``import antigravity``. Now let's get back to work:
 
 ```
 #!python
