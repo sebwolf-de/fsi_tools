@@ -241,9 +241,25 @@ def gradu_gradv_p1_ieq(topo,x,y,ieq):
 
 def gradu_gradv_p1(topo,x,y):
     """
-    Assembling the Laplacin operator. The function name resambles the 
+    Assembling the Laplace operator. The function name resambles the 
     operator gradtient of the trial functionctions, multiplied the gradient of 
-    the test functions. 
+    the test functions. Assuming :math:`P_1` elements on the :math:`K` trinagle we have:
+        
+    .. math::
+       \int_K \mathrm{grad}(u)_j \cdot \mathrm{grad}(v)_i = \mathrm{Area}(K)\ \mathrm{grad}(u_j) \cdot \mathrm{grad}(v_i)
+    
+    In the code snippet, we can see that, by default, derivatives are represented a 1x3 row. 
+    The ``dx_i`` and ``dy_i`` components are transpose. So we only need the matrix product ``np.dot``
+    to have the local stffness matrix.
+    
+    .. code:: python
+
+        dx_j = phi_dx
+        dx_i = phi_dx.transpose()
+        dy_j = phi_dy
+        dy_i = phi_dy.transpose()
+        local_matrix = omega*(np.dot(dx_i,dx_j)+np.dot(dy_i,dy_j))
+        
 
     Input:
     

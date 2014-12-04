@@ -1,5 +1,5 @@
-The Laplacian Example
-=====================
+``ex_laplace.py`` The Laplacian Example
+=======================================
 
 The usual way to learn about finite elements 
 is to fist solve the Laplace operator. This is 
@@ -91,9 +91,8 @@ viewer:
 .. literalinclude:: ../../tests/ex_laplace.py
    :lines: 58
 
-This tutorial doesn't make much sense without a series of exercises 
-that will help to get an acquittance with both Python utilities and the
-buggy code I have wrote.
+Exercises
+---------
 
    1. Plot, using the ``matplotlib`` command ``spy`` the sparsity pattern for A.
 
