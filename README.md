@@ -12,7 +12,7 @@ This pieces of code requires the following libraries.* At the current stage, the
 
 Nicola: I have compiled the source for most of them. You are invited to contribute with the version numbers that work for you.
 
-### How to check version: ###
+### How to check installation and version version: ###
 
 Invoke the python interpreter, type ``python`` on the terminal. You should get something like:
 
