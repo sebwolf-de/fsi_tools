@@ -45,6 +45,7 @@ sudo apt-get install python-scipy
 sudo apt-get install python-matplotlib
 ```
    * Sphinx is required to build documentation. 
+```
 #!shell
 sudo apt-get install python-sphinx
 ```
