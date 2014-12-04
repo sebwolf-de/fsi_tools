@@ -2,6 +2,15 @@
 
 This code that I am sharing isn't meant to be or ether become a library. On the other hand I needed a modern way to share my code this is why I created this page. I said this code can't become a library. "Unfortunately" this code started as my Python playground and I would have never bet a penny that it would have taken me this far. This code isn't enough "thought in advance" to become a library. It is good enough to be shared with students and to prototype. This was my first python code, but #nonsonopoicosipirla.  
 
+## Required Dependencies ##
+This library requires the following library
+
+1. Numpy X.X.X
+2. Scipy X.X.X
+3. Matplotlib 1.3.0
+
+Please, check also the version number!
+
 ## How do I get set up? ##
 
 This not really "software", this more "code to be shared", so you do not really need to install it. Nevertheless it relies on several popular packages that have to installed. Let's be more specific. 
@@ -13,7 +22,7 @@ Assuming you have **git** installed (if not see the first point of dependences) 
 git clone https://nicolaalessandro@bitbucket.org/nicolaalessandro/fsi_tools.git
 ```
 
-### Dependencies: ###
+### How to install and upgrade the dependencies: ###
   * git: the code is in a "git repository" so it can be easily shared and contributed. You should have it installed by default. If not: 
 ```
 #!shell
