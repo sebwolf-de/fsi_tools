@@ -12,6 +12,23 @@ This pieces of code requires the following libraries.* At the current stage, the
 
 Nicola: I have compiled the source for most of them. You are invited to contribute with the version numbers that work for you.
 
+### How to check version: ###
+
+Invoke the python interpreter, type ``python`` on the terminal:
+
+```
+#!python
+
+import numpy as np
+np.__version__
+```
+#!python
+
+import matplotlib as mp
+mp.__version__
+```
+
+
 ## How do I get set up? ##
 
 This not really "software", this more "code to be shared", so you do not really need to install it. Nevertheless it relies on several popular packages that have to installed. Let's be more specific. 
