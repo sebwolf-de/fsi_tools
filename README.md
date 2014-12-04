@@ -104,6 +104,9 @@ Check that everything is all-right typing (still in the shell):
 #!shell
 echo %PATH%
 ```
+# Time to work, finally #
+
+Once the configuration is done, it is time to get some work done. Fist build the documentation.
 
 ### Building the Documentation ###
 
@@ -112,6 +115,7 @@ echo %PATH%
 * Go to ``build/html/`` directory and open ``index.html`` with your browser. 
 
 ### Running a test ###
+The tests are documented in the documentation :) 
 
 * Go to ``fsi_tools/tests`` directory.
 * Type ``python ex_laplace.py``.
