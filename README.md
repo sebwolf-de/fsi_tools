@@ -55,7 +55,7 @@ The ``>>>`` is now your command line. If you want to have fun type ``import anti
 This not really "software", this more "code to be shared", so you do not really need to install it. Nevertheless it relies on several popular packages that have to installed. Let's be more specific. 
 
 ### How to get the code###
-Assuming you have **git** installed (if not see the first point of dependences) you can get the code  with: 
+Assuming you have **git** installed (if not see the first point of dependences), and you have a bitbucket account, you can get the code  with: 
 ```
 #!shell
 git clone https://your_bitbucket_account_name@bitbucket.org/nicolaalessandro/fsi_tools.git
