@@ -10,7 +10,7 @@ This pieces of code requires the following library
 3. Matplotlib 1.3.0
 4. Sphinx X.X.X
 
-Nicola: I have compiled source most of them. At the current stage, the standard packages coming with and Ubuntu distribution should be ok. You are invited to contribute with the version numbers that work for you.
+At the current stage, the standard packages coming with and Ubuntu distribution should be ok. Nicola: I have compiled the source for most of them. You are invited to contribute with the version numbers that work for you.
 
 ## How do I get set up? ##
 
