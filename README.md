@@ -22,6 +22,13 @@ Invoke the python interpreter, type ``python`` on the terminal:
 import numpy as np
 np.__version__
 ```
+```
+#!python
+
+import scipy as sp
+sp.__version__
+```
+```
 #!python
 
 import matplotlib as mp
