@@ -39,6 +39,16 @@ To run our tests you need to add the ``fsi_tools/modules`` directory to the pyth
 #!shell
 export PYTHONPATH=$PYTHONPATH:/home/username/path_to_my_dir/fsi_tools/modules
 ```
+For those brave who still run windows in 2015, you can set python path (I only copy pasted from [here](https://docs.python.org/2/using/windows.html)) got the shell:
+```
+#!shell
+set PYTHONPATH=%PYTHONPATH%;C:\path_to_my_dir\fsi_tools\modules
+```
+Check that everything is all-right typing (still in the shell):
+```
+#!shell
+echo %PATH%
+```
 
 ### Building the Documentation ###
 
