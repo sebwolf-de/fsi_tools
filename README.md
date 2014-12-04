@@ -50,7 +50,8 @@ sudo apt-get install python-matplotlib
 sudo apt-get install python-sphinx
 ```
 
-To run our tests you need to add the ``fsi_tools/modules`` directory to the python path.  This is done adding the the following line to ``/home/username/.bascrc``:
+### Environment variables: ###
+We need to tell python where our modules are. We need to add the ``fsi_tools/modules`` directory to the python path.  This is done adding the the following line to ``/home/username/.bascrc``:
 ```
 #!shell
 export PYTHONPATH=$PYTHONPATH:/home/username/path_to_my_dir/fsi_tools/modules
