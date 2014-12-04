@@ -58,7 +58,7 @@ This not really "software", this more "code to be shared", so you do not really 
 Assuming you have **git** installed (if not see the first point of dependences) you can get the code  with: 
 ```
 #!shell
-git clone https://nicolaalessandro@bitbucket.org/nicolaalessandro/fsi_tools.git
+git clone https://your_bitbucket_account_name@bitbucket.org/nicolaalessandro/fsi_tools.git
 ```
 
 ### How to install and upgrade the dependencies: ###
