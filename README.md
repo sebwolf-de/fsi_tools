@@ -34,6 +34,11 @@ sudo apt-get install python-scipy
 #!shell
 sudo apt-get install python-matplotlib
 ```
+To run our tests you need to add the ``fsi_tools/modules`` directory to the python path.  This is done adding the the following line to ``/home/username/.bascrc``:
+```
+#!shell
+export PYTHONPATH=$PYTHONPATH:/home/username/path_to_my_dir/fsi_tools/modules
+```
 
 ### Building the Documentation ###
 
