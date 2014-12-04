@@ -44,6 +44,11 @@ sudo apt-get install python-scipy
 #!shell
 sudo apt-get install python-matplotlib
 ```
+   * Sphinx is required to build documentation. 
+#!shell
+sudo apt-get install python-sphinx
+```
+
 To run our tests you need to add the ``fsi_tools/modules`` directory to the python path.  This is done adding the the following line to ``/home/username/.bascrc``:
 ```
 #!shell
