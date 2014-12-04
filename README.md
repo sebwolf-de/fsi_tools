@@ -94,7 +94,7 @@ We need to tell python where our modules are. We need to add the ``fsi_tools/mod
 #!shell
 export PYTHONPATH=$PYTHONPATH:/home/username/path_to_my_dir/fsi_tools/modules
 ```
-For those brave who still run windows in 2015, you can set python path (I only copy pasted from [here](https://docs.python.org/2/using/windows.html)) got the shell:
+For those brave who still run windows in 2015, you can set python path (I copy pasted from [here](https://docs.python.org/2/using/windows.html)) from the shell (that I donno even how to open):
 ```
 #!shell
 set PYTHONPATH=%PYTHONPATH%;C:\path_to_my_dir\fsi_tools\modules
