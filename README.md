@@ -29,7 +29,7 @@ sudo apt-get install python-numpy
 #!shell
 sudo apt-get install python-scipy
 ```
-   * matplotlib. plotting. 
+   * matplotlib > 1.3x unfortunately i use triangles, and triplot is available from this version on. 
 ```
 #!shell
 sudo apt-get install python-matplotlib
