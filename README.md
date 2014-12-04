@@ -37,7 +37,7 @@ Invoke the python interpreter, type ``python`` on the terminal:
 ```
 #!python
 >>> import sphinx as sx
->>> sx_vesion__
+>>> sx.__version__
 ```
 ## How do I get set up? ##
 
