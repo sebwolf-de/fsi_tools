@@ -1,5 +1,5 @@
-``ex_laplace.py`` The Laplacian Example
-=======================================
+``ex_laplace.py`` The Laplace Example
+=====================================
 
 The usual way to learn about finite elements 
 is to first solve the Laplace operator. This is 
@@ -11,9 +11,9 @@ Our chosen environment is Python. One day I'll tell you why.\
 It is now time to get our hands dirty, with some code. 
 Unless you want to include all the code you need in a single file, 
 resulting in a super confusing mess, you will need to ``include``
-some modules that some nice guy prepared for you. This is 
-exactly what you do at the beginning of your file. This can be 
-standard libraries, like: 
+some modules that some nice guys prepared for you. This is 
+exactly what you do at the beginning of your file. These modules 
+can be standard libraries, like: 
 
 .. literalinclude:: ../../tests/ex_laplace.py
    :lines: 7-8
@@ -42,26 +42,28 @@ In this lines we have respectively:
   functions useful for plotting.
 
 Now we collect all of these functions into the ``__main__`` section of a script,
-and we execute them one after another. This strange line tells the interpreter 
-that this is the main section of the program.
+where we execute them one after another.
 
 .. literalinclude:: ../../tests/ex_laplace.py
    :lines: 16
 
 Now we define the discretization parameters and we generate the mesh. 
 The way I usually represent a mesh is with the ``x`` and ``y`` nodes coordinates, 
-and with the ``topo``-ogical matrix (a.k.a. connectivity matrix). Each row correspond 
+and with the ``topo``-ogical matrix (also known as connectivity matrix). Each row correspond 
 to an element. In each row the corresponding nodes are stored. (At some point mesh will become a class).
 
 .. literalinclude:: ../../tests/ex_laplace.py
    :lines: 18-24
 
 The "stiffness" matrix A, is assembled in the ``assemble`` module. We redirect to this
-module documentation for details. And we actually recommend to check it, because people
+module documentation for details. And we actually recommend to `check it`_, because people
 in scientific computing usually want to control this section of their codes.
 
 .. literalinclude:: ../../tests/ex_laplace.py
    :lines: 26
+
+
+.. _check it: ./assemble.html
 
 The ``rhs`` implementation is a little rough. I take advantage of having a structured mesh and I 
 evaluate the element only once. To do this I use the ``tri_p1`` function then I loop over all 

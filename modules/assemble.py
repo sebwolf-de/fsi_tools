@@ -250,7 +250,10 @@ def gradu_gradv_p1(topo,x,y):
     
     In the code snippet, we can see that, by default, derivatives are represented a 1x3 row. 
     The ``dx_i`` and ``dy_i`` components are transpose. So we only need the matrix product ``np.dot``
-    to have the local stffness matrix.
+    to have the local stffness matrix. The values for thederivatives are obtained 
+    form the ``tri_p1`` function in the `basis_func` module, `check its documentation`_.
+    
+    .. _check its documentation: ./basis_func.html
     
     .. code:: python
 
