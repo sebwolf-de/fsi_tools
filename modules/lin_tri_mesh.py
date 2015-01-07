@@ -208,6 +208,7 @@ def load_msh(filename):
             #    
             #print len(l)
     topo = np.reshape(topo,(len(topo)/3,3))
+    #print topo	
     topo = topo-1
     r_id = 0 
     for row in topo:
@@ -216,4 +217,6 @@ def load_msh(filename):
         if ck < 0:
             topo[r_id,:] = np.array([[row[0],row[2],row[1]]])
         r_id+=1
+    print r_id 
     return topo,x,y
+
