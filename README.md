@@ -132,7 +132,17 @@ In case you add a file and you want to have it in the git repo, you should add i
 git add filename
 ``` 
 Once you have done some changes it is good idea to inspect them:
- ```
+```
 #!shell
 git status
-``` 
+```
+If you are satisfied with what you did you should commit your work:
+```
+#!shell
+git commit -a -m "briefly describe your work"
+```
+And if you want to share your commits you can push them on the repo:
+```
+#!shell
+git push origin master
+```
