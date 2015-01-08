@@ -119,3 +119,20 @@ The tests are documented in the documentation :)
 
 * Go to ``fsi_tools/tests`` directory.
 * Type ``python ex_laplace.py``.
+
+### Everyday workflow with git ###
+The use should get some basic git knowledge him self. On top of my head I am writing the basic daily git workflow. First you want to update your repository, this is done pulling the latest modifications from the origin and branch master.
+```
+#!shell
+git pull origin master
+```
+In case you add a file and you want to have it in the git repo, you should add it:
+```
+#!shell
+git add filename
+``` 
+Once you have done some changes it is good idea to inspect them:
+ ```
+#!shell
+git status
+``` 
