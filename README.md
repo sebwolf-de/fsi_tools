@@ -121,7 +121,7 @@ The tests are documented in the documentation :)
 * Type ``python ex_laplace.py``.
 
 ### Everyday workflow with git ###
-The use should get some basic git knowledge him self. On top of my head I am writing the basic daily git workflow. First you want to update your repository, this is done pulling the latest modifications from the origin and branch master.
+The user should get some basic git knowledge [him self](http://git-scm.com/book/en/v2). On top of my head I am writing the basic daily git workflow. First you want to update your repository, this is done pulling the latest modifications from the origin and branch master.
 ```
 #!shell
 git pull origin master
