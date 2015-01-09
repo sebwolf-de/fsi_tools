@@ -10,7 +10,7 @@ import viewers
 
 if __name__== '__main__':
    
-    (topo,x,y) = lin_t3.load_msh('../gmsh_apps/cerchio_unstr.msh')
+    (topo,x,y) = lin_t3.load_msh('../gmsh_apps/circle.msh')
     
     A= assemble.gradu_gradv_p1(topo,x,y)
     
@@ -21,7 +21,7 @@ if __name__== '__main__':
 
     x_l = x[topo[0]]
     y_l = y[topo[0]]
-    print (x_l , y_l)
+    #print (x_l , y_l)
     eval_points = np.zeros((0,2))
     (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_points)
     
@@ -31,7 +31,8 @@ if __name__== '__main__':
     
     #print rhs	    
     r= np.sqrt(x**2+y**2)
-    bc_id = np.where( r > 0.299)
+    bc_id = np.where( r > 0.999)
+    print bc_id
     A = la_utils.set_diag(A,bc_id)
     pl.spy(A)
     pl.show()    

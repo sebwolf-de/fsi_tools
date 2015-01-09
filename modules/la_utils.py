@@ -424,8 +424,8 @@ def set_diag(A,bc_id):
     uno = sparse.dia_matrix((uno,0), shape = (ndofs,ndofs))
     A = uno.dot(A)
     #print 'A = '
-    #print A
-    #print uno
+    print A
+    print uno
     #uno = np.zeros((1,ndofs))
     #diago = A[range(0,ndofs),range(0,ndofs)]
     uno = np.zeros((1,ndofs))
