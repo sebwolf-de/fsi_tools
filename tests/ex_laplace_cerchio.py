@@ -10,7 +10,7 @@ import viewers
 
 if __name__== '__main__':
    
-    (topo,x,y) = lin_t3.load_msh('../gmsh_apps/circle1.msh')
+    (topo,x,y) = lin_t3.load_msh('../gmsh_apps/circle.msh')
     #print x ,y
     A= assemble.gradu_gradv_p1(topo,x,y)
     pl.spy(A)
