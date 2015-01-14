@@ -5,6 +5,7 @@
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy import sparse
 #from shapely.geometry import Point
 
@@ -283,6 +284,9 @@ def gradu_gradv_p1(topo,x,y):
         x_l = x[row]
         y_l = y[row]
         eval_points = np.zeros((0,2))
+        #plt.spy(eval_points)
+        #plt.show()    
+
         (phi_dx,phi_dy,phi,omega) = basis.tri_p1(x_l,y_l,eval_points)
         dx_j = phi_dx
         dx_i = phi_dx.transpose()
@@ -293,6 +297,8 @@ def gradu_gradv_p1(topo,x,y):
                             row,row,local_matrix)
         
     A = sparse.coo_matrix((values,(rows,cols)),shape=(ndofs,ndofs))
+    #plt.spy(A)
+    #plt.show()    
     A.tocsr()
     
     return A

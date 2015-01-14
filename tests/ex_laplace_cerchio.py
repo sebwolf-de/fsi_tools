@@ -10,12 +10,13 @@ import viewers
 
 if __name__== '__main__':
    
-    (topo,x,y) = lin_t3.load_msh('../gmsh_apps/circle.msh')
-    
+    (topo,x,y) = lin_t3.load_msh('../gmsh_apps/circle1.msh')
+    #print x ,y
     A= assemble.gradu_gradv_p1(topo,x,y)
-    
+    pl.spy(A)
+    pl.show()    
     ndofs=A.shape[0]
-    print (ndofs)    
+    #print (ndofs)    
     rhs = np.zeros((ndofs,1))
 
 
@@ -26,12 +27,15 @@ if __name__== '__main__':
     (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_points)
     
     for row in topo:
-        local_rhs = 1./3. * np.ones((3,1)) * omega
+        a=x[row]
+        b=y[row]
+        surf_e = 1./2. * abs( a[0]*b[2] - a[0]*b[1] + a[1]*b[0] - a[1]*b[2] + a[2]*b[1] - a[2]*b[0] )
+        local_rhs = 1./3. * np.ones((3,1)) * surf_e
         rhs[row] = rhs[row] + local_rhs
     
-    #print rhs	    
     r= np.sqrt(x**2+y**2)
-    bc_id = np.where( r > 0.999)
+    #print r    
+    bc_id = np.where( r > 0.999 )
     print bc_id
     A = la_utils.set_diag(A,bc_id)
     pl.spy(A)

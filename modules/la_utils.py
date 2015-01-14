@@ -413,6 +413,8 @@ def get_cols(A,id_start,id_end):
     return A
 
 def set_diag(A,bc_id):
+    #plt.spy(A)
+    #plt.show()
     ndofs = A.shape[0]
     diago = A.diagonal()
     #print diago
@@ -422,14 +424,21 @@ def set_diag(A,bc_id):
     #print bc_id
     #print uno
     uno = sparse.dia_matrix((uno,0), shape = (ndofs,ndofs))
-    A = uno.dot(A)
+    #plt.spy(uno)
+    #plt.show() 
+    #print uno	
+    A = uno.dot(A) # uno*A
+    #plt.spy(A)
+    #plt.show() 
     #print 'A = '
-    print A
-    print uno
+    #print A
+    #print uno
     #uno = np.zeros((1,ndofs))
     #diago = A[range(0,ndofs),range(0,ndofs)]
     uno = np.zeros((1,ndofs))
     uno[:,bc_id] = diago[bc_id]
+    #plt.spy(uno)
+    #plt.show() 
     #for i in bc_id:
     #    uno[0,i] = diago[0,i]
     #
@@ -442,6 +451,8 @@ def set_diag(A,bc_id):
     #print '***'
     #print uno
     uno = sparse.dia_matrix((uno,0), shape = (ndofs,ndofs))
+    #plt.spy(uno)
+    #plt.show() 
     A = A+uno
     #print 'A = '
     #print A
