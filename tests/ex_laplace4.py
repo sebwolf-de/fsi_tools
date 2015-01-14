@@ -13,6 +13,7 @@ import basis_func as shp
 import assemble
 import la_utils
 import viewers
+import esatta
 
 if __name__== '__main__':
     n = [16]#n = [4,8,16]
@@ -36,9 +37,9 @@ if __name__== '__main__':
         (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_points)
          
         for row in topo:
-            local_rhs = 2./3. * (y[row]*(1-y[row])+x[row]*(1-x[row])) * omega
-            local_rhs = np.reshape(local_rhs,rhs[row].shape)
-            rhs[row] = rhs[row] + local_rhs
+			local_rhs = 2./3. * (y[row]*(1-y[row])+x[row]*(1-x[row])) * omega
+			local_rhs = np.reshape(local_rhs,rhs[row].shape)
+			rhs[row] = rhs[row] + local_rhs
             
         bc_id = np.where( y < delta_x/10)
         A = la_utils.set_diag(A,bc_id)
@@ -60,11 +61,11 @@ if __name__== '__main__':
         
         err=0
         for row in topo:    
-            esatta = (x[row]*(x[row]-1)*y[row]*(y[row]-1))
-            local_err_l2 = np.sum(1./3 * ((sol[row]-esatta)**2) * omega)
+            sol_esatta = esatta.sol_esatta(x[row],y[row])
+            local_err_l2 = np.sum(1./3 * ((sol[row]-sol_esatta)**2) * omega)
             err= err + local_err_l2
         err_l2 [i] = np.sqrt(err)     
         i=i+1
         viewers.plot_sol_p1(x,y,sol,topo)
 
-    #print err_l2
+    print err_l2
