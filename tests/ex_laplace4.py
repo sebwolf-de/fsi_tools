@@ -15,7 +15,7 @@ import la_utils
 import viewers
 
 if __name__== '__main__':
-    n = [4,8,16]
+    n = [16]#n = [4,8,16]
     i=0
     err_l2 = np.zeros((len (n),1))
     for nx in n:
@@ -34,13 +34,11 @@ if __name__== '__main__':
         
         eval_points = np.zeros((0,2))
         (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_points)
-        
-        
+         
         for row in topo:
-            b=np.zeros((3,1))                        
             local_rhs = 2./3. * (y[row]*(1-y[row])+x[row]*(1-x[row])) * omega
-            b[:,0]=local_rhs.transpose()        
-            rhs[row] = rhs[row] + b
+            local_rhs = np.reshape(local_rhs,rhs[row].shape)
+            rhs[row] = rhs[row] + local_rhs
             
         bc_id = np.where( y < delta_x/10)
         A = la_utils.set_diag(A,bc_id)
@@ -69,4 +67,4 @@ if __name__== '__main__':
         i=i+1
         viewers.plot_sol_p1(x,y,sol,topo)
 
-    print err_l2
+    #print err_l2
