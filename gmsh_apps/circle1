@@ -1,0 +1,8 @@
+// Gmsh project created on Fri Jan  9 13:41:43 2015
+Point(1) = {0, 0, 0, 1.0};
+Translate {1, 0, 0} {
+  Point{1};
+}
+Translate {1, 0, 0} {
+  Point{1};
+}

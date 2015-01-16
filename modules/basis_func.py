@@ -14,13 +14,13 @@ def tri_p1(x,y,eval_p):
     
     x : one dimensional array of triangle vertices x coords.\n
     y : one dimensional array of triangle vertices y coords.\n
-    exal_p: (n,2) array of the n evaluation points. first 
+    eval_p: (n,2) array of the n evaluation points. first 
             column indicates x-coord, second y-coord.\n
     
     Output:
     
     dx_phi : the three x-derivatives.\n
-    dx_phi : the three y-derivatives.\n
+    dy_phi : the three y-derivatives.\n
     phi    : (n,3) array of the three shape funtions ath the n eval points.\n
     surf_e : the triangle area.\n
     

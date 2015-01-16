@@ -104,7 +104,7 @@ Exercises
 
    4. Evaluate the error and edit a convergence table. In the ``io_tools`` there should be something useful.
 
-   5. Change the way to impose boundary conditions. Not only delete A rows, but also the columns (still keeping the diagonal entries unchanged). Then add the "lift" contribution to the right han side.
+   5. Change the way to impose boundary conditions. Not only delete A rows, but also the columns (still keeping the diagonal entries unchanged). Then add the "lift" contribution to the right hand side.
 
    6. Now you should have a symmetric matrix. Check it with ``spy`` command. It is time to change your solver to a conjugate gradient.
 

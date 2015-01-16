@@ -6,6 +6,7 @@
 
 import numpy as np
 import scipy.sparse.linalg as sp_la
+import matplotlib.pyplot as pl
 
 import lin_tri_mesh as lin_t3
 import basis_func as shp
@@ -14,16 +15,12 @@ import la_utils
 import viewers
 
 if __name__== '__main__':
-
-    nx = 32
-    delta_x = 1./nx
-    ny = nx
-    delta_y = 1./ny
-    (topo,x,y) = lin_t3.grid_t3(nx,ny,delta_x,delta_y)
     
-    ndofs = (nx+1)*(ny+1)
+    (topo,x,y) = lin_t3.load_msh('../gmsh_apps/unstr_square.msh')
     
     A = assemble.gradu_gradv_p1(topo,x,y)
+    
+    ndofs=A.shape[0]    
     
     rhs = np.zeros((ndofs,1))
     
@@ -33,25 +30,31 @@ if __name__== '__main__':
     (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_points)
     
     for row in topo:
-        local_rhs = 1./3. * np.ones((3,1)) * omega
+        a=x[row]
+        b=y[row]
+        surf_e = 1./2. * abs( a[0]*b[2] - a[0]*b[1] + a[1]*b[0] - a[1]*b[2] + a[2]*b[1] - a[2]*b[0] )
+        local_rhs = 1./3. * np.ones((3,1)) * surf_e
         rhs[row] = rhs[row] + local_rhs
     
-    bc_id = np.where( y < delta_x/10)
+    bc_id = np.where( y == 0 )
     A = la_utils.set_diag(A,bc_id)
     rhs[bc_id] = 0
     
-    bc_id = np.where( y > 1-delta_x/10)
+    bc_id = np.where( y == 1 )
     A = la_utils.set_diag(A,bc_id)
     rhs[bc_id] = 0
     
-    bc_id = np.where( x > 1-delta_x/10)
+    bc_id = np.where( x == 1)
     A = la_utils.set_diag(A,bc_id)
     rhs[bc_id] = 0
     
-    bc_id = np.where( x < delta_x/10)
+    bc_id = np.where( x == 0 )
     A = la_utils.set_diag(A,bc_id)
-    rhs[bc_id] = 0
-            
+    pl.spy(A)
+    pl.show
+        
+    rhs[bc_id] = 0            
     sol = sp_la.spsolve(A,rhs)
     
+   
     viewers.plot_sol_p1(x,y,sol,topo)

@@ -9,3 +9,4 @@ Line(3) = {3, 4};
 Line(4) = {4, 1};
 Line Loop(5) = {3, 4, 1, 2};
 Plane Surface(6) = {5};
+Characteristic Length {2} = 0.1;

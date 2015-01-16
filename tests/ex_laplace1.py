@@ -6,6 +6,7 @@
 
 import numpy as np
 import scipy.sparse.linalg as sp_la
+import matplotlib.pyplot as pl
 
 import lin_tri_mesh as lin_t3
 import basis_func as shp
@@ -51,7 +52,10 @@ if __name__== '__main__':
     bc_id = np.where( x < delta_x/10)
     A = la_utils.set_diag(A,bc_id)
     rhs[bc_id] = 0
-            
+        
+    pl.spy(A)
+    pl.show        
+    
     sol = sp_la.spsolve(A,rhs)
     
     viewers.plot_sol_p1(x,y,sol,topo)
