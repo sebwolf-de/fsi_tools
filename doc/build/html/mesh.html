@@ -1,0 +1,268 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ex_mesh.py Generating and Reading a Mesh &mdash; fsi_tools 0.07 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.07',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="fsi_tools 0.07 documentation" href="index.html" />
+    <link rel="next" title="ex_laplace.py The Laplace Example" href="laplacian.html" />
+    <link rel="prev" title="fsi_tools An Introduction" href="intro.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="laplacian.html" title="ex_laplace.py The Laplace Example"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="fsi_tools An Introduction"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">fsi_tools 0.07 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ex-mesh-py-generating-and-reading-a-mesh">
+<h1><tt class="docutils literal"><span class="pre">ex_mesh.py</span></tt> Generating and Reading a Mesh<a class="headerlink" href="#ex-mesh-py-generating-and-reading-a-mesh" title="Permalink to this headline">¶</a></h1>
+<p>In this tutorial we generate and read a mesh. A standard tool
+for mesh generation is <a class="reference external" href="http://geuz.org/gmsh/">gmsh</a>. The web page contains a lot of documentation
+and tutorials. Also video tutorials... very clear.</p>
+<p>In the directory <tt class="docutils literal"><span class="pre">fsi_tools/gmsh_apps/</span></tt> there are three <tt class="docutils literal"><span class="pre">.geo</span></tt> files.
+They are typical input files for <tt class="docutils literal"><span class="pre">gmsh</span></tt>. I report here three different ways of meshing a
+square. In the first one we generate a point at the origin <tt class="docutils literal"><span class="pre">Point(1)</span> <span class="pre">=</span> <span class="pre">{0,</span> <span class="pre">0.0,</span> <span class="pre">0,</span> <span class="pre">cl1};</span></tt>. The
+variable <tt class="docutils literal"><span class="pre">cl1</span></tt> is not useful at the moment. The point is <tt class="docutils literal"><span class="pre">Extrude</span> <span class="pre">{1,</span> <span class="pre">0,</span> <span class="pre">0}</span> <span class="pre">{...}</span></tt> along the
+fist axis for a length 1, obtaining a line. <tt class="docutils literal"><span class="pre">lyx</span></tt> specifies the number of layers you need to subdivide
+the mesh. The line is extruded for a length 1, obtaining a square.</p>
+<div class="highlight-python"><div class="highlight"><pre>cl1 = 1;
+lyx = 8;
+Point(1) = {0, 0.0, 0, cl1};
+Extrude {1, 0, 0}
+ {
+  Point{1};Layers{lyx};
+}
+Extrude {0, 1, 0}
+ {
+  Line{1};Layers{lyx};
+}
+</pre></div>
+</div>
+<p>Analogous is the the case for a symmetric mesh. The only difference is that we extrude the
+line in two opposite directions, obtaining the symmetry of the triangles.</p>
+<div class="highlight-python"><div class="highlight"><pre>cl1 = 1;
+lyx = 2;
+Point(1) = {0, 0.5, 0, cl1};
+Extrude {1, 0, 0} 
+{
+  Point{1};Layers{lyx};
+}
+Extrude {0, .5, 0} 
+{
+  Line{1};Layers{lyx};
+}
+Extrude {0, -.5, 0} 
+{
+  Line{1};Layers{lyx};
+}
+</pre></div>
+</div>
+<p>A completely unstructured mesh from the <tt class="docutils literal"><span class="pre">gmsh</span></tt> tutorial. <tt class="docutils literal"><span class="pre">ms</span></tt> is the mesh size.</p>
+<div class="highlight-python"><div class="highlight"><pre>ms = 1/8;
+Point(1) = {0, 0, 0, ms};
+Point(2) = {1, 0, 0, ms};
+Point(3) = {1, 1, 0, ms};
+Point(4) = {0, 1, 0, ms};
+Line(1) = {1, 2};
+Line(2) = {2, 3};
+Line(3) = {3, 4};
+Line(4) = {4, 1};
+Line Loop(5) = {3, 4, 1, 2};
+Plane Surface(6) = {5};
+Characteristic Length {2} = 0.1;
+</pre></div>
+</div>
+<div class="section" id="calling-the-mesh-generator">
+<h2>Calling the Mesh Generator<a class="headerlink" href="#calling-the-mesh-generator" title="Permalink to this headline">¶</a></h2>
+<p>Invoke <tt class="docutils literal"><span class="pre">gmsh</span></tt> typing <tt class="docutils literal"><span class="pre">gmsh</span></tt> from command the terminal. <tt class="docutils literal"><span class="pre">gmsh</span></tt> has a nice
+graphical interface.</p>
+<ul class="simple">
+<li>Open the file: File-&gt;Open-&gt;Filename.</li>
+<li>Generate the mesh: Mesh-&gt;1D-&gt;2D.</li>
+<li>Save the mesh: File-&gt;Save Mesh. This will generate the <tt class="docutils literal"><span class="pre">.msh</span></tt> file, explore it!</li>
+</ul>
+</div>
+<div class="section" id="meshing-in-our-code">
+<h2>Meshing in our Code<a class="headerlink" href="#meshing-in-our-code" title="Permalink to this headline">¶</a></h2>
+<p>In this tutorial we both generate the mesh using our hard coded commands,
+and read <tt class="docutils literal"><span class="pre">.msh</span></tt> files. Both these approaches are pretty simple. They are implemented in
+the <tt class="docutils literal"><span class="pre">lin_tri_mesh</span></tt> module, that we are importing giving it a shorter name: <tt class="docutils literal"><span class="pre">lin_t3</span></tt>.
+This is the meaning of <tt class="docutils literal"><span class="pre">as</span></tt> after import. <tt class="docutils literal"><span class="pre">viewers</span></tt> module collects number of
+functions dedicated to visualization.</p>
+<p>This special line separates the <em>header</em> section of the script from the <em>main</em>
+section.</p>
+<div class="highlight-python"><div class="highlight"><pre>if __name__== &#39;__main__&#39;:
+</pre></div>
+</div>
+<p>We first use our hard coded function, the classical and not so smart &#8220;by hand approach&#8221;.</p>
+<div class="highlight-python"><div class="highlight"><pre>    <span class="n">nx</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">delta_x</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">nx</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">nx</span>
+    <span class="n">delta_y</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">ny</span>
+    <span class="p">(</span><span class="n">topo</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">lin_t3</span><span class="o">.</span><span class="n">grid_t3</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">delta_x</span><span class="p">,</span><span class="n">delta_y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the following lines we are smater and include the <tt class="docutils literal"><span class="pre">gmsh</span></tt> generated meshes.
+Filename is a string as we can see in the plain code.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">topo</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">lin_t3</span><span class="o">.</span><span class="n">load_msh</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We use the simple implemented viewer to plot the mesh. Check the
+<a class="reference external" href="./viewers.html">source!</a>
+Once you checked the documented source, go to real source, to see
+how thins look like. <em>This is important because it shows how to
+iterate through a mesh.</em></p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">viewers</span><span class="o">.</span><span class="n">tri_plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">topo</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="exercises">
+<h2>Exercises<a class="headerlink" href="#exercises" title="Permalink to this headline">¶</a></h2>
+<p>This tutorial doesn&#8217;t make much sense without a series of exercises
+that will help to get an acquittance with both Python utilities and the
+buggy code I have wrote.</p>
+<ol class="arabic simple">
+<li>Define a regular mesh with different numbers of elements along the edges.</li>
+<li>Define an unstructured mesh with different mesh sizes at the corners.</li>
+<li>Mesh a circle.</li>
+<li>Now try to iterate over a mesh. And print on the screen the dofs coords.</li>
+</ol>
+<p>The plain code follows: </p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;Generating and Reading a Mesh. </span>
+
+<span class="sd">.. moduleauthor:: Nicola Cavallini</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">lin_tri_mesh</span> <span class="kn">as</span> <span class="nn">lin_t3</span>
+<span class="kn">import</span> <span class="nn">viewers</span>
+
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="n">nx</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">delta_x</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">nx</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">nx</span>
+    <span class="n">delta_y</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">ny</span>
+    <span class="p">(</span><span class="n">topo</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">lin_t3</span><span class="o">.</span><span class="n">grid_t3</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">delta_x</span><span class="p">,</span><span class="n">delta_y</span><span class="p">)</span>
+
+    <span class="n">viewers</span><span class="o">.</span><span class="n">tri_plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">topo</span><span class="p">)</span>
+    
+    <span class="p">(</span><span class="n">topo</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">lin_t3</span><span class="o">.</span><span class="n">load_msh</span><span class="p">(</span><span class="s">&#39;../gmsh_apps/structerd.msh&#39;</span><span class="p">)</span>
+    <span class="n">viewers</span><span class="o">.</span><span class="n">tri_plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">topo</span><span class="p">)</span>
+    
+    <span class="p">(</span><span class="n">topo</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">lin_t3</span><span class="o">.</span><span class="n">load_msh</span><span class="p">(</span><span class="s">&#39;../gmsh_apps/structerd_sym.msh&#39;</span><span class="p">)</span>
+    <span class="n">viewers</span><span class="o">.</span><span class="n">tri_plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">topo</span><span class="p">)</span>
+    
+    <span class="p">(</span><span class="n">topo</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">lin_t3</span><span class="o">.</span><span class="n">load_msh</span><span class="p">(</span><span class="s">&#39;../gmsh_apps/unstr_square.msh&#39;</span><span class="p">)</span>
+    <span class="n">viewers</span><span class="o">.</span><span class="n">tri_plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">topo</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">ex_mesh.py</span></tt> Generating and Reading a Mesh</a><ul>
+<li><a class="reference internal" href="#calling-the-mesh-generator">Calling the Mesh Generator</a></li>
+<li><a class="reference internal" href="#meshing-in-our-code">Meshing in our Code</a></li>
+<li><a class="reference internal" href="#exercises">Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="intro.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">fsi_tools</span></tt> An Introduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="laplacian.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">ex_laplace.py</span></tt> The Laplace Example</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mesh.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="laplacian.html" title="ex_laplace.py The Laplace Example"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="intro.html" title="fsi_tools An Introduction"
+             >previous</a> |</li>
+        <li><a href="index.html">fsi_tools 0.07 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, nicolaalessandro.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

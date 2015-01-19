@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>viewers.py A Module to View &mdash; fsi_tools 0.07 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.07',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="fsi_tools 0.07 documentation" href="index.html" />
+    <link rel="prev" title="assemble.py Operators Assemble" href="assemble.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="assemble.html" title="assemble.py Operators Assemble"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">fsi_tools 0.07 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-viewers">
+<span id="viewers-py-a-module-to-view"></span><h1><tt class="docutils literal"><span class="pre">viewers.py</span></tt> A Module to View<a class="headerlink" href="#module-viewers" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="viewers.tri_plot">
+<tt class="descclassname">viewers.</tt><tt class="descname">tri_plot</tt><big>(</big><em>x</em>, <em>y</em>, <em>topo</em><big>)</big><a class="headerlink" href="#viewers.tri_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a super simple function to plot a triangular mesh. 
+It is also an interesting exercize to see how to loop over the
+mesh elementzs. <tt class="docutils literal"><span class="pre">x</span></tt> and <tt class="docutils literal"><span class="pre">y</span></tt> are one dimensional arrays containg the nodes
+coordinates. On each row of the <tt class="docutils literal"><span class="pre">topo</span></tt> matrix is stored the 
+dof (degree of freedom) with support on the row-th element. Notice that 
+we are looping over the first dimension of <tt class="docutils literal"><span class="pre">topo</span></tt>, so we only need to 
+write a standard <tt class="docutils literal"><span class="pre">python</span></tt> for loop:</p>
+<div class="code python highlight-python"><div class="highlight"><pre>for row in topo:
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">numpy</span></tt> command <tt class="docutils literal"><span class="pre">hstack</span></tt> is used to attach the last node to the 
+first one. This is done to &#8220;close&#8221; our triangles.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">row</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">row</span><span class="p">,</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>We use the <tt class="docutils literal"><span class="pre">[</span></tt> <tt class="docutils literal"><span class="pre">]</span></tt> brackets to acces the nodes and define the local coords.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">x_l</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+<span class="n">y_l</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">row</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Now we only need to plot the local coords for every triangle:</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_l</span><span class="p">,</span> <span class="n">y_l</span><span class="p">,</span><span class="s">&#39;-b&#39;</span><span class="p">,</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="assemble.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">assemble.py</span></tt> Operators Assemble</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/viewers.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="assemble.html" title="assemble.py Operators Assemble"
+             >previous</a> |</li>
+        <li><a href="index.html">fsi_tools 0.07 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, nicolaalessandro.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

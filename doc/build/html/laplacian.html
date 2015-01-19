@@ -1,0 +1,289 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ex_laplace.py The Laplace Example &mdash; fsi_tools 0.07 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.07',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="fsi_tools 0.07 documentation" href="index.html" />
+    <link rel="next" title="basis_func.py Basis Functions Module" href="basis_func.html" />
+    <link rel="prev" title="ex_mesh.py Generating and Reading a Mesh" href="mesh.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="basis_func.html" title="basis_func.py Basis Functions Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="mesh.html" title="ex_mesh.py Generating and Reading a Mesh"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">fsi_tools 0.07 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ex-laplace-py-the-laplace-example">
+<h1><tt class="docutils literal"><span class="pre">ex_laplace.py</span></tt> The Laplace Example<a class="headerlink" href="#ex-laplace-py-the-laplace-example" title="Permalink to this headline">¶</a></h1>
+<p>The usual way to learn about finite elements
+is to first solve the Laplace operator. This is
+simple enough to be understood, but it encapsulates most of the
+difficulties in coding finite elements.</p>
+<p>Our chosen environment is Python. One day I&#8217;ll tell you why.</p>
+<p>It is now time to get our hands dirty, with some code.
+Unless you want to include all the code you need in a single file,
+resulting in a super confusing mess, you will need to <tt class="docutils literal"><span class="pre">include</span></tt>
+some modules that some nice guys prepared for you. This is
+exactly what you do at the beginning of your file. These modules
+can be standard libraries, like:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.sparse.linalg</span> <span class="kn">as</span> <span class="nn">sp_la</span>
+</pre></div>
+</div>
+<p>Or some pieces of code included in this non-library:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">lin_tri_mesh</span> <span class="kn">as</span> <span class="nn">lin_t3</span>
+<span class="kn">import</span> <span class="nn">basis_func</span> <span class="kn">as</span> <span class="nn">shp</span>
+<span class="kn">import</span> <span class="nn">assemble</span>
+<span class="kn">import</span> <span class="nn">la_utils</span>
+<span class="kn">import</span> <span class="nn">viewers</span>
+</pre></div>
+</div>
+<p>In this lines we have respectively:</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">lin_tri_mesh</span></tt>:</dt>
+<dd>a module dedicated to mesh generation and reading.</dd>
+<dt><tt class="docutils literal"><span class="pre">basis_func</span></tt>:</dt>
+<dd>a module dedicated to basis functions.</dd>
+<dt><tt class="docutils literal"><span class="pre">assemble</span></tt>:</dt>
+<dd>a collection of assembling routines.</dd>
+<dt><tt class="docutils literal"><span class="pre">la_utils</span></tt>:</dt>
+<dd>small and useful linear algebra tricks.</dd>
+<dt><tt class="docutils literal"><span class="pre">viewers</span></tt>:</dt>
+<dd>functions useful for plotting.</dd>
+</dl>
+<p>Now we collect all of these functions into the <tt class="docutils literal"><span class="pre">__main__</span></tt> section of a script,
+where we execute them one after another.</p>
+<div class="highlight-python"><div class="highlight"><pre>if __name__== &#39;__main__&#39;:
+</pre></div>
+</div>
+<p>Now we define the discretization parameters and we generate the mesh.
+The way I usually represent a mesh is with the <tt class="docutils literal"><span class="pre">x</span></tt> and <tt class="docutils literal"><span class="pre">y</span></tt> nodes coordinates,
+and with the <tt class="docutils literal"><span class="pre">topo</span></tt>-ogical matrix (also known as connectivity matrix). Each row correspond
+to an element. In each row the corresponding nodes are stored. (At some point mesh will become a class).</p>
+<div class="highlight-python"><div class="highlight"><pre>    <span class="n">nx</span> <span class="o">=</span> <span class="mi">32</span>
+    <span class="n">delta_x</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">nx</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">nx</span>
+    <span class="n">delta_y</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">ny</span>
+    <span class="p">(</span><span class="n">topo</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">lin_t3</span><span class="o">.</span><span class="n">grid_t3</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">delta_x</span><span class="p">,</span><span class="n">delta_y</span><span class="p">)</span>
+    
+    <span class="n">ndofs</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">ny</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The &#8220;stiffness&#8221; matrix A, is assembled in the <tt class="docutils literal"><span class="pre">assemble</span></tt> module. We redirect to this
+module documentation for details. And we actually recommend to <a class="reference external" href="./assemble.html">check it</a>, because people
+in scientific computing usually want to control this section of their codes.</p>
+<div class="highlight-python"><div class="highlight"><pre>    <span class="n">A</span> <span class="o">=</span> <span class="n">assemble</span><span class="o">.</span><span class="n">gradu_gradv_p1</span><span class="p">(</span><span class="n">topo</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">rhs</span></tt> implementation is a little rough. I take advantage of having a structured mesh and I
+evaluate the element only once. To do this I use the <tt class="docutils literal"><span class="pre">tri_p1</span></tt> function then I loop over all
+the elements adding the contribution of a unitary function (our forcing) on each element.</p>
+<div class="highlight-python"><div class="highlight"><pre>    <span class="n">x_l</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">topo</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">y_l</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">topo</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">eval_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+    <span class="p">(</span><span class="n">phi_dx</span><span class="p">,</span><span class="n">phi_dy</span><span class="p">,</span><span class="n">phi</span><span class="p">,</span><span class="n">omega</span><span class="p">)</span> <span class="o">=</span> <span class="n">shp</span><span class="o">.</span><span class="n">tri_p1</span><span class="p">(</span><span class="n">x_l</span><span class="p">,</span><span class="n">y_l</span><span class="p">,</span><span class="n">eval_points</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">topo</span><span class="p">:</span>
+        <span class="n">local_rhs</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">omega</span>
+        <span class="n">rhs</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">rhs</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">+</span> <span class="n">local_rhs</span>
+</pre></div>
+</div>
+<p>Now we intend to set the boundary conditions. In this case we delete the A rows
+corresponding to fixed dofs, leaving only the diagonal entries to their original
+value. We locate the dofs corresponding to the domain border using the <tt class="docutils literal"><span class="pre">numpy</span></tt>
+function <tt class="docutils literal"><span class="pre">where</span></tt>.</p>
+<div class="highlight-python"><div class="highlight"><pre>    <span class="n">bc_id</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="n">delta_x</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">la_utils</span><span class="o">.</span><span class="n">set_diag</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">bc_id</span><span class="p">)</span>
+    <span class="n">rhs</span><span class="p">[</span><span class="n">bc_id</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>Once we repeated this procedure for every side of the square
+we only need to solve the linear system. SciPy is the guy that helps us
+in this concern:</p>
+<div class="highlight-python"><div class="highlight"><pre>    
+</pre></div>
+</div>
+<p>We only now need to plot the solution using one of the prepared functions in
+viewer:</p>
+<div class="section" id="exercises">
+<h2>Exercises<a class="headerlink" href="#exercises" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Plot, using the <tt class="docutils literal"><span class="pre">matplotlib</span></tt> command <tt class="docutils literal"><span class="pre">spy</span></tt> the sparsity pattern for A.</li>
+<li>Play around with the mesh parameters, ultimately change from a structured mesh to an unstructured one.  <tt class="docutils literal"><span class="pre">gmsh</span></tt> is the tool to generate the mesh. Inside <tt class="docutils literal"><span class="pre">lin_tri_mesh</span></tt> there is a tool to read the mesh.</li>
+<li>Change the forcing to a manufactured solution.</li>
+<li>Evaluate the error and edit a convergence table. In the <tt class="docutils literal"><span class="pre">io_tools</span></tt> there should be something useful.</li>
+<li>Change the way to impose boundary conditions. Not only delete A rows, but also the columns (still keeping the diagonal entries unchanged). Then add the &#8220;lift&#8221; contribution to the right han side.</li>
+<li>Now you should have a symmetric matrix. Check it with <tt class="docutils literal"><span class="pre">spy</span></tt> command. It is time to change your solver to a conjugate gradient.</li>
+<li>This is difficult: try to implement null and ideal preconditioners for this linear system... Don&#8217;t try this at home.</li>
+</ol>
+</div></blockquote>
+<p>The plain code follows: </p>
+<div class="highlight-python"><div class="highlight"><pre><span class="sd">&quot;&quot;&quot;The Laplacian, the finite elements playground. </span>
+
+<span class="sd">.. moduleauthor:: Nicola Cavallini</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.sparse.linalg</span> <span class="kn">as</span> <span class="nn">sp_la</span>
+
+<span class="kn">import</span> <span class="nn">lin_tri_mesh</span> <span class="kn">as</span> <span class="nn">lin_t3</span>
+<span class="kn">import</span> <span class="nn">basis_func</span> <span class="kn">as</span> <span class="nn">shp</span>
+<span class="kn">import</span> <span class="nn">assemble</span>
+<span class="kn">import</span> <span class="nn">la_utils</span>
+<span class="kn">import</span> <span class="nn">viewers</span>
+
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="n">nx</span> <span class="o">=</span> <span class="mi">32</span>
+    <span class="n">delta_x</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">nx</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="n">nx</span>
+    <span class="n">delta_y</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">ny</span>
+    <span class="p">(</span><span class="n">topo</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="n">lin_t3</span><span class="o">.</span><span class="n">grid_t3</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">delta_x</span><span class="p">,</span><span class="n">delta_y</span><span class="p">)</span>
+    
+    <span class="n">ndofs</span> <span class="o">=</span> <span class="p">(</span><span class="n">nx</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">ny</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="n">A</span> <span class="o">=</span> <span class="n">assemble</span><span class="o">.</span><span class="n">gradu_gradv_p1</span><span class="p">(</span><span class="n">topo</span><span class="p">,</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span>
+    
+    <span class="n">rhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ndofs</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+    
+    <span class="n">x_l</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">topo</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">y_l</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">topo</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">eval_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+    <span class="p">(</span><span class="n">phi_dx</span><span class="p">,</span><span class="n">phi_dy</span><span class="p">,</span><span class="n">phi</span><span class="p">,</span><span class="n">omega</span><span class="p">)</span> <span class="o">=</span> <span class="n">shp</span><span class="o">.</span><span class="n">tri_p1</span><span class="p">(</span><span class="n">x_l</span><span class="p">,</span><span class="n">y_l</span><span class="p">,</span><span class="n">eval_points</span><span class="p">)</span>
+    
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">topo</span><span class="p">:</span>
+        <span class="n">local_rhs</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="mf">3.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">omega</span>
+        <span class="n">rhs</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">rhs</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">+</span> <span class="n">local_rhs</span>
+    
+    <span class="n">bc_id</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="n">delta_x</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">la_utils</span><span class="o">.</span><span class="n">set_diag</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">bc_id</span><span class="p">)</span>
+    <span class="n">rhs</span><span class="p">[</span><span class="n">bc_id</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="n">bc_id</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="o">-</span><span class="n">delta_x</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">la_utils</span><span class="o">.</span><span class="n">set_diag</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">bc_id</span><span class="p">)</span>
+    <span class="n">rhs</span><span class="p">[</span><span class="n">bc_id</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="n">bc_id</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="o">-</span><span class="n">delta_x</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">la_utils</span><span class="o">.</span><span class="n">set_diag</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">bc_id</span><span class="p">)</span>
+    <span class="n">rhs</span><span class="p">[</span><span class="n">bc_id</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="n">bc_id</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">delta_x</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">la_utils</span><span class="o">.</span><span class="n">set_diag</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">bc_id</span><span class="p">)</span>
+    <span class="n">rhs</span><span class="p">[</span><span class="n">bc_id</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            
+    <span class="n">sol</span> <span class="o">=</span> <span class="n">sp_la</span><span class="o">.</span><span class="n">spsolve</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">rhs</span><span class="p">)</span>
+    
+    <span class="n">viewers</span><span class="o">.</span><span class="n">plot_sol_p1</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">sol</span><span class="p">,</span><span class="n">topo</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><tt class="docutils literal"><span class="pre">ex_laplace.py</span></tt> The Laplace Example</a><ul>
+<li><a class="reference internal" href="#exercises">Exercises</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="mesh.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">ex_mesh.py</span></tt> Generating and Reading a Mesh</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="basis_func.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">basis_func.py</span></tt> Basis Functions Module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/laplacian.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="basis_func.html" title="basis_func.py Basis Functions Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="mesh.html" title="ex_mesh.py Generating and Reading a Mesh"
+             >previous</a> |</li>
+        <li><a href="index.html">fsi_tools 0.07 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, nicolaalessandro.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

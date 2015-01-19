@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>assemble.py Operators Assemble &mdash; fsi_tools 0.07 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.07',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="fsi_tools 0.07 documentation" href="index.html" />
+    <link rel="next" title="viewers.py A Module to View" href="viewers.html" />
+    <link rel="prev" title="basis_func.py Basis Functions Module" href="basis_func.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="viewers.html" title="viewers.py A Module to View"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="basis_func.html" title="basis_func.py Basis Functions Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">fsi_tools 0.07 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-assemble">
+<span id="assemble-py-operators-assemble"></span><h1><tt class="docutils literal"><span class="pre">assemble.py</span></tt> Operators Assemble<a class="headerlink" href="#module-assemble" title="Permalink to this headline">¶</a></h1>
+<p>Assemble Utilities.</p>
+<dl class="function">
+<dt id="assemble.gradu_gradv_p1">
+<tt class="descclassname">assemble.</tt><tt class="descname">gradu_gradv_p1</tt><big>(</big><em>topo</em>, <em>x</em>, <em>y</em><big>)</big><a class="headerlink" href="#assemble.gradu_gradv_p1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assembling the Laplace operator. The function name resambles the 
+operator gradtient of the trial functionctions, multiplied the gradient of 
+the test functions. Assuming <span class="math">\(P_1\)</span> elements on the <span class="math">\(K\)</span> trinagle we have:</p>
+<div class="math">
+\[\int_K \mathrm{grad}(u)_j \cdot \mathrm{grad}(v)_i = \mathrm{Area}(K)\ \mathrm{grad}(u_j) \cdot \mathrm{grad}(v_i)\]</div>
+<p>In the code snippet, we can see that, by default, derivatives are represented a 1x3 row. 
+The <tt class="docutils literal"><span class="pre">dx_i</span></tt> and <tt class="docutils literal"><span class="pre">dy_i</span></tt> components are transpose. So we only need the matrix product <tt class="docutils literal"><span class="pre">np.dot</span></tt>
+to have the local stffness matrix. The values for thederivatives are obtained 
+form the <tt class="docutils literal"><span class="pre">tri_p1</span></tt> function in the <cite>basis_func</cite> module, <a class="reference external" href="./basis_func.html">check its documentation</a>.</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="n">dx_j</span> <span class="o">=</span> <span class="n">phi_dx</span>
+<span class="n">dx_i</span> <span class="o">=</span> <span class="n">phi_dx</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+<span class="n">dy_j</span> <span class="o">=</span> <span class="n">phi_dy</span>
+<span class="n">dy_i</span> <span class="o">=</span> <span class="n">phi_dy</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+<span class="n">local_matrix</span> <span class="o">=</span> <span class="n">omega</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dx_i</span><span class="p">,</span><span class="n">dx_j</span><span class="p">)</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dy_i</span><span class="p">,</span><span class="n">dy_j</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Input:</p>
+<p><tt class="docutils literal"><span class="pre">x</span></tt>, <tt class="docutils literal"><span class="pre">y</span></tt>, <tt class="docutils literal"><span class="pre">topo</span></tt> : the nodes coordinates and the connectivity.</p>
+<p>Output:</p>
+<p><tt class="docutils literal"><span class="pre">A</span></tt> : The spasre matrix A representing the discretized operator.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="basis_func.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">basis_func.py</span></tt> Basis Functions Module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="viewers.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">viewers.py</span></tt> A Module to View</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/assemble.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="viewers.html" title="viewers.py A Module to View"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="basis_func.html" title="basis_func.py Basis Functions Module"
+             >previous</a> |</li>
+        <li><a href="index.html">fsi_tools 0.07 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, nicolaalessandro.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

@@ -14,6 +14,7 @@ import assemble
 import la_utils
 import viewers
 
+
 if __name__== '__main__':
     
     (topo,x,y) = lin_t3.load_msh('../gmsh_apps/unstr_square.msh')
@@ -56,5 +57,6 @@ if __name__== '__main__':
     rhs[bc_id] = 0            
     sol = sp_la.spsolve(A,rhs)
     
-   
     viewers.plot_sol_p1(x,y,sol,topo)
+    
+    
