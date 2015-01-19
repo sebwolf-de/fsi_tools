@@ -15,7 +15,7 @@ class Parabola:
     """
     def evaluate(self,x):
         """
-        Usually we want to evaluate the Funftion, then a good idea is the 
+        Usually we want to evaluate the Function, then a good idea is the 
         evaluate function.
     .. code:: python
     
