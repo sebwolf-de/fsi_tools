@@ -28,10 +28,10 @@ def err_l2(topo,x,y,sol):
         b21=B[1]-B[0]
         b22=B[2]-B[0]
         #det=b11*b22-b12*b21
-        xp = A[1] + b11*xq +b12*yq
-        yp = B[1] + b21*xq +b22*yq
+        xp = A[0] + b11*xq +b12*yq
+        yp = B[0] + b21*xq +b22*yq
         eval_p = np.array([xp,yp])
-        eval_p = np.reshape ( eval_p, (xp.shape[0],2))
+        eval_p = eval_p.transpose ()
        #eval_p = eval_p.transpose
 #       print eval_p.shape[0]
         
@@ -46,18 +46,19 @@ def err_l2(topo,x,y,sol):
         tmphdery = np.zeros((1,xp.shape[0]))
         
         (phi_dx,phi_dy,phi,omega) = basis.tri_p1(A,B,eval_p) 
+        #print phi
         
         for i in np.array([0,1,2]):            
             tmpapprox = tmpapprox + uu[i]*phi[:,i]
-            tmphderx = tmphderx + uu[i] * (phi_dx[:,i]*b22 - phi_dy[:,i]*b21)
-            tmphdery = tmphdery + uu[i] * (phi_dy[:,i]*b11 - phi_dx[:,i]*b12)            
-        
-        tmp = np.sum ( aq * ( tmpesatta - tmpapprox )**2 )
-        tmp2 = np.sum (aq * ( tmpesatta )**2)        
-        tmpx=np.sum (aq * ( tmpderx - tmphderx )**2)
-        tmp2x=np.sum ( aq * tmpderx**2 )
-        tmpy=np.sum ( aq * ( tmpdery - tmphdery )**2 )
-        tmp2y=np.sum ( aq * tmpdery**2 )
+            tmphderx = tmphderx + uu[i] * phi_dx[:,i]
+            tmphdery = tmphdery + uu[i] * phi_dy[:,i]
+       
+        tmp = np.sum ( aq * ( tmpesatta - tmpapprox )**2) *2 *omega 
+        tmp2 = np.sum (aq * ( tmpesatta )**2) *2 *omega
+        tmpx=np.sum (aq * ( tmpderx - tmphderx )**2) *2 *omega
+        tmp2x=np.sum ( aq * tmpderx**2 ) *2 *omega
+        tmpy=np.sum ( aq * ( tmpdery - tmphdery )**2 ) *2 *omega
+        tmp2y=np.sum ( aq * tmpdery**2 ) *2 *omega
         er_derx = er_derx + tmpx
         ex_derx = ex_derx + tmp2x
         er_dery = er_dery + tmpy
