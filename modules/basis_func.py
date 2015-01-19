@@ -24,6 +24,8 @@ def tri_p1(x,y,eval_p):
     phi    : (n,3) array of the three shape funtions ath the n eval points.\n
     surf_e : the triangle area.\n
     
+    Notice: all the quantities are computed on the current element
+    
     """
     # =================================================|
     # given the triangle nodes                         |
