@@ -12,11 +12,13 @@ Contents:
    :maxdepth: 2
 
    intro
+   classes
    mesh
    laplacian
    basis_func
    assemble
    viewers
+   func_lib
 
 
 
