@@ -1,5 +1,9 @@
 import numpy as np
 
+def load(x,y):
+      f=2*(x*(1-x)+y*(1-y))
+      return f
+
 def sol_esatta(x,y):
 	esa=x*(1-x)*y*(1-y)
 	return esa
