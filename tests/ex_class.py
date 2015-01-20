@@ -7,30 +7,34 @@ if __name__== '__main__':
     
     x = np.linspace(0,3)
     
-    par = Parabola()
+    par = Parabola(2,0,0)
     
-    par.a = 2
-    par.b = 0
-    par.c = 0
+#    par.a = 2
+#    par.b = 0
+#    par.c = 0
 
     y = par.evaluate(x)
     
-    plt.plot(x,y,'b')
+    graph=par.plot(x,'r')    
     
-    another_parabola = Parabola()
+    #plt.plot(x,y,'b')
     
-    another_parabola.a = 3
-    another_parabola.b = 0
-    another_parabola.c = 0
+    another_parabola = Parabola(3,0,1)
     
-    y = another_parabola.evaluate(x)
     
-    plt.plot(x,y,'r')
+    graph=another_parabola.plot(x,'b')
+#    another_parabola.a = 3
+#    another_parabola.b = 0
+#    another_parabola.c = 0
     
-    par.c = 1
+#    y = another_parabola.evaluate(x)
     
-    y = par.evaluate(x)
+#    plt.plot(x,y,'r')
     
-    plt.plot(x,y,'g')
+#    par.c = 1
+    
+    #y = par.evaluate(x)
+    
+    #plt.plot(x,y,'g')
     
     plt.show()

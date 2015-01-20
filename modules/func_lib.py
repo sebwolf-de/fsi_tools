@@ -4,6 +4,7 @@
 .. moduleauthor:: Nicola Cavallini
 
 """
+import matplotlib.pyplot as plt
 
 class Parabola:
     """
@@ -13,6 +14,13 @@ class Parabola:
     .. math::
        y = a\cdot x^2 + b \cdot x + c
     """
+
+    def __init__(self,a,b,c):
+        self.a=a
+        self.b=b
+        self.c=c
+        return       
+    
     def evaluate(self,x):
         """
         Usually we want to evaluate the Function, then a good idea is the 
@@ -39,3 +47,11 @@ class Parabola:
         
         y = self.a* x**2+ self.b*x+self.c
         return y
+
+    def plot (self,x,color):
+        graph = plt.plot(x,self.evaluate(x),color)
+        plt.show()
+        return graph
+
+         
+        
