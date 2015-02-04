@@ -35,7 +35,7 @@ def err_l2(topo,x,y,sol):
        #eval_p = eval_p.transpose
 #       print eval_p.shape[0]
         
-        tmpesatta = esatta.sol_esatta(xp,yp)
+        tmpesatta = esatta.sol_esatta1(xp,yp)
         tmpesatta = np.reshape ( tmpesatta, (1,xp.shape[0]))        
         tmpderx = esatta.dx_sol_esatta(xp,yp)
         tmpderx = np.reshape ( tmpderx, (1,xp.shape[0]))

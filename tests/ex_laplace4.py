@@ -17,11 +17,8 @@ import esatta
 import errore2D
 
 if __name__== '__main__':
-<<<<<<< HEAD
+
     n = [4,8,16]
-=======
-    n = [16,32,64,128]
->>>>>>> 57ef4f185de312fb6004bbf61dee9852688eaf3c
     i=0
     err_l2 = np.zeros((len (n),1))
     for nx in n:
@@ -39,13 +36,9 @@ if __name__== '__main__':
             a=x[row]
             b=y[row]
             surf_e = 1./2. * abs( a[0]*b[2] - a[0]*b[1] + a[1]*b[0] - a[1]*b[2] + a[2]*b[1] - a[2]*b[0] )
-<<<<<<< HEAD
             tmpload = esatta.load(a,b)
             tmpload = np.reshape ( tmpload, rhs[row].shape)
             local_rhs = 1./3. * tmpload * surf_e
-=======
-            local_rhs = 1./3. * np.ones((3,1)) * surf_e
->>>>>>> 57ef4f185de312fb6004bbf61dee9852688eaf3c
             rhs[row] = rhs[row] + local_rhs        
 #        eval_points = np.zeros((0,2))
 #        (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_points)
@@ -82,8 +75,7 @@ if __name__== '__main__':
 #        err_l2 [i] = np.sqrt(err)     
 #        i=i+1
         
-        #viewers.plot_sol_p1(x,y,sol,topo)
-<<<<<<< HEAD
+        viewers.plot_sol_p1(x,y,sol,topo)
         #print  sol
         #print esatta.sol_esatta(x,y)
         tmpesatta= esatta.sol_esatta(x,y)
@@ -91,9 +83,7 @@ if __name__== '__main__':
         norma = np.sum((sol-tmpesatta)**2)
         normaes=np.sum(tmpesatta**2)
         norma=np.sqrt(norma)/np.sqrt(normaes)
-        print norma
+#        print norma
         
-=======
->>>>>>> 57ef4f185de312fb6004bbf61dee9852688eaf3c
 
         print err_l2 , er_derx , er_dery
