@@ -27,11 +27,11 @@ if __name__== '__main__':
         A= assemble.gradu_gradv_p1(topo,x,y)    # this matrix consider all nodes (b_nodes + int_nodes) and numeration starts from zero
                                                 
         ndofs=A.shape[0]
-#        esattta = esatta.sol_esatta1 (x,y)
-#        fig = plt.figure()
-#        ax = fig.gca(projection='3d')
-#        ax.plot_trisurf(x, y, esattta)
-#        plt.show()
+        esattta = esatta.sol_esatta1 (x,y)
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        ax.plot_trisurf(x, y, esattta)
+        plt.show()
     
         rhs = np.zeros((ndofs,1))       
         
@@ -65,23 +65,33 @@ if __name__== '__main__':
         rhs[b_nodes] = 0
         
         sol = sp_la.spsolve(A,rhs)
-#        sol = np.reshape(sol,bc.shape)
-#        sol = sol + bc
-#        solu=[]    
-#        for i in sol :
-#            solu= np.append(solu,i)
+        sol = np.reshape(sol,bc.shape)
+        sol = sol + bc
+        solu=[]    
+        for i in sol :
+            solu= np.append(solu,i)
 #            
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        ax.plot_trisurf(x, y, sol)
-        plt.show()
-
-        ( err_l2 , er_derx , er_dery ) = errore2D.err_l2(topo,x,y,sol)
+#        fig = plt.figure()
+#        ax = fig.gca(projection='3d')
+#        ax.plot_trisurf(x, y, solu)
+#        plt.show()
+#        r = np.sqrt(x**2+y**2)
+#        x_0=[]        
+#        y_0=[]
+#        solu_0=[]        
+#        k=0        
+#        for rho in r:
+#            if rho > 1e-5:
+#                x_0 = np.append(x_0,x[k])
+#                y_0 = np.append(y_0,y[k])
+#                solu_0 = np.append(solu_0,solu[k])
+#                
+#            k=k+1
+                    
+        ( err_l2 , er_derx , er_dery ) = errore2D.err_l2(topo,x,y,solu)
         print 'errore_L2' ,  err_l2 
+        print 'errore_dx' ,  er_derx
+        print 'errore_dy' ,  er_dery
+        
 
-        tmpesatta= esatta.sol_esatta1(x,y)
-        tmpesatta = np.reshape ( tmpesatta, (1,x.shape[0]))
-        norma = np.sum((sol-tmpesatta)**2)
-        normaes=np.sum(tmpesatta**2)
-        norma=np.sqrt(norma)/np.sqrt(normaes)        
-        print norma
+       

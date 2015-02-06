@@ -37,19 +37,23 @@ def err_l2(topo,x,y,sol):
         
         tmpesatta = esatta.sol_esatta1(xp,yp)
         tmpesatta = np.reshape ( tmpesatta, (1,xp.shape[0]))        
-        tmpderx = esatta.dx_sol_esatta(xp,yp)
-        tmpderx = np.reshape ( tmpderx, (1,xp.shape[0]))
-        tmpdery = esatta.dy_sol_esatta(xp,yp)
-        tmpdery = np.reshape (tmpdery , (1,xp.shape[0]))        
+#        tmpderx = esatta.dx_sol_esatta(xp,yp)
+        (tmpderx,tmpdery)  = esatta.der_sol_esatta_1(xp,yp)
+
+#        print "ciao",tmpderx
+#        tmpderx = np.reshape ( tmpderx, (1,xp.shape[0]))
+#        tmpdery = esatta.dy_sol_esatta(xp,yp)
+#        print "ciao-ciao", tmpdery        
+#        tmpdery = np.reshape (tmpdery , (1,xp.shape[0]))        
         tmpapprox = np.zeros((1,xp.shape[0]))
         tmphderx = np.zeros((1,xp.shape[0]))
         tmphdery = np.zeros((1,xp.shape[0]))
         
         (phi_dx,phi_dy,phi,omega) = basis.tri_p1(A,B,eval_p) 
         #print phi
-        
         for i in np.array([0,1,2]):            
             tmpapprox = tmpapprox + uu[i]*phi[:,i]
+        
             tmphderx = tmphderx + uu[i] * phi_dx[:,i]
             tmphdery = tmphdery + uu[i] * phi_dy[:,i]
        
