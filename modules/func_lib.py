@@ -5,6 +5,17 @@
 
 """
 import matplotlib.pyplot as plt
+#--------------------------------------------------
+import
+
+class QGauss:
+    def __init__(self):
+    self.points = np.array([])
+    self.weights = np.array([])
+    return
+    
+
+#--------------------------------------------------
 
 class Parabola:
     """
@@ -19,7 +30,7 @@ class Parabola:
         self.a=a
         self.b=b
         self.c=c
-        return       
+        return
     
     def evaluate(self,x):
         """

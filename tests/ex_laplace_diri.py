@@ -21,6 +21,7 @@ import basis_func as basis
 
 if __name__== '__main__':
    mesh=[ "../gmsh_apps/settore_circolare.msh", "../gmsh_apps/settore_circolare1.msh", "../gmsh_apps/settore_circolare2.msh"]
+   #mesh=[ "../gmsh_apps/settore_circolare.msh"]
    for m in mesh :
         (topo,x,y,nodes, b_nodes,int_nodes) = lin_t3.load_msh_1(m) #  numeration that starts from zero in all this elements 
         A= assemble.gradu_gradv_p1(topo,x,y)    # this matrix consider all nodes (b_nodes + int_nodes) and numeration starts from zero
