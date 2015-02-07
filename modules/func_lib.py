@@ -14,16 +14,6 @@ class QGauss:
     self.weights = np.array([])
     return
     
-class RefBasisFunc:
-    def __init__(self,QGauss):
-    return
-    def get_basis_finctions(self):
-        # resituisci i valori
-    return
-    def get_basis_gradients(self):
-        # resituisci i gradienti
-    return
-    
 
 #--------------------------------------------------
 

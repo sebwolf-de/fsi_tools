@@ -4,6 +4,27 @@ Created on Thu Feb  5 11:10:04 2015
 
 @author: michele
 """
+# this module will become a class
+# call it: ReferenceShapeFuncion
+class ReferenceShapeFuncion:
+    def __init__(self,in_degree):
+        self.degree = in_degree
+    return
+    def eval_basis_finctions(self,quad):
+        value_list = [];
+        # resituisci i valori
+    return
+    def eval_basis_gradients(self,quad):
+        grad_list = [];
+        # for every quadrature point we create
+        # a 2d numpy array. rows are the contravariant 
+        # component, colums are the covariant.
+        # grad \bf u = \partial_j u_i
+        #
+        # resituisci i gradienti
+    return
+#
+
 import numpy as np
 def shape_2D(node,degree,der,x,y):
     """    
