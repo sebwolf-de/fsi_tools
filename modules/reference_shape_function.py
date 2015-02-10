@@ -4,6 +4,18 @@ Created on Mon Feb  9 12:48:43 2015
 @author: michele
 """
 
+"""
+Local node numeration 
+ 
+ Degree = 1    |   Degree = 2       
+     2         |     2
+     |\        |     | \
+     | \       |     5  4
+     |  \      |     |    \
+     0---1     |     0--3--1  
+"""
+import numpy as np
+
 class ReferenceShapeFuncion:
     def __init__(self,in_degree):
         self.degree = in_degree
@@ -11,8 +23,8 @@ class ReferenceShapeFuncion:
 #==============================================================================
     def eval_basis_functions(self,quad):
 
-        x = quad[:0]
-        y = quad[:1]
+        x =np.array(quad[:0])
+        y =np.array(quad[:1])
 
         if self.degree==1:
             value_list = [1.-x-y , x , y]
@@ -22,8 +34,8 @@ class ReferenceShapeFuncion:
 #==============================================================================
     def eval_basis_gradients(self,quad):
 
-        x = quad[:0]
-        y = quad[:1]
+        x =np.array(quad[:0])
+        y =np.array(quad[:1])
 
         if self.degree==1:        
             grad_list = [[-1,-1],[1,0],[0,1]]      

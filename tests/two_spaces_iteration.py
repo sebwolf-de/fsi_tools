@@ -8,7 +8,8 @@ import numpy as np
 from mesh import Mesh
 
 vel_mesh = Mesh('vel_file')
-vel_mesh.read_data() # now this is doing noting mik: implementation required
+vel_mesh.read_data()
+# now this is doing noting mik: implementation required
 # you only need to locate the correct function and put int in the right place
 
 prex_mesh = Mesh('prex_file')

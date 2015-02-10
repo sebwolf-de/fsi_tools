@@ -28,7 +28,7 @@ def load_msh(filename):
             print 'non fare un cippa'
         else:
             l = map(float,line.split())
-            #print l
+            print l
             if len(l) == 4:
                 x = np.append(x,l[1])
                 y = np.append(y,l[2])
