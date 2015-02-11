@@ -32,7 +32,7 @@ class Mesh:
                 if len(l) > 4:
                     if l[1]==1 or l[1]==8: 
                         nod = l[5:]
-                        print l[1] ,nod
+#                        print l[1] ,nod
                         for i in nod:
                             i= int(i-1)
                             if i not in self.b_nodes:  
@@ -52,7 +52,7 @@ class Mesh:
             if ck < 0:
                 self.topo[r_id,:] = np.array([[row[0],row[2],row[1]]])
             r_id+=1        
-        print r_id    
+#        print r_id    
         
         return 
         
