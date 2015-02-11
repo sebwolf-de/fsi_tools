@@ -22,7 +22,7 @@ from mapping import Mapping
 if __name__== '__main__':
     
     cerchio = Mesh('../gmsh_apps/cerchio4_1.msh') 
-    cerchio.read_data_from_input()    
+    cerchio.read_data_from_input()
     topo = cerchio.topo
     x = cerchio.x
     y = cerchio.y
