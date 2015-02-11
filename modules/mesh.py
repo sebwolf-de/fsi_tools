@@ -8,12 +8,7 @@ import numpy as np
 
 class Mesh:
     def __init__(self,file_to_be_read):
-        self.filename = file_to_be_read
-#        self.topo = np.array([[]])
-#        self.x = np.array([])
-#        self.y = np.array([])
-#        self.nodes = np.array([])
-#        self.b_nodes = np.array([])        
+        self.filename = file_to_be_read      
         return
         
     def read_data_from_input(self):
