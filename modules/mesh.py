@@ -8,16 +8,21 @@ import numpy as np
 
 class Mesh:
     def __init__(self,file_to_be_read):
-        self.filename = file_to_be_read      
+        self.filename = file_to_be_read     
+        self.el_id = 0
+        return
+    
+    def next(self):
+        self.el_id +=1
         return
         
     def read_data_from_input(self):
         f = open ( self.filename , 'r')
-        self.topo = np.array([[]])
+        self.topo = np.array([[]], dtype=int)
         self.x = np.array([])
         self.y = np.array([])
-        self.nodes = np.array([])
-        self.b_nodes = np.array([])
+        self.nodes = np.array([], dtype=int)
+        self.b_nodes = np.array([], dtype=int)
         for line in f: 
             if line[0]!='$':
 #                print 'non fare un cippa'
