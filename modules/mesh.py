@@ -9,6 +9,11 @@ import numpy as np
 class Mesh:
     def __init__(self,file_to_be_read):
         self.filename = file_to_be_read
+#        self.topo = np.array([[]])
+#        self.x = np.array([])
+#        self.y = np.array([])
+#        self.nodes = np.array([])
+#        self.b_nodes = np.array([])        
         return
         
     def read_data_from_input(self):
@@ -30,8 +35,9 @@ class Mesh:
                     self.nodes = np.append(self.nodes,int(l[0])-1)                
 
                 if len(l) > 4:
-                    if l[1]==1 or l[1]==8:                 
+                    if l[1]==1 or l[1]==8: 
                         nod = l[5:]
+                        print l[1] ,nod
                         for i in nod:
                             i= int(i-1)
                             if i not in self.b_nodes:  
@@ -53,6 +59,6 @@ class Mesh:
             r_id+=1        
         print r_id    
         
-        return topo, x, y, nodes, b_nodes                  
+        return 
         
         
