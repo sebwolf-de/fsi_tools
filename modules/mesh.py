@@ -52,8 +52,7 @@ class Mesh:
             if ck < 0:
                 self.topo[r_id,:] = np.array([[row[0],row[2],row[1]]])
             r_id+=1        
-#        print r_id    
-        
+#        print r_id
         return 
         
         
