@@ -72,7 +72,10 @@ if __name__== '__main__':
         A = np.zeros((6,6)) 
         for i in [0,1,2,3,4,5]:
             for j in [0,1,2,3,4,5]:
-                A[i,j] = np.sum(np.sum(grad_list[j]*grad_list[i])*quad.weights*det)
+                B = grad_list[j]*grad_list[i]
+                C = np.sum(B, axis=1)
+                print C[:,0]
+                A[i,j] = np.sum(C[:,0]*quad.weights*det)
         
         print 'matrice di elemento \n' 
         print A
@@ -80,4 +83,7 @@ if __name__== '__main__':
 #        B = np.array([[4*xq+4*yq-3] , [4*yq+4*xq-3]])
 #        B = np.transpose(B) 
 #        B = grad_list[0][:0]*grad_list[1][:0] #+grad_list[0][:1]*grad_list[1][:1]
-#        C = grad_list[0]*grad_list[1]
+#        C = grad_list[2]*grad_list[1]
+#        print C
+#        D = np.sum(C, axis=1)
+#        print D

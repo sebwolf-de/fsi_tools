@@ -49,7 +49,9 @@ class ReferenceShapeFuncion:
         if self.degree==1:
             grad_list = [[-1,-1],[1,0],[0,1]]      
         if self.degree==2:
-            grad_list = [np.transpose(np.array([[4*x+4*y-3] , [4*y+4*x-3]])),np.transpose(np.array([[4*x-1] , [0*x]])),np.transpose(np.array([[0*x] ,[ 4*y-1]])),np.transpose(np.array([[-8*x-4*y+4] ,[ 4*x]])),np.transpose(np.array([[4*y] , [4*x]])),np.transpose(np.array([[4*y] , [-8*y-4*x+4]]))]
+            grad_list = [np.transpose(np.array([[4*x+4*y-3] , [4*y+4*x-3]])),np.transpose(np.array([[4*x-1] ,[0*x]])),
+                         np.transpose(np.array([[0*x] ,[ 4*y-1]])),np.transpose(np.array([[-8*x-4*y+4] ,[ 4*x]])),
+                            np.transpose(np.array([[4*y] , [4*x]])),np.transpose(np.array([[4*y] , [-8*y-4*x+4]]))]
         # for every quadrature point we create
         # a 2d numpy array. rows are the contravariant 
         # component, colums are the covariant.
