@@ -33,7 +33,7 @@ for row in topo:
     x = x[row][0] + A1*xq^2 + A2*yq^2 + A3*xq*yq + A4*xq + A5*yq    
     y = y[row][0] + B1*xq^2 + B2*yq^2 + B3*xq*yq + B4*xq + B5*yq
     
-    det =  (A1*xq*2+A3*yq+A4)*(B2*yq*2+B3*xq+B5)-(A2*yq*2+A3*xq+A5)*(B1*xq*2+B3*yq+B4)
+    det = (A1*xq*2+A3*yq+A4)*(B2*yq*2+B3*xq+B5)-(A2*yq*2+A3*xq+A5)*(B1*xq*2+B3*yq+B4)
     
     
     

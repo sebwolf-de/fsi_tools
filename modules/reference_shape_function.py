@@ -21,7 +21,7 @@ write and import quad class
 
 """
 
-class ReferenceShapeFuncion:
+class ReferenceShapeFunction:
     def __init__(self,in_degree):
         self.degree = in_degree
         return

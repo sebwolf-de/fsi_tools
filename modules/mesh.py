@@ -5,6 +5,8 @@ Created on Sat Feb  7 15:03:47 2015
 @author: nicola
 """
 import numpy as np
+#from reference_shape_function import ReferenceShapeFunction
+#from quadrature import Quadrature
 
 class Mesh:
     def __init__(self,file_to_be_read):
@@ -45,19 +47,22 @@ class Mesh:
                     
                     if l[1] == 2 or l[1]==9:
                         row = l[5:]
-                        row = np.array(row, dtype=int)
-                        self.topo = np.append(self.topo,row)
+                        self.row = np.array(row, dtype=int)
+                        self.topo = np.append(self.topo,self.row)
                         
-        self.topo = np.reshape(self.topo,(len(self.topo)/len(row),len(row)))
+        self.topo = np.reshape(self.topo,(len(self.topo)/len(self.row),len(self.row)))
         self.topo = self.topo-1
         r_id = 0 
-        for row in self.topo:
-            ck =      (self.x[row[1]]-self.x[row[0]])*(self.y[row[2]]-self.y[row[0]])
-            ck = ck - (self.x[row[2]]-self.x[row[0]])*(self.y[row[1]]-self.y[row[0]])
+        for self.row in self.topo:
+            ck =      (self.x[self.row[1]]-self.x[self.row[0]])*(self.y[self.row[2]]-self.y[self.row[0]])
+            ck = ck - (self.x[self.row[2]]-self.x[self.row[0]])*(self.y[self.row[1]]-self.y[self.row[0]])
             if ck < 0:
-                self.topo[r_id,:] = np.array([[row[0],row[2],row[1]]])
+                self.topo[r_id,:] = np.array([[self.row[0],self.row[2],self.row[1]]])
             r_id+=1        
 #        print r_id
         return 
+    
+    
+
         
         
