@@ -120,5 +120,19 @@ def der_sol_esatta_1(x,y):
 #    teta_x = np.array ([-x*y/((np.sqrt(r**2+y**2))*(r**2))])
 #    teta_y = np.array ([(r**2-y**2)/((np.sqrt(r**2+y**2))*(r**2))]) 
 #    J = np.array([[x./r, y./r],[-x*y/((np.sqrt(r**2+y**2))*(r**2)),(r**2-y**2)/((np.sqrt(r**2+y**2))*(r**2))]])
+#==========================================================================
+def load_2(x,y):
+    f = 0*x+0*y+1
+    return f
+def sol_esatta_2(x,y):
+    esa = (1./4.)*((x**2)+(y**2)-1)
+    return esa
 
-    
+def dx_sol_esatta_2(x,y):
+    dx_esa = x/2.
+    return dx_esa
+
+def dy_sol_esatta_2(x,y):
+    dy_esa = y/2.
+    return dy_esa 
+        
