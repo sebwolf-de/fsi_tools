@@ -21,6 +21,7 @@ if __name__== '__main__':
 
     mapping = Mapping()
     shape = ReferenceShapeFunction(2)
+    shape.evaluate_gradient(s_eval,t_eval)
     
     mapping.reinit(s_eval,t_eval)
     
