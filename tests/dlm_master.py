@@ -261,24 +261,23 @@ n_delta_x = params["fluid_triangulation_intervals"]
 n_delta_s = params["structure_triangulation_intervals"]
 
 dt = base*10**(-esponente)
-n_times = params["time_intervals_to_be_simulated"]#1#int(2./dt)
-#stampa = n_times*[True]#n_times*[False]
+n_times = params["time_intervals_to_be_simulated"]
 no_print_intervals = params["time_intervals_in_between_printed_results"]
-stampa = n_times*[True+no_print_intervals*False]
-
+stampa = []
+for i in range(n_times):
+    if (i%no_print_intervals==0):
+        stampa.append(True)
+    else:
+        stampa.append(False)
 print 'dt = ' + str(dt)
 
-#mesh_prefix = 'str_'
-mesh_prefix = params["mesh_prefix"]#str(f.readline())#'thin_'
-#mesh_prefix = 'unstr_'
-#mesh_prefix = mesh_prefix[:len(mesh_prefix)-1]
+
+mesh_prefix = params["mesh_prefix"]
+
 mesh_name = mesh_prefix+str(int(n_delta_s))
 
 bool_conversion = {"true_string" : True, "false_string" : False}
-
 equilibrium_at_zero = bool_conversion[params["equilibrium_at_zero"]]
-
-#f.close()
 
 sim_prefix = 'dlm_'+mesh_name+'_'
 sim_prefix += 'dt'+str(int(base))+'em'+str(int(esponente))
@@ -387,19 +386,10 @@ MXT = sparse.vstack([
     sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_s)),MXT22])
     ])
 
-#plt.spy(MXT)
-#plt.show()
-
-#MXT = MX
-#MX = MXT
-
 FX = sparse.vstack([
     sparse.hstack([FX11,sparse.csr_matrix((ndofs_s,ndofs_s))]),
     sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_s)),FX22])
     ])
-
-#plt.spy(FX)
-#plt.show()
 
 rows = np.arange(0,1)
 vals = np.ones((1))
