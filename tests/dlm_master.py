@@ -297,6 +297,7 @@ if sum(ph.stampa) !=0:
     results_dir = ph.results_directory+'/'+ph.sim_prefix+'/binary_data/'
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
+    ph.dump_to_json(ph.results_directory+'/'+ph.sim_prefix+'/simulation_parameters.json')
     write_mesh()
 
 ndofs_u = max(x_u.shape)
