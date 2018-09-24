@@ -19,9 +19,10 @@ import geom_utils as geom
 from shapely.geometry import Polygon
 
 from preconditioner import BlockPreconditioner
+from parameters_handler import ParametersHandler
 
 def read_initial_condition(cn_time):
-    #filename = './mesh/'+sim_prefix
+    #filename = './mesh/'+ph.sim_prefix
     #f = file(filename,"rb")
     #topo_p = np.load(f)
     #x_p = np.load(f)
@@ -36,8 +37,8 @@ def read_initial_condition(cn_time):
     #s_lgr = np.load(f)
     #t_lgr = np.load(f)
     #f.close()
-    filename = "./results/"
-    filename += sim_prefix + '_'+str(cn_time).zfill(4)
+    filename = "./"+ph.results_directory+"/"
+    filename += ph.sim_prefix + '_'+str(cn_time).zfill(4)
     f = file(filename,"rb")
     u = np.load(f)
     p = np.load(f)
@@ -50,7 +51,7 @@ def read_initial_condition(cn_time):
 def write_mesh():
     filename = results_dir+'mesh'#'./mesh/'+sim_prefix
     f = file(filename,"wb")
-    if mesh_prefix != 'thin_':
+    if ph.n_delta_x != 'thin_':
         np.save(f,topo_p)
         np.save(f,x_p)
         np.save(f,y_p)
@@ -63,7 +64,7 @@ def write_mesh():
         np.save(f,ys_n)
         np.save(f,s_lgr)
         np.save(f,t_lgr)
-    elif mesh_prefix == 'thin_':
+    elif ph.n_delta_x == 'thin_':
         np.save(f,topo_p)
         np.save(f,x_p)
         np.save(f,y_p)
@@ -83,8 +84,8 @@ def assemble_blokwise_force(ux_n,uy_n,xs_n,ys_n):
     size = 2*ndofs_u+ndofs_p+1+4*ndofs_s
     rhs = np.zeros((size))
 
-    f_rhs_x = 1/dt*Mv11.dot(ux_n)
-    f_rhs_y = 1/dt*Mv11.dot(uy_n)
+    f_rhs_x = 1/ph.dt*Mv11.dot(ux_n)
+    f_rhs_y = 1/ph.dt*Mv11.dot(uy_n)
 
     bc_id = np.where( y_u < delta_x/10)
     f_rhs_y[bc_id,:] = 0
@@ -101,8 +102,8 @@ def assemble_blokwise_force(ux_n,uy_n,xs_n,ys_n):
     bc_id = np.where( x_u < delta_x/10)
     f_rhs_x[bc_id,:] = 0
 
-    s_rhs_x = 1/dt*MX11.dot(dx_n)
-    s_rhs_y = 1/dt*MX11.dot(dy_n)
+    s_rhs_x = 1/ph.dt*MX11.dot(dx_n)
+    s_rhs_y = 1/ph.dt*MX11.dot(dy_n)
 
     f_rhs_x = np.reshape(f_rhs_x,(ndofs_u))
     f_rhs_y = np.reshape(f_rhs_y,(ndofs_u))
@@ -149,7 +150,7 @@ def assemble_blokwise_matrix():
 
     mat4 = sparse.hstack([-G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
-                          1/dt*MX,
+                          1/ph.dt*MX,
                           sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
                           sparse.csr_matrix((ndofs_s*2,1))
                           ])
@@ -192,7 +193,7 @@ def l2_norm(M,g):
     return l2_g
 
 def write_output():
-    filename = results_dir +'cn_time_'+str(cn_time).zfill(6)
+    filename = results_dir +'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
     f = file(filename,"wb")
     np.save(f,u_n1)
     np.save(f,p)
@@ -206,13 +207,13 @@ def write_output():
     return
 
 def eval_str_area():
-    if mesh_prefix == 'thin_':
+    if ph.n_delta_x == 'thin_':
         x = np.reshape(xs_n,(xs_n.shape[0],1))
         x = np.vstack([x,[[0]]])
         y = np.reshape(ys_n,(ys_n.shape[0],1))
         y = np.vstack([y,[[0]]])
         area = geom.area_evaluation(x[:,0],y[:,0])
-    elif mesh_prefix != 'thin_':
+    elif ph.n_delta_x != 'thin_':
         area = 0
         for row in topo_s:
             x_l = xs_n[row]
@@ -224,19 +225,6 @@ def eval_str_area():
             area+= poly.area
     return area
 
-def simulation_info():
-    print '-----------------------------------'
-    print 'started simulation: '
-    print sim_prefix
-    print 'dt = '+str(int(base))+'em'+str(int(esponente))
-    print 'hx = '+str(int(n_delta_x))
-    print 'hs = '+str(int(n_delta_s))
-    print 'k  = '+str(int(kappa))
-    print 're = '+str(int(reynolds))
-    print 'eq_at_zero = '+str(equilibrium_at_zero)
-    print '-----------------------------------'
-    return
-
 def get_diffusion():
     return diffusion
 
@@ -244,51 +232,15 @@ def get_energy():
     return energy
 
 def get_prefix():
-    return sim_prefix
+    return ph.sim_prefix
 
 np.set_printoptions(precision=4)
 np.set_printoptions(suppress=True)
 
-with open('simulation_parameters.json') as f:
-    params = json.load(f)
+ph = ParametersHandler('simulation_parameters.json')
+ph.simulation_info()
 
-base = params["delta_time_base"]
-esponente = params["delta_time_negative_esponent"]
-kappa = params["structure_stiffness_kappa"]
-reynolds = params["reynolds_number"]
-
-n_delta_x = params["fluid_triangulation_intervals"]
-n_delta_s = params["structure_triangulation_intervals"]
-
-dt = base*10**(-esponente)
-n_times = params["time_intervals_to_be_simulated"]
-no_print_intervals = params["time_intervals_in_between_printed_results"]
-stampa = []
-for i in range(n_times):
-    if (i%no_print_intervals==0):
-        stampa.append(True)
-    else:
-        stampa.append(False)
-print 'dt = ' + str(dt)
-
-
-mesh_prefix = params["mesh_prefix"]
-
-mesh_name = mesh_prefix+str(int(n_delta_s))
-
-bool_conversion = {"true_string" : True, "false_string" : False}
-equilibrium_at_zero = bool_conversion[params["equilibrium_at_zero"]]
-
-sim_prefix = 'dlm_'+mesh_name+'_'
-sim_prefix += 'dt'+str(int(base))+'em'+str(int(esponente))
-sim_prefix += '_hx'+str(int(n_delta_x))+'_hs'+str(int(n_delta_s))
-sim_prefix += '_k'+str(int(kappa))
-sim_prefix += '_re'+str(int(reynolds))
-sim_prefix += '_eq_at_zero_'+str(equilibrium_at_zero)
-
-simulation_info()
-
-nx_p = n_delta_x
+nx_p = ph.n_delta_x
 delta_x = 1./nx_p
 ny_p = nx_p
 delta_y = 1./ny_p
@@ -298,13 +250,13 @@ delta_y = 1./ny_p
 
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(nx_p,ny_p,delta_x,delta_y)
 
-if mesh_prefix != 'thin_':
+if ph.n_delta_x != 'thin_':
     #nx = 4
     #delta_x = 1./nx
     #ny = 2
     #delta_y = 1./ny
     #(topo_s,s_lgr,t_lgr) = lin_t3.mesh_t3(nx,ny,delta_x,delta_y)
-    filename = './mesh_collection/' + mesh_name+'.msh'
+    filename = './mesh_collection/' + ph.mesh_name+'.msh'
     (topo_s,s_lgr,t_lgr) = lin_t3.load_msh(filename)
 
     # =============================================#
@@ -319,19 +271,19 @@ if mesh_prefix != 'thin_':
     R0 = .3
     R1 = .5
     ray = R0 + (s_lgr * (R1-R0))
-    if equilibrium_at_zero == True:
+    if ph.equilibrium_at_zero == True:
         xs_zero = np.zeros(s_lgr.shape)
         ys_zero = np.zeros(t_lgr.shape)
         xs_n = 1./1.4*(ray * np.cos(mth.pi/2 * t_lgr))
         ys_n =    1.4*(ray * np.sin(mth.pi/2 * t_lgr))
-    elif equilibrium_at_zero == False:
+    elif ph.equilibrium_at_zero == False:
         s_lgr = ray * np.cos(mth.pi/2 * t_lgr)
         t_lgr = ray * np.sin(mth.pi/2 * t_lgr)
         xs_zero = s_lgr
         ys_zero = t_lgr
         xs_n = 1./1.4*(s_lgr)
         ys_n =    1.4*(t_lgr)
-elif mesh_prefix == 'thin_':
+elif ph.n_delta_x == 'thin_':
     ray = .5
     deform = 1.4
     (topo_s,xs_n,ys_n,s_lgr,ieq_s) = lin_t3.lin_str_mesh(n_delta_s,ray,deform)
@@ -341,8 +293,8 @@ elif mesh_prefix == 'thin_':
 #(xs_n,ys_n) = read_initial_condition(40)
 ie_s = np.arange(0,s_lgr.shape[0])
 
-if sum(stampa) !=0:
-    results_dir = 'results/'+sim_prefix+'/binary_data/'
+if sum(ph.stampa) !=0:
+    results_dir = ph.results_directory+'/'+ph.sim_prefix+'/binary_data/'
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
     write_mesh()
@@ -351,10 +303,10 @@ ndofs_u = max(x_u.shape)
 ndofs_p = max(x_p.shape) + topo_p.shape[0]
 ndofs_s = max(ie_s)+1
 
-if mesh_prefix != 'thin_':
+if ph.n_delta_x != 'thin_':
     MX11 = assemble.u_v_p1_periodic(topo_s,s_lgr,t_lgr,ie_s)
     FX11 = assemble.gradu_gradv_p1_ieq(topo_s,s_lgr,t_lgr,ie_s)
-elif mesh_prefix == 'thin_':
+elif ph.n_delta_x == 'thin_':
     MX11 = assemble.u_v_lin_p1(topo_s,s_lgr,ieq_s)
     FX11 = assemble.gradu_gradv_lin_p1(topo_s,s_lgr,ieq_s)
 
@@ -362,7 +314,7 @@ MX22 = MX11
 MXT11 = MX11
 MXT22 = MX11
 
-FX11 = kappa * FX11
+FX11 = ph.kappa * FX11
 FX22 = FX11
 
 bc_id = np.where( ys_n < delta_x/10)
@@ -400,8 +352,8 @@ vals = np.ones((ndofs_p))
 Mp = sparse.coo_matrix((vals, (rows,rows)), shape=(ndofs_p,ndofs_p))
 Mv11 = assemble.u_v_p1(topo_u,x_u,y_u)
 A11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
-A11 = A11/reynolds
-A11 = A11 + Mv11/dt
+A11 = A11/ph.reynolds
+A11 = A11 + Mv11/ph.dt
 A22 = A11
 
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,
@@ -460,15 +412,15 @@ uy_n = np.zeros((ndofs_u,1))
 dx_n = xs_n - xs_zero
 dy_n = ys_n - ys_zero
 
-grade = np.linspace(0.0, 1.0, sum(stampa))
+grade = np.linspace(0.0, 1.0, sum(ph.stampa))
 
 str_area_zero = eval_str_area()
 
 color_id = 0
 energy = []
-for cn_time in range(0,len(stampa)):
+for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
-    if mesh_prefix != 'thin_':
+    if ph.n_delta_x != 'thin_':
 
         (str_segments,fluid_id) = geom.fluid_intersect_mesh(topo_u,x_u,y_u,
                            topo_s,xs_n,ys_n)
@@ -477,7 +429,7 @@ for cn_time in range(0,len(stampa)):
                                      s_lgr,t_lgr,
                                      xs_n,ys_n,topo_s,ie_s,
                                      str_segments,fluid_id)
-    elif mesh_prefix == 'thin_':
+    elif ph.n_delta_x == 'thin_':
 
         t0 = time.time()
 
@@ -574,7 +526,7 @@ for cn_time in range(0,len(stampa)):
     elif diffusion < .8:
         break
 
-    if stampa[cn_time] == True:
+    if ph.stampa[cn_time] == True:
         write_output()
     step_t1 = time.time()
     print 'step time = ' + str((step_t1-step_t0))

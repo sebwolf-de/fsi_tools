@@ -13,5 +13,7 @@
     "time_intervals_to_be_simulated": 10,
     "time_intervals_in_between_printed_results": 4,
     "equilibrium_at_zero": "true_string",
-    "_equilibrium_at_zero": "false_string"
+    "_equilibrium_at_zero": "false_string",
+    "time_index_digits": 6,
+    "results_directory": "results"
 }
