@@ -65,10 +65,10 @@ for cn_time in time_list:
     print input_name
     #print ' -> ' + output_name
     output_name = str_dir + 'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
-    # if mesh_prefix == 'thin':
-    #     viewers.plot_thin_str(xs,ys,output_name)
-    # else:
-    #     viewers.tri_plot_tex(xs,ys,topo_s,'-','b',output_name)
+    if ph.mesh_prefix == 'thin_':
+        viewers.plot_thin_str(xs,ys,output_name)
+    else:
+        viewers.tri_plot_tex(xs,ys,topo_s,'-b',output_name)
     print ' -> ' + output_name
     plt.close("all")
     output_name = vel_dir + 'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
