@@ -7,7 +7,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import sparse
-#from shapely.geometry import Point
+from shapely.geometry import Point
 
 # nicola modules
 import la_utils

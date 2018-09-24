@@ -51,7 +51,7 @@ def read_initial_condition(cn_time):
 def write_mesh():
     filename = results_dir+'mesh'#'./mesh/'+sim_prefix
     f = file(filename,"wb")
-    if ph.n_delta_x != 'thin_':
+    if ph.mesh_prefix != 'thin_':
         np.save(f,topo_p)
         np.save(f,x_p)
         np.save(f,y_p)
@@ -64,7 +64,7 @@ def write_mesh():
         np.save(f,ys_n)
         np.save(f,s_lgr)
         np.save(f,t_lgr)
-    elif ph.n_delta_x == 'thin_':
+    elif ph.mesh_prefix == 'thin_':
         np.save(f,topo_p)
         np.save(f,x_p)
         np.save(f,y_p)
@@ -207,13 +207,13 @@ def write_output():
     return
 
 def eval_str_area():
-    if ph.n_delta_x == 'thin_':
+    if ph.mesh_prefix == 'thin_':
         x = np.reshape(xs_n,(xs_n.shape[0],1))
         x = np.vstack([x,[[0]]])
         y = np.reshape(ys_n,(ys_n.shape[0],1))
         y = np.vstack([y,[[0]]])
         area = geom.area_evaluation(x[:,0],y[:,0])
-    elif ph.n_delta_x != 'thin_':
+    elif ph.mesh_prefix != 'thin_':
         area = 0
         for row in topo_s:
             x_l = xs_n[row]
@@ -250,7 +250,7 @@ delta_y = 1./ny_p
 
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(nx_p,ny_p,delta_x,delta_y)
 
-if ph.n_delta_x != 'thin_':
+if ph.mesh_prefix != 'thin_':
     #nx = 4
     #delta_x = 1./nx
     #ny = 2
@@ -283,10 +283,10 @@ if ph.n_delta_x != 'thin_':
         ys_zero = t_lgr
         xs_n = 1./1.4*(s_lgr)
         ys_n =    1.4*(t_lgr)
-elif ph.n_delta_x == 'thin_':
+elif ph.mesh_prefix == 'thin_':
     ray = .5
     deform = 1.4
-    (topo_s,xs_n,ys_n,s_lgr,ieq_s) = lin_t3.lin_str_mesh(n_delta_s,ray,deform)
+    (topo_s,xs_n,ys_n,s_lgr,ieq_s) = lin_t3.lin_str_mesh(ph.n_delta_s,ray,deform)
     xs_zero = np.zeros(s_lgr.shape)
     ys_zero = np.zeros(s_lgr.shape)
 
@@ -303,10 +303,10 @@ ndofs_u = max(x_u.shape)
 ndofs_p = max(x_p.shape) + topo_p.shape[0]
 ndofs_s = max(ie_s)+1
 
-if ph.n_delta_x != 'thin_':
+if ph.mesh_prefix != 'thin_':
     MX11 = assemble.u_v_p1_periodic(topo_s,s_lgr,t_lgr,ie_s)
     FX11 = assemble.gradu_gradv_p1_ieq(topo_s,s_lgr,t_lgr,ie_s)
-elif ph.n_delta_x == 'thin_':
+elif ph.mesh_prefix == 'thin_':
     MX11 = assemble.u_v_lin_p1(topo_s,s_lgr,ieq_s)
     FX11 = assemble.gradu_gradv_lin_p1(topo_s,s_lgr,ieq_s)
 
@@ -420,7 +420,7 @@ color_id = 0
 energy = []
 for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
-    if ph.n_delta_x != 'thin_':
+    if ph.mesh_prefix != 'thin_':
 
         (str_segments,fluid_id) = geom.fluid_intersect_mesh(topo_u,x_u,y_u,
                            topo_s,xs_n,ys_n)
@@ -429,7 +429,7 @@ for cn_time in range(0,len(ph.stampa)):
                                      s_lgr,t_lgr,
                                      xs_n,ys_n,topo_s,ie_s,
                                      str_segments,fluid_id)
-    elif ph.n_delta_x == 'thin_':
+    elif ph.mesh_prefix == 'thin_':
 
         t0 = time.time()
 
