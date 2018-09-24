@@ -1,4 +1,6 @@
 {
+    "_solver_type": "ibm_",
+    "solver_type" : "dlm_",
     "delta_time_base": 10,
     "delta_time_negative_esponent": 1,
     "structure_stiffness_kappa": 5,

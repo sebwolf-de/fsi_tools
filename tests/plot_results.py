@@ -49,8 +49,8 @@ bool_conversion = {"true_string" : True, "false_string" : False}
 equilibrium_at_zero = bool_conversion[params["equilibrium_at_zero"]]
 
 #solver_type = 'ibm_'
-solver_type = 'dlm_'
-mesh_prefix = 'str_'
+solver_type = params["solver_type"]
+mesh_prefix = params["mesh_prefix"]
 #mesh_prefix = 'thin_'
 mesh_name = mesh_prefix+str(int(n_delta_s))+'_'
 #mesh_name = 'unstr_32_'
