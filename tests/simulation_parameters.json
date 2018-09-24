@@ -1,0 +1,15 @@
+{
+    "delta_time_base": 10,
+    "delta_time_negative_esponent": 1,
+    "structure_stiffness_kappa": 5,
+    "reynolds_number" : 1,
+    "fluid_triangulation_intervals" : 16,
+    "structure_triangulation_intervals" : 16,
+    "mesh_prefix": "str_",
+    "_mesh_prefix": "thin_",
+    "_mesh_prefix": "unstr_",
+    "time_intervals_to_be_simulated": 1,
+    "time_intervals_in_between_printed_results": 1,
+    "equilibrium_at_zero": "true_string",
+    "_equilibrium_at_zero": "false_string"
+}
