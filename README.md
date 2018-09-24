@@ -4,9 +4,14 @@ This code that I am sharing isn't meant to be, or ether become, a library. On th
 
 # Anaconda
 
-[Anaconda](https://www.anaconda.com/download/#linux) solves all dependencies, if you successfully install Anaconda you shouldn't bother
-next paragraph.
+[Anaconda](https://www.anaconda.com/download/#linux) solves most of the dependencies, if you 
+successfully install Anaconda you shouldn't bother next paragraph.
 
+Additional packages:
+
+```
+conda install -c scitools/label/archive shapely
+```
 
 ## Required Dependencies ##
 This pieces of code requires the following libraries.* At the current stage, the standard packages coming with and Ubuntu distribution should be ok.*
@@ -135,3 +140,12 @@ And if you want to share your commits you can push them on the repo:
 #!shell
 git push origin master
 ```
+
+# Distributed Lagrangian Multiplier Script
+
+If the installation works successfully you should run the Distributed Lagrangian Multiplier (`dlm`) Script with the usual:
+```
+python dlm_master.py
+```
+The solver reads the simulation parameters in the `simulation_parameters.json` file runs the simulation.
+The same `simulation_parameters.json` is read by the `plot_results.py` script. `plot_results.py` reads the slution parameters and, collects the binary data, and writes plots of the solution.
