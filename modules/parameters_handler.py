@@ -6,6 +6,7 @@ class ParametersHandler:
             self.params = json.load(f)
 
         self.solver_type = self.params["solver_type"]
+        self.time_integration = self.params["time_integration"]
         self.base = self.params["delta_time_base"]
         self.esponente = self.params["delta_time_negative_esponent"]
         self.kappa = self.params["structure_stiffness_kappa"]
@@ -35,8 +36,9 @@ class ParametersHandler:
             sp += 'dt'+str(int(self.base))+'em'+str(int(self.esponente))
             sp += '_hx'+str(int(self.n_delta_x))
             sp += '_re'+str(int(self.reynolds))
-        else:
+        elif self.solver_type == "dlm_":
             sp = self.solver_type+self.mesh_name+'_'
+            sp += self.time_integration+'_'
             sp += 'dt'+str(int(self.base))+'em'+str(int(self.esponente))
             sp += '_hx'+str(int(self.n_delta_x))+'_hs'+str(int(self.n_delta_s))
             sp += '_k'+str(int(self.kappa))
