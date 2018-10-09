@@ -5,6 +5,7 @@ class ParametersHandler:
         with open(filename) as f:
             self.params = json.load(f)
 
+        self.solver_type = self.params["solver_type"]
         self.base = self.params["delta_time_base"]
         self.esponente = self.params["delta_time_negative_esponent"]
         self.kappa = self.params["structure_stiffness_kappa"]
@@ -29,12 +30,18 @@ class ParametersHandler:
         bool_conversion = {"true_string" : True, "false_string" : False}
         self.equilibrium_at_zero = bool_conversion[self.params["equilibrium_at_zero"]]
 
-        sp = 'dlm_'+self.mesh_name+'_'
-        sp += 'dt'+str(int(self.base))+'em'+str(int(self.esponente))
-        sp += '_hx'+str(int(self.n_delta_x))+'_hs'+str(int(self.n_delta_s))
-        sp += '_k'+str(int(self.kappa))
-        sp += '_re'+str(int(self.reynolds))
-        sp += '_eq_at_zero_'+str(self.equilibrium_at_zero)
+        if self.solver_type == "ns_":
+            sp =  self.solver_type+self.mesh_name+'_'
+            sp += 'dt'+str(int(self.base))+'em'+str(int(self.esponente))
+            sp += '_hx'+str(int(self.n_delta_x))
+            sp += '_re'+str(int(self.reynolds))
+        else:
+            sp = self.solver_type+self.mesh_name+'_'
+            sp += 'dt'+str(int(self.base))+'em'+str(int(self.esponente))
+            sp += '_hx'+str(int(self.n_delta_x))+'_hs'+str(int(self.n_delta_s))
+            sp += '_k'+str(int(self.kappa))
+            sp += '_re'+str(int(self.reynolds))
+            sp += '_eq_at_zero_'+str(self.equilibrium_at_zero)
 
         self.sim_prefix = sp
 
