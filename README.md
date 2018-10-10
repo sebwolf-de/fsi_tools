@@ -1,5 +1,7 @@
 # fsi_tools #
 
+![Alt cover picture](title.png?raw=true "Title")
+
 In this repository I share the code I produce during my master's thesis. It is based on Nicola Cavalini's work.
 
 ## Required Dependencies ##
