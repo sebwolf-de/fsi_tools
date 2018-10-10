@@ -54,7 +54,7 @@ class ParametersHandler:
         print '-----------------------------------'
         print 'started simulation: '
         print self.sim_prefix
-        print 'dt = '+str(int(self.base))+'em'+str(int(self.esponente))
+        print 'dt = '+str(ph.dt)#str(int(self.base))+'em'+str(int(self.esponente))
         print 'hx = '+str(int(self.n_delta_x))
         print 'hs = '+str(int(self.n_delta_s))
         print 'k  = '+str(int(self.kappa))

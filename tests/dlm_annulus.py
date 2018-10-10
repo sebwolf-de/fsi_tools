@@ -625,6 +625,7 @@ for cn_time in range(0,len(ph.stampa)):
         diffusion = 999
     print '--------------------------------------'
     print 'cn_time   = ' + str(cn_time)
+    print 't         = ' + str(cn_time*ph.dt)
     print 'diffusion = ' + str(diffusion)
     print 'energy    = ' + str(nrg)
     print 'pressure == 0? ' + str(p_all_zero)
