@@ -15,7 +15,7 @@ This pieces of code requires the following libraries.
 6. Rtree X.X.X
 
 Nicola: At the current stage, the standard packages coming with and Ubuntu distribution should be ok.
-Sebastian: I run Fedora and have installed the needed packages via dnf. Everything works fine 
+Sebastian: I run Fedora 28 and have installed the needed packages via dnf. Everything works fine. 
 
 ## How do I get set up? ##
 
