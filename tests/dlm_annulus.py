@@ -80,8 +80,14 @@ def write_mesh():
     f.close()
     return
 
-def assemble_blockwise_force_BDF1(ux_n,uy_n,xs_n,ys_n):
+def assemble_blockwise_force_BDF1():#ux_n,uy_n,xs_n,ys_n):
 
+    print ux_n.shape
+    print uy_n.shape
+    print xs_n.shape
+    print ys_n.shape
+    print dx_n.shape
+    print dy_n.shape
     size = 2*ndofs_u+ndofs_p+1+4*ndofs_s
     rhs = np.zeros((size))
 
@@ -255,7 +261,7 @@ def assemble_blockwise_matrix_BDF2():
     return mat
 
 def assemble_blockwise_force_Theta(ux_n,uy_n,p_n,xs_n,ys_n,l_n):
-    
+
     size = 2*ndofs_u+ndofs_p+1+4*ndofs_s
     rhs = np.zeros((size))
 
@@ -690,7 +696,7 @@ for cn_time in range(0,len(ph.stampa)):
 
     if ph.time_integration == 'BDF1':
         mat = assemble_blockwise_matrix_BDF1()
-        force = assemble_blockwise_force_BDF1(ux_n,uy_n,xs_n,ys_n)
+        force = assemble_blockwise_force_BDF1()#ux_n,uy_n,xs_n,ys_n)
     elif ph.time_integration == 'Theta':
         mat = assemble_blockwise_matrix_Theta()
         force = assemble_blockwise_force_Theta(ux_n,uy_n,p_n,xs_n,ys_n,l_n)
