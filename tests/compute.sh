@@ -1,5 +1,11 @@
 #!/bin/sh
 
+#set number of threads
+
+export MKL_NUM_THREADS=4
+export NUMEXPR_NUM_THREADS=4
+export OMP_NUM_THREADS=4
+
 #compute BDF1 solutions
 
 python dlm_annulus.py convergence/BDF1_dt\=1_2.json
