@@ -33,8 +33,8 @@ def read_initial_condition(cn_time):
     #y_u = np.load(f)
     #c2f = np.load(f)
     #topo_s = np.load(f)
-    #xs_n = np.load(f)
-    #ys_n = np.load(f)
+    #sx_n = np.load(f)
+    #sy_n = np.load(f)
     #s_lgr = np.load(f)
     #t_lgr = np.load(f)
     #f.close()
@@ -61,8 +61,8 @@ def write_mesh():
         np.save(f,y_u)
         np.save(f,c2f)
         np.save(f,topo_s)
-        np.save(f,xs_n)
-        np.save(f,ys_n)
+        np.save(f,sx_n)
+        np.save(f,sy_n)
         np.save(f,s_lgr)
         np.save(f,t_lgr)
     elif ph.mesh_prefix == 'thin_':
@@ -74,71 +74,49 @@ def write_mesh():
         np.save(f,y_u)
         np.save(f,c2f)
         np.save(f,topo_s)
-        np.save(f,xs_n)
-        np.save(f,ys_n)
+        np.save(f,sx_n)
+        np.save(f,sy_n)
         np.save(f,s_lgr)
     f.close()
     return
 
-def assemble_blockwise_force_BDF1():#ux_n,uy_n,xs_n,ys_n):
-
-    print ux_n.shape
-    print uy_n.shape
-    print xs_n.shape
-    print ys_n.shape
-    print dx_n.shape
-    print dy_n.shape
-    size = 2*ndofs_u+ndofs_p+1+4*ndofs_s
-    rhs = np.zeros((size))
-
+def assemble_blockwise_force_BDF1():#ux_n,uy_n,sx_n,sy_n):
     f_rhs_x = 1/ph.dt*Mv11.dot(ux_n)
     f_rhs_y = 1/ph.dt*Mv11.dot(uy_n)
 
-    bc_id = np.where( y_u < delta_x/10)
-    f_rhs_y[bc_id,:] = 0
+    bc_id = np.where(y_u < delta_x/10)
+    f_rhs_y[bc_id] = 0
 
-    bc_id = np.where( y_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
+    bc_id = np.where(y_u > 1-delta_x/10)
+    f_rhs_x[bc_id] = 0
+    f_rhs_y[bc_id] = 0
 
-    bc_id = np.where( x_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
+    bc_id = np.where(x_u > 1-delta_x/10)
+    f_rhs_x[bc_id] = 0
+    f_rhs_y[bc_id] = 0
 
-    bc_id = np.where( x_u < delta_x/10)
-    f_rhs_x[bc_id,:] = 0
+    bc_id = np.where(x_u < delta_x/10)
+    f_rhs_x[bc_id] = 0
 
     s_rhs_x = 1/ph.dt*MX11.dot(dx_n)
     s_rhs_y = 1/ph.dt*MX11.dot(dy_n)
 
-    f_rhs_x = np.reshape(f_rhs_x,(ndofs_u))
-    f_rhs_y = np.reshape(f_rhs_y,(ndofs_u))
-
-    s = 0
-    e = ndofs_u
-    rhs[s:e] = f_rhs_x
-    s = ndofs_u
-    e = 2*ndofs_u
-    rhs[s:e] = f_rhs_y
-
-    s_rhs_x = np.reshape(s_rhs_x,(ndofs_s))
-    s_rhs_y = np.reshape(s_rhs_y,(ndofs_s))
-
-    s = 2*ndofs_u+ndofs_p+2*ndofs_s
-    e = 2*ndofs_u+ndofs_p+3*ndofs_s
-    rhs[s:e] = s_rhs_x
-
-    s = 2*ndofs_u+ndofs_p+3*ndofs_s
-    e = 2*ndofs_u+ndofs_p+4*ndofs_s
-    rhs[s:e] = s_rhs_y
+    rhs = np.append(f_rhs_x, f_rhs_y)
+    rhs = np.append(rhs, np.zeros((ndofs_p)))
+    rhs = np.append(rhs, np.zeros((2*ndofs_s)))
+    rhs = np.append(rhs, s_rhs_x)
+    rhs = np.append(rhs, s_rhs_y)
+    rhs = np.append(rhs, np.zeros(1))
 
     return rhs
 
 def assemble_blockwise_matrix_BDF1():
-    mat1 = sparse.hstack([A_BDF1,-BT])
-    mat1 = sparse.hstack([mat1,sparse.csr_matrix((ndofs_u*2,ndofs_s*2))])
-    mat1 = sparse.hstack([mat1,GT])
-    mat1 = sparse.hstack([mat1,sparse.csr_matrix((ndofs_u*2,1))])
+    mat1 = sparse.hstack([A_BDF1,
+                         -BT,
+                         sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
+                         GT,
+                         sparse.csr_matrix((ndofs_u*2,1))
+                         ])
 
     mat2 = sparse.hstack([-B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
@@ -173,51 +151,36 @@ def assemble_blockwise_matrix_BDF1():
     return mat
 
 
-def assemble_blockwise_force_BDF2(ux_n,uy_n,ux_n_old,uy_n_old,xs_n,ys_n,xs_n_old,ys_n_old):
-
-    size = 2*ndofs_u+ndofs_p+1+4*ndofs_s
-    rhs = np.zeros((size))
-
+def assemble_blockwise_force_BDF2():#ux_n,uy_n,ux_n_old,uy_n_old,sx_n,sy_n,sx_n_old,sy_n_old):
     f_rhs_x = (2*Mv11.dot(ux_n) - 0.5*Mv11.dot(ux_n_old))/ph.dt
     f_rhs_y = (2*Mv11.dot(uy_n) - 0.5*Mv11.dot(uy_n_old))/ph.dt
 
-    bc_id = np.where( y_u < delta_x/10)
-    f_rhs_y[bc_id,:] = 0
+    bc_id = np.where(y_u < delta_x/10)
+    f_rhs_y[bc_id] = 0
 
-    bc_id = np.where( y_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
+    bc_id = np.where(y_u > 1-delta_x/10)
+    f_rhs_x[bc_id] = 0
+    f_rhs_y[bc_id] = 0
 
-    bc_id = np.where( x_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
+    bc_id = np.where(x_u > 1-delta_x/10)
+    f_rhs_x[bc_id] = 0
+    f_rhs_y[bc_id] = 0
 
-    bc_id = np.where( x_u < delta_x/10)
-    f_rhs_x[bc_id,:] = 0
+    bc_id = np.where(x_u < delta_x/10)
+    f_rhs_x[bc_id] = 0
 
-    s_rhs_x = (2*MX11.dot(xs_n - xs_zero) - 0.5*MX11.dot(xs_n_old - xs_zero))/ph.dt
-    s_rhs_y = (2*MX11.dot(ys_n - ys_zero) - 0.5*MX11.dot(ys_n_old - ys_zero))/ph.dt
+    s_rhs_x = (2*MX11.dot(sx_n - sx_zero) - 0.5*MX11.dot(sx_n_old - sx_zero))/ph.dt
+    s_rhs_y = (2*MX11.dot(sy_n - sy_zero) - 0.5*MX11.dot(sy_n_old - sy_zero))/ph.dt
 
-    f_rhs_x = np.reshape(f_rhs_x,(ndofs_u))
-    f_rhs_y = np.reshape(f_rhs_y,(ndofs_u))
+    #f_rhs_x = np.reshape(f_rhs_x,(ndofs_u))
+    #f_rhs_y = np.reshape(f_rhs_y,(ndofs_u))
 
-    s = 0
-    e = ndofs_u
-    rhs[s:e] = f_rhs_x
-    s = ndofs_u
-    e = 2*ndofs_u
-    rhs[s:e] = f_rhs_y
-
-    s_rhs_x = np.reshape(s_rhs_x,(ndofs_s))
-    s_rhs_y = np.reshape(s_rhs_y,(ndofs_s))
-
-    s = 2*ndofs_u+ndofs_p+2*ndofs_s
-    e = 2*ndofs_u+ndofs_p+3*ndofs_s
-    rhs[s:e] = s_rhs_x
-
-    s = 2*ndofs_u+ndofs_p+3*ndofs_s
-    e = 2*ndofs_u+ndofs_p+4*ndofs_s
-    rhs[s:e] = s_rhs_y
+    rhs = np.append(f_rhs_x, f_rhs_y)
+    rhs = np.append(rhs, np.zeros((ndofs_p)))
+    rhs = np.append(rhs, np.zeros((2*ndofs_s)))
+    rhs = np.append(rhs, s_rhs_x)
+    rhs = np.append(rhs, s_rhs_y)
+    rhs = np.append(rhs, np.zeros(1))
 
     return rhs
 
@@ -226,7 +189,8 @@ def assemble_blockwise_matrix_BDF2():
                           -BT,
                           sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
                           GT,
-                          sparse.csr_matrix((ndofs_u*2,1))])
+                          sparse.csr_matrix((ndofs_u*2,1))
+                          ])
 
     mat2 = sparse.hstack([-B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
@@ -260,28 +224,22 @@ def assemble_blockwise_matrix_BDF2():
     mat = mat.tocsr()
     return mat
 
-def assemble_blockwise_force_Theta(ux_n,uy_n,p_n,xs_n,ys_n,l_n):
-
-    size = 2*ndofs_u+ndofs_p+1+4*ndofs_s
-    rhs = np.zeros((size))
-
-    u_n = np.append(ux_n, uy_n)
-
+def assemble_blockwise_force_Theta():#ux_n,uy_n,p_n,sx_n,sy_n,l_n):
     f_rhs_x = 1/ph.dt*Mv11.dot(ux_n) - 0.5*A11.dot(ux_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
     f_rhs_y = 1/ph.dt*Mv11.dot(uy_n) - 0.5*A11.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
-    bc_id = np.where( y_u < delta_x/10)
+    bc_id = np.where(y_u < delta_x/10)
     f_rhs_y[bc_id] = 0
 
-    bc_id = np.where( y_u > 1-delta_x/10)
+    bc_id = np.where(y_u > 1-delta_x/10)
     f_rhs_x[bc_id] = 0
     f_rhs_y[bc_id] = 0
 
-    bc_id = np.where( x_u > 1-delta_x/10)
+    bc_id = np.where(x_u > 1-delta_x/10)
     f_rhs_x[bc_id] = 0
     f_rhs_y[bc_id] = 0
 
-    bc_id = np.where( x_u < delta_x/10)
+    bc_id = np.where(x_u < delta_x/10)
     f_rhs_x[bc_id] = 0
 
     p_rhs = 0.5*B.dot(u_n)
@@ -293,33 +251,15 @@ def assemble_blockwise_force_Theta(ux_n,uy_n,p_n,xs_n,ys_n,l_n):
     l_rhs_y = -1/ph.dt*MX11.dot(dy_n)
     l_rhs = np.append(l_rhs_x, l_rhs_y) - np.reshape(0.5*G.dot(u_n), (2*ndofs_s))
 
-    f_rhs_x = np.reshape(f_rhs_x,(ndofs_u))
-    f_rhs_y = np.reshape(f_rhs_y,(ndofs_u))
+    #f_rhs_x = np.reshape(f_rhs_x,(ndofs_u))
+    #f_rhs_y = np.reshape(f_rhs_y,(ndofs_u))
 
-    s = 0
-    e = ndofs_u
-    rhs[s:e] = f_rhs_x
-    s = ndofs_u
-    e = 2*ndofs_u
-    rhs[s:e] = f_rhs_y
-
-    s = 2*ndofs_u
-    e = 2*ndofs_u + ndofs_p
-
-    p_rhs = np.reshape(p_rhs, (ndofs_p))
-    rhs[s:e] = p_rhs
-
-    s = 2*ndofs_u+ndofs_p
-    e = 2*ndofs_u+ndofs_p+ndofs_s
-    rhs[s:e] = s_rhs_x
-
-    s = 2*ndofs_u+ndofs_p+ndofs_s
-    e = 2*ndofs_u+ndofs_p+2*ndofs_s
-    rhs[s:e] = s_rhs_y
-
-    s = 2*ndofs_u+ndofs_p+2*ndofs_s
-    e = 2*ndofs_u+ndofs_p+4*ndofs_s
-    rhs[s:e] = l_rhs
+    rhs = np.append(f_rhs_x, f_rhs_y)
+    rhs = np.append(rhs, p_rhs)
+    rhs = np.append(rhs, s_rhs_x)
+    rhs = np.append(rhs, s_rhs_y)
+    rhs = np.append(rhs, l_rhs)
+    rhs = np.append(rhs, np.zeros(1))
 
     return rhs
 
@@ -328,7 +268,8 @@ def assemble_blockwise_matrix_Theta():
                           -0.5*BT,
                           sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
                           0.5*GT,
-                          sparse.csr_matrix((ndofs_u*2,1))])
+                          sparse.csr_matrix((ndofs_u*2,1))
+                          ])
 
     mat2 = sparse.hstack([0.5*B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
@@ -363,20 +304,20 @@ def assemble_blockwise_matrix_Theta():
     return mat
 
 def unassemble_sol_blocks(sol):
-    u_n1 = sol[0:2*ndofs_u]
+    u_n = sol[0:2*ndofs_u]
     p_n1 = sol[2*ndofs_u:2*ndofs_u+ndofs_p]
 
-    xs_n1 = np.zeros( xs_n.shape )
-    ys_n1 = np.zeros( ys_n.shape )
+    sx_n1 = np.zeros( sx_n.shape )
+    sy_n1 = np.zeros( sy_n.shape )
 
-    xs_n1 = sol[2*ndofs_u+ndofs_p:2*ndofs_u+ndofs_p+ndofs_s]
+    sx_n1 = sol[2*ndofs_u+ndofs_p:2*ndofs_u+ndofs_p+ndofs_s]
 
-    ys_n1 = sol[2*ndofs_u+ndofs_p+  ndofs_s:
+    sy_n1 = sol[2*ndofs_u+ndofs_p+  ndofs_s:
                            2*ndofs_u+ndofs_p+2*ndofs_s]
-    return u_n1,p_n1,xs_n1,ys_n1
+    return u_n,p_n1,sx_n1,sy_n1
 
 def area_measure(xs,ys):
-    area_mes = MX11 * xs_n + MX11 * ys_n
+    area_mes = MX11 * sx_n + MX11 * sy_n
     area_mes = area_mes * np.ones(area_mes.shape)
     area_mes = np.sum(area_mes)
     return area_mes
@@ -390,10 +331,10 @@ def l2_norm(M,g):
 def write_output():
     filename = results_dir +'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
     f = file(filename,"wb")
-    np.save(f,u_n1)
-    np.save(f,p)
-    np.save(f,xs_n1)
-    np.save(f,ys_n1)
+    np.save(f,u_n)
+    np.save(f,p_n)
+    np.save(f,sx_n)
+    np.save(f,sy_n)
     f.close()
     print '--------------------------------------'
     print 'results saved to:'
@@ -403,16 +344,16 @@ def write_output():
 
 def eval_str_area():
     if ph.mesh_prefix == 'thin_':
-        x = np.reshape(xs_n,(xs_n.shape[0],1))
+        x = np.reshape(sx_n,(sx_n.shape[0],1))
         x = np.vstack([x,[[0]]])
-        y = np.reshape(ys_n,(ys_n.shape[0],1))
+        y = np.reshape(sy_n,(sy_n.shape[0],1))
         y = np.vstack([y,[[0]]])
         area = geom.area_evaluation(x[:,0],y[:,0])
     elif ph.mesh_prefix != 'thin_':
         area = 0
         for row in topo_s:
-            x_l = xs_n[row]
-            y_l = ys_n[row]
+            x_l = sx_n[row]
+            y_l = sy_n[row]
             eval_p = np.zeros((x_l.shape[0],2))
             eval_p[:,0] = x_l
             eval_p[:,1] = y_l
@@ -460,35 +401,35 @@ if ph.mesh_prefix != 'thin_':
     # =============================================#
     # Square or full ellipsis initial conditions
     #
-    #xs_zero = .5 * s_lgr
-    #ys_zero = .5 * t_lgr
+    #sx_zero = .5 * s_lgr
+    #sy_zero = .5 * t_lgr
     #
-    #xs_n = .25/.9 * s_lgr;
-    #ys_n =.9      * t_lgr;
+    #sx_n = .25/.9 * s_lgr;
+    #sy_n =.9      * t_lgr;
     # =============================================#
     R0 = .3
     R1 = .5
     ray = R0 + (s_lgr * (R1-R0))
     if ph.equilibrium_at_zero == True:
-        xs_zero = np.zeros(s_lgr.shape)
-        ys_zero = np.zeros(t_lgr.shape)
-        xs_n = 1./1.4*(ray * np.cos(mth.pi/2 * t_lgr))
-        ys_n =    1.4*(ray * np.sin(mth.pi/2 * t_lgr))
+        sx_zero = np.zeros(s_lgr.shape)
+        sy_zero = np.zeros(t_lgr.shape)
+        sx_n = 1./1.4*(ray * np.cos(mth.pi/2 * t_lgr))
+        sy_n =    1.4*(ray * np.sin(mth.pi/2 * t_lgr))
     elif ph.equilibrium_at_zero == False:
         s_lgr = ray * np.cos(mth.pi/2 * t_lgr)
         t_lgr = ray * np.sin(mth.pi/2 * t_lgr)
-        xs_zero = s_lgr
-        ys_zero = t_lgr
-        xs_n = 1./1.4*(s_lgr)
-        ys_n =    1.4*(t_lgr)
+        sx_zero = s_lgr
+        sy_zero = t_lgr
+        sx_n = 1./1.4*(s_lgr)
+        sy_n =    1.4*(t_lgr)
 elif ph.mesh_prefix == 'thin_':
     ray = .5
     deform = 1.4
-    (topo_s,xs_n,ys_n,s_lgr,ieq_s) = lin_t3.lin_str_mesh(ph.n_delta_s,ray,deform)
-    xs_zero = np.zeros(s_lgr.shape)
-    ys_zero = np.zeros(s_lgr.shape)
+    (topo_s,sx_n,sy_n,s_lgr,ieq_s) = lin_t3.lin_str_mesh(ph.n_delta_s,ray,deform)
+    sx_zero = np.zeros(s_lgr.shape)
+    sy_zero = np.zeros(s_lgr.shape)
 
-#(xs_n,ys_n) = read_initial_condition(40)
+#(sx_n,sy_n) = read_initial_condition(40)
 ie_s = np.arange(0,s_lgr.shape[0])
 
 if sum(ph.stampa) !=0:
@@ -516,13 +457,13 @@ MXT22 = MX11
 FX11 = ph.kappa * FX11
 FX22 = FX11
 
-bc_id = np.where( ys_n < delta_x/10)
+bc_id = np.where(sy_n < delta_x/10)
 FX22 = la_utils.set_diag(FX22,bc_id)
 #MX22 = la_utils.set_diag(MX22,bc_id)
 MXT22 = la_utils.clear_rows(MXT22,bc_id)
 
 
-bc_id = np.where( xs_n < delta_x/10)
+bc_id = np.where(sx_n < delta_x/10)
 FX11 = la_utils.set_diag(FX11,bc_id)
 #MX11 = la_utils.set_diag(MX11,bc_id)
 MXT11 = la_utils.clear_rows(MXT11,bc_id)
@@ -627,19 +568,19 @@ eval_p = np.zeros((0,2))
 for row in topo_p:
     mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.,1])
 
-ux_n = np.zeros((ndofs_u,1))
-uy_n = np.zeros((ndofs_u,1))
-u_n1 = np.zeros((2*ndofs_u, 1))
-l_n = np.zeros((2*ndofs_s, 1))
-p_n = np.zeros((ndofs_p,1))
+ux_n = np.zeros((ndofs_u))
+uy_n = np.zeros((ndofs_u))
+u_n = np.zeros((2*ndofs_u))
+l_n = np.zeros((2*ndofs_s))
+p_n = np.zeros((ndofs_p))
 
 ux_n_old = ux_n
 uy_n_old = uy_n
-xs_n_old = xs_n
-ys_n_old = ys_n
+sx_n_old = sx_n
+sy_n_old = sy_n
 
-dx_n = xs_n - xs_zero
-dy_n = ys_n - ys_zero
+dx_n = sx_n - sx_zero
+dy_n = sy_n - sy_zero
 
 grade = np.linspace(0.0, 1.0, sum(ph.stampa))
 
@@ -651,18 +592,18 @@ for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
     if ph.mesh_prefix != 'thin_':
         (str_segments,fluid_id) = geom.fluid_intersect_mesh(topo_u,x_u,y_u,
-                        topo_s,xs_n,ys_n)
+                        topo_s,sx_n,sy_n)
         GT11 = assemble.u_s_p1_thick(x_u,y_u,topo_u,
                         s_lgr,t_lgr,
-                        xs_n,ys_n,topo_s,ie_s,
+                        sx_n,sy_n,topo_s,ie_s,
                         str_segments,fluid_id)
     elif ph.mesh_prefix == 'thin_':
         t0 = time.time()
         (str_segments,fluid_id) = geom.fluid_intersect_string(topo_u,x_u,y_u,
-                       topo_s,xs_n,ys_n)
+                       topo_s,sx_n,sy_n)
 
         GT11 = assemble.u_s_p1(topo_u,x_u,y_u,
-                        topo_s,xs_n,ys_n,s_lgr,ieq_s,
+                        topo_s,sx_n,sy_n,s_lgr,ieq_s,
                         str_segments,fluid_id)
 
         t1 = time.time()
@@ -696,20 +637,17 @@ for cn_time in range(0,len(ph.stampa)):
 
     if ph.time_integration == 'BDF1':
         mat = assemble_blockwise_matrix_BDF1()
-        force = assemble_blockwise_force_BDF1()#ux_n,uy_n,xs_n,ys_n)
+        force = assemble_blockwise_force_BDF1()#ux_n,uy_n,sx_n,sy_n)
     elif ph.time_integration == 'Theta':
         mat = assemble_blockwise_matrix_Theta()
-        force = assemble_blockwise_force_Theta(ux_n,uy_n,p_n,xs_n,ys_n,l_n)
+        force = assemble_blockwise_force_Theta()#,uy_n,p_n,sx_n,sy_n,l_n)
     elif ph.time_integration == 'BDF2':
         if cn_time == 0:
             mat = assemble_blockwise_matrix_BDF1()
-            force = assemble_blockwise_force_BDF1(ux_n,uy_n,xs_n,ys_n)
+            force = assemble_blockwise_force_BDF1()#ux_n,uy_n,sx_n,sy_n)
         else:
             mat = assemble_blockwise_matrix_BDF2()
-            force = assemble_blockwise_force_BDF2(
-                    ux_n,uy_n,ux_n_old,uy_n_old,xs_n,ys_n,xs_n_old,ys_n_old)
-
-    x = np.hstack([xs_n,ys_n])
+            force = assemble_blockwise_force_BDF2()#ux_n,uy_n,ux_n_old,uy_n_old,sx_n,sy_n,sx_n_old,sy_n_old)
 
     sol_t0 = time.time()
     sol = sp_la.spsolve(mat,force)
@@ -717,44 +655,27 @@ for cn_time in range(0,len(ph.stampa)):
 
     ux_n_old = ux_n
     uy_n_old = uy_n
-    xs_n_old = xs_n
-    ys_n_old = ys_n
+    sx_n_old = sx_n
+    sy_n_old = sy_n
 
-    u = sol[0:2*ndofs_u]
-    p = sol[2*ndofs_u:2*ndofs_u+ndofs_p]
-    x = sol[2*ndofs_u+ndofs_p:2*ndofs_u+ndofs_p+2*ndofs_s]
-    l = sol[2*ndofs_u+ndofs_p+2*ndofs_s:2*ndofs_u+ndofs_p+4*ndofs_s]
-
-    u_n1 = u
-    ux_n1 = u[0      :  ndofs_u]
-    uy_n1 = u[ndofs_u:2*ndofs_u]
-
-    dx_n1 = x[0      :  ndofs_s]
-    dy_n1 = x[ndofs_s:2*ndofs_s]
-
-    dx_n = np.reshape(dx_n1, dx_n.shape)
-    dy_n = np.reshape(dy_n1, dx_n.shape)
-
-    xs_n1 = xs_zero+dx_n
-    ys_n1 = ys_zero+dy_n
-
-    l_n = np.reshape(l, (2*ndofs_s, 1))
-    p_n = np.reshape(p, (ndofs_p, 1))
-
-    xs_n = np.reshape(xs_n1, xs_n.shape)
-    ys_n = np.reshape(ys_n1, ys_n.shape)
-    ux_n = np.reshape(ux_n1, ux_n.shape)
-    uy_n = np.reshape(uy_n1, uy_n.shape)
-
+    u_n = sol[0:2*ndofs_u]
+    ux_n = sol[0:ndofs_u]
+    uy_n = sol[ndofs_u:2*ndofs_u]
+    p_n = sol[2*ndofs_u:2*ndofs_u+ndofs_p]
+    dx_n = sol[2*ndofs_u+ndofs_p:2*ndofs_u+ndofs_p+ndofs_s]
+    dy_n = sol[2*ndofs_u+ndofs_p+ndofs_s:2*ndofs_u+ndofs_p+2*ndofs_s]
+    sx_n = sx_zero + dx_n
+    sy_n = sy_zero + dy_n
+    l_n = sol[2*ndofs_u+ndofs_p+2*ndofs_s:2*ndofs_u+ndofs_p+4*ndofs_s]
 
     str_area = eval_str_area()
 
     diffusion = str_area/str_area_zero
 
-    p_all_zero = bool(np.all(p==0))
-    exploded = bool(np.amax(p) > 1e+10)
+    p_all_zero = bool(np.all(p_n==0))
+    exploded = bool(np.amax(p_n) > 1e+10)
 
-    nrg =(l2_norm(FX,x))**2 + (l2_norm(Mv,u))**2
+    nrg =(l2_norm(FX,np.append(dx_n, dy_n)))**2 + (l2_norm(Mv,np.append(ux_n, uy_n)))**2
     energy.append(nrg)
 
     if (exploded==True or p_all_zero == True):
