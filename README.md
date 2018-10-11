@@ -11,6 +11,7 @@ This pieces of code requires the following libraries.* At the current stage, the
 2. Scipy X.X.X
 3. Matplotlib 1.3.0
 4. Sphinx X.X.X
+5. Shapely X.X.X
 
 Sebastian: I run Fedora and have installed the standard packages. Everything works fine 
 
