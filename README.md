@@ -5,14 +5,17 @@
 In this repository I share the code I produce during my master's thesis. It is based on Nicola Cavalini's work.
 
 ## Required Dependencies ##
-This pieces of code requires the following libraries.* At the current stage, the standard packages coming with and Ubuntu distribution should be ok.*
+This pieces of code requires the following libraries.
 
 1. Numpy X.X.X
 2. Scipy X.X.X
 3. Matplotlib 1.3.0
 4. Sphinx X.X.X
+5. Shapely X.X.X
+6. Rtree X.X.X
 
-Sebastian: I run Fedora and have installed the standard packages. Everything works fine 
+Nicola: At the current stage, the standard packages coming with and Ubuntu distribution should be ok.
+Sebastian: I run Fedora and have installed the needed packages via dnf. Everything works fine 
 
 ## How do I get set up? ##
 
