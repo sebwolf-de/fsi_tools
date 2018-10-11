@@ -254,13 +254,15 @@ def assemble_blockwise_matrix_BDF2():
     mat = mat.tocsr()
     return mat
 
-def assemble_blockwise_force_Theta(u_n,p_n,xs_n,ys_n, l_n):
+def assemble_blockwise_force_Theta(ux_n,uy_n,p_n,xs_n,ys_n,l_n):
+    
     size = 2*ndofs_u+ndofs_p+1+4*ndofs_s
     rhs = np.zeros((size))
 
-    f_rhs = 1/ph.dt*Mv.dot(u_n) - 0.5*A_Theta.dot(u_n) + 0.5*BT.dot(p_n) - 0.5*GT.dot(l_n)
-    f_rhs_x = f_rhs[0:ndofs_u]
-    f_rhs_y = f_rhs[ndofs_u:2*ndofs_u]
+    u_n = np.append(ux_n, uy_n)
+
+    f_rhs_x = 1/ph.dt*Mv11.dot(ux_n) - 0.5*A11.dot(ux_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
+    f_rhs_y = 1/ph.dt*Mv11.dot(uy_n) - 0.5*A11.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
     bc_id = np.where( y_u < delta_x/10)
     f_rhs_y[bc_id] = 0
@@ -281,8 +283,8 @@ def assemble_blockwise_force_Theta(u_n,p_n,xs_n,ys_n, l_n):
     s_rhs_x = -0.5*FX11.dot(dx_n) + 0.5*MXT11.dot(np.reshape(l_n[0:ndofs_s],(ndofs_s)))
     s_rhs_y = -0.5*FX22.dot(dy_n) + 0.5*MXT22.dot(np.reshape(l_n[ndofs_s:2*ndofs_s],(ndofs_s)))
 
-    l_rhs_x = 1/ph.dt*MX11.dot(dx_n)
-    l_rhs_y = 1/ph.dt*MX11.dot(dy_n)
+    l_rhs_x = -1/ph.dt*MX11.dot(dx_n)
+    l_rhs_y = -1/ph.dt*MX11.dot(dy_n)
     l_rhs = np.append(l_rhs_x, l_rhs_y) - np.reshape(0.5*G.dot(u_n), (2*ndofs_s))
 
     f_rhs_x = np.reshape(f_rhs_x,(ndofs_u))
@@ -322,7 +324,7 @@ def assemble_blockwise_matrix_Theta():
                           0.5*GT,
                           sparse.csr_matrix((ndofs_u*2,1))])
 
-    mat2 = sparse.hstack([-0.5*B,
+    mat2 = sparse.hstack([0.5*B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2)),
@@ -336,9 +338,9 @@ def assemble_blockwise_matrix_Theta():
                           sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
-    mat4 = sparse.hstack([-0.5*G,
+    mat4 = sparse.hstack([0.5*G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
-                          1/ph.dt*MX,
+                          -1/ph.dt*MX,
                           sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
                           sparse.csr_matrix((ndofs_s*2,1))
                           ])
@@ -424,7 +426,7 @@ def get_prefix():
 np.set_printoptions(precision=4)
 np.set_printoptions(suppress=True)
 
-if len(sys.argv) >= 1:
+if len(sys.argv) > 1:
     ph = ParametersHandler(sys.argv[1])
 else:
     ph = ParametersHandler('simulation_parameters_fsi.json')
@@ -685,12 +687,13 @@ for cn_time in range(0,len(ph.stampa)):
             sparse.hstack([GT11,sparse.csr_matrix((ndofs_u,ndofs_s))]),
             sparse.hstack([sparse.csr_matrix((ndofs_u,ndofs_s)),GT22]) ])
 
+
     if ph.time_integration == 'BDF1':
         mat = assemble_blockwise_matrix_BDF1()
         force = assemble_blockwise_force_BDF1(ux_n,uy_n,xs_n,ys_n)
     elif ph.time_integration == 'Theta':
         mat = assemble_blockwise_matrix_Theta()
-        force = assemble_blockwise_force_Theta(u_n1,p_n,xs_n,ys_n, l_n)
+        force = assemble_blockwise_force_Theta(ux_n,uy_n,p_n,xs_n,ys_n,l_n)
     elif ph.time_integration == 'BDF2':
         if cn_time == 0:
             mat = assemble_blockwise_matrix_BDF1()
@@ -729,13 +732,14 @@ for cn_time in range(0,len(ph.stampa)):
     xs_n1 = xs_zero+dx_n
     ys_n1 = ys_zero+dy_n
 
-    l_n = l
-    p_n = p
+    l_n = np.reshape(l, (2*ndofs_s, 1))
+    p_n = np.reshape(p, (ndofs_p, 1))
 
     xs_n = np.reshape(xs_n1, xs_n.shape)
     ys_n = np.reshape(ys_n1, ys_n.shape)
     ux_n = np.reshape(ux_n1, ux_n.shape)
     uy_n = np.reshape(uy_n1, uy_n.shape)
+
 
     str_area = eval_str_area()
 
