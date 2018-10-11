@@ -6,7 +6,7 @@
     "structure_stiffness_kappa": 5,
     "reynolds_number" : 1,
     "fluid_triangulation_intervals" : 32,
-    "structure_triangulation_intervals" : 33,
+    "structure_triangulation_intervals" : 32,
     "mesh_prefix": "str_",
     "time_intervals_to_be_simulated": 201,
     "time_intervals_in_between_printed_results": 200,
