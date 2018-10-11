@@ -2,6 +2,7 @@
 
 import time
 import os
+import sys
 import numpy as np
 from scipy import sparse
 import scipy.sparse.linalg as sp_la
@@ -215,10 +216,11 @@ def assemble_blockwise_force_BDF2(ux_n,uy_n,ux_n_old,uy_n_old,xs_n,ys_n,xs_n_old
     return rhs
 
 def assemble_blockwise_matrix_BDF2():
-    mat1 = sparse.hstack([A_BDF2,-BT])
-    mat1 = sparse.hstack([mat1,sparse.csr_matrix((ndofs_u*2,ndofs_s*2))])
-    mat1 = sparse.hstack([mat1,GT])
-    mat1 = sparse.hstack([mat1,sparse.csr_matrix((ndofs_u*2,1))])
+    mat1 = sparse.hstack([A_BDF2,
+                          -BT,
+                          sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
+                          GT,
+                          sparse.csr_matrix((ndofs_u*2,1))])
 
     mat2 = sparse.hstack([-B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
@@ -237,6 +239,106 @@ def assemble_blockwise_matrix_BDF2():
     mat4 = sparse.hstack([-G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
                           1.5/ph.dt*MX,
+                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
+                          sparse.csr_matrix((ndofs_s*2,1))
+                          ])
+
+    mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
+                          mean_p,
+                          sparse.csr_matrix((1,ndofs_s*2)),
+                          sparse.csr_matrix((1,ndofs_s*2)),
+                          sparse.csr_matrix((1,1))
+                          ])
+
+    mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
+    mat = mat.tocsr()
+    return mat
+
+def assemble_blockwise_force_Theta(u_n,p_n,xs_n,ys_n, l_n):
+    size = 2*ndofs_u+ndofs_p+1+4*ndofs_s
+    rhs = np.zeros((size))
+
+    f_rhs = 1/ph.dt*Mv.dot(u_n) - 0.5*A_Theta.dot(u_n) + 0.5*BT.dot(p_n) - 0.5*GT.dot(l_n)
+    f_rhs_x = f_rhs[0:ndofs_u]
+    f_rhs_y = f_rhs[ndofs_u:2*ndofs_u]
+
+    bc_id = np.where( y_u < delta_x/10)
+    f_rhs_y[bc_id] = 0
+
+    bc_id = np.where( y_u > 1-delta_x/10)
+    f_rhs_x[bc_id] = 0
+    f_rhs_y[bc_id] = 0
+
+    bc_id = np.where( x_u > 1-delta_x/10)
+    f_rhs_x[bc_id] = 0
+    f_rhs_y[bc_id] = 0
+
+    bc_id = np.where( x_u < delta_x/10)
+    f_rhs_x[bc_id] = 0
+
+    p_rhs = 0.5*B.dot(u_n)
+
+    s_rhs_x = -0.5*FX11.dot(dx_n) + 0.5*MXT11.dot(np.reshape(l_n[0:ndofs_s],(ndofs_s)))
+    s_rhs_y = -0.5*FX22.dot(dy_n) + 0.5*MXT22.dot(np.reshape(l_n[ndofs_s:2*ndofs_s],(ndofs_s)))
+
+    l_rhs_x = 1/ph.dt*MX11.dot(dx_n)
+    l_rhs_y = 1/ph.dt*MX11.dot(dy_n)
+    l_rhs = np.append(l_rhs_x, l_rhs_y) - np.reshape(0.5*G.dot(u_n), (2*ndofs_s))
+
+    f_rhs_x = np.reshape(f_rhs_x,(ndofs_u))
+    f_rhs_y = np.reshape(f_rhs_y,(ndofs_u))
+
+    s = 0
+    e = ndofs_u
+    rhs[s:e] = f_rhs_x
+    s = ndofs_u
+    e = 2*ndofs_u
+    rhs[s:e] = f_rhs_y
+
+    s = 2*ndofs_u
+    e = 2*ndofs_u + ndofs_p
+
+    p_rhs = np.reshape(p_rhs, (ndofs_p))
+    rhs[s:e] = p_rhs
+
+    s = 2*ndofs_u+ndofs_p
+    e = 2*ndofs_u+ndofs_p+ndofs_s
+    rhs[s:e] = s_rhs_x
+
+    s = 2*ndofs_u+ndofs_p+ndofs_s
+    e = 2*ndofs_u+ndofs_p+2*ndofs_s
+    rhs[s:e] = s_rhs_y
+
+    s = 2*ndofs_u+ndofs_p+2*ndofs_s
+    e = 2*ndofs_u+ndofs_p+4*ndofs_s
+    rhs[s:e] = l_rhs
+
+    return rhs
+
+def assemble_blockwise_matrix_Theta():
+    mat1 = sparse.hstack([A_Theta,
+                          -0.5*BT,
+                          sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
+                          0.5*GT,
+                          sparse.csr_matrix((ndofs_u*2,1))])
+
+    mat2 = sparse.hstack([-0.5*B,
+                          sparse.csr_matrix((ndofs_p,ndofs_p)),
+                          sparse.csr_matrix((ndofs_p,ndofs_s*2)),
+                          sparse.csr_matrix((ndofs_p,ndofs_s*2)),
+                          mean_p.transpose()
+                          ])
+
+    mat3 = sparse.hstack([sparse.csr_matrix((ndofs_s*2,ndofs_u*2)),
+                          sparse.csr_matrix((ndofs_s*2,ndofs_p)),
+                          0.5*FX,
+                          -0.5*MXT,
+                          sparse.csr_matrix((ndofs_s*2,1))
+                          ])
+
+    mat4 = sparse.hstack([-0.5*G,
+                          sparse.csr_matrix((ndofs_s*2,ndofs_p)),
+                          1/ph.dt*MX,
                           sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
                           sparse.csr_matrix((ndofs_s*2,1))
                           ])
@@ -322,7 +424,10 @@ def get_prefix():
 np.set_printoptions(precision=4)
 np.set_printoptions(suppress=True)
 
-ph = ParametersHandler('simulation_parameters_fsi.json')
+if len(sys.argv) >= 1:
+    ph = ParametersHandler(sys.argv[1])
+else:
+    ph = ParametersHandler('simulation_parameters_fsi.json')
 ph.simulation_info()
 
 nx_p = ph.n_delta_x
@@ -441,8 +546,10 @@ A11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
 A11 = A11/ph.reynolds
 A11_BDF1 = A11 + Mv11/ph.dt
 A11_BDF2 = A11 + Mv11*1.5/ph.dt
+A11_Theta = 0.5 * A11 + Mv11/ph.dt
 A22_BDF1 = A11_BDF1
 A22_BDF2 = A11_BDF2
+A22_Theta = A11_Theta
 
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,
            topo_u,x_u,y_u,c2f)
@@ -454,6 +561,7 @@ B = BT.transpose()
 bc_id = np.where( y_u < delta_x/10)
 A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
 A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
+A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 bc_id = np.where( y_u > 1-delta_x/10)
@@ -461,6 +569,8 @@ A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
 A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
 A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
 A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
+A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
+A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
@@ -469,12 +579,15 @@ A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
 A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
 A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
 A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
+A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
+A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 bc_id = np.where( x_u < delta_x/10)
 A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
 A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
+A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
 BT1 = la_utils.clear_rows(BT1,bc_id)
 
 Mv = sparse.vstack([
@@ -490,6 +603,10 @@ A_BDF2 = sparse.vstack([
     sparse.hstack( [A11_BDF2, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
     sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), A22_BDF2] )
     ])
+A_Theta = sparse.vstack([
+    sparse.hstack( [A11_Theta, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
+    sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), A22_Theta] )
+    ])
 
 BT = sparse.vstack([BT1,BT2])
 
@@ -504,6 +621,9 @@ for row in topo_p:
 
 ux_n = np.zeros((ndofs_u,1))
 uy_n = np.zeros((ndofs_u,1))
+u_n1 = np.zeros((2*ndofs_u, 1))
+l_n = np.zeros((2*ndofs_s, 1))
+p_n = np.zeros((ndofs_p,1))
 
 ux_n_old = ux_n
 uy_n_old = uy_n
@@ -568,6 +688,9 @@ for cn_time in range(0,len(ph.stampa)):
     if ph.time_integration == 'BDF1':
         mat = assemble_blockwise_matrix_BDF1()
         force = assemble_blockwise_force_BDF1(ux_n,uy_n,xs_n,ys_n)
+    elif ph.time_integration == 'Theta':
+        mat = assemble_blockwise_matrix_Theta()
+        force = assemble_blockwise_force_Theta(u_n1,p_n,xs_n,ys_n, l_n)
     elif ph.time_integration == 'BDF2':
         if cn_time == 0:
             mat = assemble_blockwise_matrix_BDF1()
@@ -606,6 +729,9 @@ for cn_time in range(0,len(ph.stampa)):
     xs_n1 = xs_zero+dx_n
     ys_n1 = ys_zero+dy_n
 
+    l_n = l
+    p_n = p
+
     xs_n = np.reshape(xs_n1, xs_n.shape)
     ys_n = np.reshape(ys_n1, ys_n.shape)
     ux_n = np.reshape(ux_n1, ux_n.shape)
@@ -632,10 +758,10 @@ for cn_time in range(0,len(ph.stampa)):
     print 'exploded     ? ' + str(exploded)
     print '--------------------------------------'
 
-    if diffusion > 2:
-        break
-    elif diffusion < .8:
-        break
+#   if diffusion > 2:
+#        break
+#    elif diffusion < .8:
+#        break
 
     if ph.stampa[cn_time] == True:
         write_output()
