@@ -342,6 +342,13 @@ def write_output():
     print '--------------------------------------'
     return
 
+def write_time():
+    filename = results_dir +'time'
+    f = file(filename,"wb")
+    np.save(f,np.average(step_time))
+    np.save(f,np.average(sol_time))
+    f.close()
+
 def eval_str_area():
     if ph.mesh_prefix == 'thin_':
         x = np.reshape(sx_n,(sx_n.shape[0],1))
@@ -586,6 +593,9 @@ grade = np.linspace(0.0, 1.0, sum(ph.stampa))
 
 str_area_zero = eval_str_area()
 
+sol_time = np.array([])
+step_time = np.array([])
+
 color_id = 0
 energy = []
 for cn_time in range(0,len(ph.stampa)):
@@ -634,7 +644,6 @@ for cn_time in range(0,len(ph.stampa)):
             sparse.hstack([GT11,sparse.csr_matrix((ndofs_u,ndofs_s))]),
             sparse.hstack([sparse.csr_matrix((ndofs_u,ndofs_s)),GT22]) ])
 
-
     if ph.time_integration == 'BDF1':
         mat = assemble_blockwise_matrix_BDF1()
         force = assemble_blockwise_force_BDF1()#ux_n,uy_n,sx_n,sy_n)
@@ -644,7 +653,7 @@ for cn_time in range(0,len(ph.stampa)):
     elif ph.time_integration == 'BDF2':
         if cn_time == 0:
             mat = assemble_blockwise_matrix_Theta()
-            force = assemble_blockwise_matrix_Theta()#ux_n,uy_n,sx_n,sy_n)
+            force = assemble_blockwise_force_Theta()#ux_n,uy_n,sx_n,sy_n)
         else:
             mat = assemble_blockwise_matrix_BDF2()
             force = assemble_blockwise_force_BDF2()#ux_n,uy_n,ux_n_old,uy_n_old,sx_n,sy_n,sx_n_old,sy_n_old)
@@ -699,3 +708,8 @@ for cn_time in range(0,len(ph.stampa)):
     step_t1 = time.time()
     print 'step time = ' + str((step_t1-step_t0))
     print 'sol  time = ' + str((sol_t1-sol_t0))
+
+    step_time = np.append(step_time, step_t1-step_t0)
+    sol_time = np.append(sol_time, sol_t1-sol_t0)
+
+write_time()
