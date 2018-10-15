@@ -52,6 +52,7 @@ f.close()
 
 err_BDF1 = np.zeros(5)
 err_BDF2 = np.zeros(5)
+err_Theta = np.zeros(5)
 
 for k in range(1,6):
     input_name = results_dir+'BDF1_dt=1_'+str(2**k)
