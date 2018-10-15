@@ -1,0 +1,68 @@
+#!/bin/sh
+
+#set number of threads
+
+export MKL_NUM_THREADS=4
+export NUMEXPR_NUM_THREADS=4
+export OMP_NUM_THREADS=4
+
+#compute BDF1 solutions
+
+python dlm_annulus.py convergence/BDF1_dt\=1_2.json
+cp results/dlm_str_8_BDF1_dt5em1_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_002 results/BDF_Convergence_Analysis_Annulus/BDF1_dt=1_2
+
+python dlm_annulus.py convergence/BDF1_dt\=1_4.json
+cp results/dlm_str_8_BDF1_dt25em2_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_004 results/BDF_Convergence_Analysis_Annulus/BDF1_dt=1_4
+
+python dlm_annulus.py convergence/BDF1_dt\=1_8.json
+cp results/dlm_str_8_BDF1_dt125em3_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_008 results/BDF_Convergence_Analysis_Annulus/BDF1_dt=1_8
+
+python dlm_annulus.py convergence/BDF1_dt\=1_16.json
+cp results/dlm_str_8_BDF1_dt625em4_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_016 results/BDF_Convergence_Analysis_Annulus/BDF1_dt=1_16
+
+python dlm_annulus.py convergence/BDF1_dt\=1_32.json
+cp results/dlm_str_8_BDF1_dt3125em5_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_032 results/BDF_Convergence_Analysis_Annulus/BDF1_dt=1_32
+
+#compute BDF2 solutions
+
+python dlm_annulus.py convergence/BDF2_dt\=1_2.json
+cp results/dlm_str_8_BDF2_dt5em1_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_002 results/BDF_Convergence_Analysis_Annulus/BDF2_dt=1_2
+
+python dlm_annulus.py convergence/BDF2_dt\=1_4.json
+cp results/dlm_str_8_BDF2_dt25em2_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_004 results/BDF_Convergence_Analysis_Annulus/BDF2_dt=1_4
+
+python dlm_annulus.py convergence/BDF2_dt\=1_8.json
+cp results/dlm_str_8_BDF2_dt125em3_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_008 results/BDF_Convergence_Analysis_Annulus/BDF2_dt=1_8
+
+python dlm_annulus.py convergence/BDF2_dt\=1_16.json
+cp results/dlm_str_8_BDF2_dt625em4_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_016 results/BDF_Convergence_Analysis_Annulus/BDF2_dt=1_16
+
+python dlm_annulus.py convergence/BDF2_dt\=1_32.json
+cp results/dlm_str_8_BDF2_dt3125em5_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_032 results/BDF_Convergence_Analysis_Annulus/BDF2_dt=1_32
+
+#compute Theta solutions
+
+python dlm_annulus.py convergence/Theta_dt\=1_2.json
+cp results/dlm_str_8_Theta_dt5em1_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_002 results/BDF_Convergence_Analysis_Annulus/Theta_dt=1_2
+
+python dlm_annulus.py convergence/Theta_dt\=1_4.json
+cp results/dlm_str_8_Theta_dt25em2_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_004 results/BDF_Convergence_Analysis_Annulus/Theta_dt=1_4
+
+python dlm_annulus.py convergence/Theta_dt\=1_8.json
+cp results/dlm_str_8_Theta_dt125em3_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_008 results/BDF_Convergence_Analysis_Annulus/Theta_dt=1_8
+
+python dlm_annulus.py convergence/Theta_dt\=1_16.json
+cp results/dlm_str_8_Theta_dt625em4_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_016 results/BDF_Convergence_Analysis_Annulus/Theta_dt=1_16
+
+python dlm_annulus.py convergence/Theta_dt\=1_32.json
+cp results/dlm_str_8_Theta_dt3125em5_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_032 results/BDF_Convergence_Analysis_Annulus/Theta_dt=1_32
+
+#compute reference solutions
+
+python dlm_annulus.py convergence/ref.json
+cp results/dlm_str_8_BDF1_dt5em3_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/cn_time_200 results/BDF_Convergence_Analysis_Annulus/reference
+cp results/dlm_str_8_BDF1_dt5em3_hx8_hs8_k5_re1_eq_at_zero_False/binary_data/mesh results/BDF_Convergence_Analysis_Annulus/mesh
+
+#compare the convergence rates
+
+python compare.py
