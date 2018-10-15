@@ -1,0 +1,16 @@
+{
+    "solver_type" : "dlm_",
+    "time_integration" : "BDF1",
+    "delta_time_base": 15625,
+    "delta_time_negative_esponent": 6,
+    "structure_stiffness_kappa": 5,
+    "reynolds_number" : 1,
+    "fluid_triangulation_intervals" : 8,
+    "structure_triangulation_intervals" : 8,
+    "mesh_prefix": "str_",
+    "time_intervals_to_be_simulated": 65,
+    "time_intervals_in_between_printed_results": 64,
+    "equilibrium_at_zero": "false_string",
+    "time_index_digits": 3,
+    "results_directory": "results"
+}
