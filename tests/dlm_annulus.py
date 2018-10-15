@@ -643,8 +643,8 @@ for cn_time in range(0,len(ph.stampa)):
         force = assemble_blockwise_force_Theta()#,uy_n,p_n,sx_n,sy_n,l_n)
     elif ph.time_integration == 'BDF2':
         if cn_time == 0:
-            mat = assemble_blockwise_matrix_BDF1()
-            force = assemble_blockwise_force_BDF1()#ux_n,uy_n,sx_n,sy_n)
+            mat = assemble_blockwise_matrix_Theta()
+            force = assemble_blockwise_matrix_Theta()#ux_n,uy_n,sx_n,sy_n)
         else:
             mat = assemble_blockwise_matrix_BDF2()
             force = assemble_blockwise_force_BDF2()#ux_n,uy_n,ux_n_old,uy_n_old,sx_n,sy_n,sx_n_old,sy_n_old)
