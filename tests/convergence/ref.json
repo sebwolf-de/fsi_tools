@@ -8,8 +8,8 @@
     "fluid_triangulation_intervals" : 8,
     "structure_triangulation_intervals" : 8,
     "mesh_prefix": "str_",
-    "time_intervals_to_be_simulated": 201,
-    "time_intervals_in_between_printed_results": 200,
+    "time_intervals_to_be_simulated": 601,
+    "time_intervals_in_between_printed_results": 600,
     "equilibrium_at_zero": "false_string",
     "time_index_digits": 3,
     "results_directory": "results"

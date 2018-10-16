@@ -106,8 +106,8 @@ for k in range(1,7):
     ys_Theta= np.load(f)
     f.close()
 
-    #err_BDF2[k-1] = mth.sqrt(l2_norm(mass_matrix, u_BDF2 - u_reference)**2
-    #                       + l2_norm(stiffness_matrix, u_BDF2 - u_reference)**2)
+    #err_Theta[k-1] = mth.sqrt(l2_norm(mass_matrix, u_Theta - u_reference)**2
+    #                       + l2_norm(stiffness_matrix, u_Theta - u_reference)**2)
     err_Theta[k-1] = l2_norm(mass_matrix, u_Theta - u_reference)
 
     input_name = results_dir+'Theta_dt=1_'+str(2**k)+'_time'
