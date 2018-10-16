@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import os
+import sys
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -15,7 +16,10 @@ import geom_utils as geom
 
 from parameters_handler import ParametersHandler
 
-ph = ParametersHandler('simulation_parameters_fsi.json')
+if len(sys.argv) > 1:
+    ph = ParametersHandler(sys.argv[1])
+else:
+    ph = ParametersHandler('simulation_parameters_fsi.json')
 ph.simulation_info()
 
 time_list = np.where(ph.stampa)[0]
