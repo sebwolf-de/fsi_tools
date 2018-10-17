@@ -10,34 +10,34 @@ from preconditioner import NullPreconditioner
 
 def linspace_wide(real,npts,width):
     # given the vector "real"
-    # define equalliy spaced 
-    # spaced vector "r" going form 
+    # define equalliy spaced
+    # spaced vector "r" going form
     # min(real)-width*(range) to max(real) + width*range
     # range = max - min
     r = np.linspace( np.amin(real) - width*(np.amax(real)-np.amin(real)), np.amax(real) + width*(np.amax(real)-np.amin(real)),npts)
     return r
 
 def char_poly(real,imag,npts,width):
-    # given real and imaginary parts of the 
+    # given real and imaginary parts of the
     # eigenvalues, it returns the characterstic polynomial
-    # evaluated along pts points equally spaced going form 
+    # evaluated along pts points equally spaced going form
     # min(real)-width*(range) to max(real) + width*range
-    # range = max - min, on the real axis. same thing on the 
+    # range = max - min, on the real axis. same thing on the
     # imaginary one.
 
     r = linspace_wide(real,npts,width)
     i = linspace_wide(imag,npts,width)
     r,i = np.meshgrid(r,i)
-    
+
     eigs = np.vectorize(np.complex)(real,imag)
     z = np.vectorize(np.complex)(r,i)
-    
+
     poly = np.ones(z.shape)
     poly = np.vectorize(np.complex)(poly)
-    
+
     for ritz in eigs:
         poly *= z - ritz
-    
+
     return r,i,poly
 
 
@@ -48,66 +48,66 @@ def real_img_eigs_parts(Nu):
     return real_val, imag_val
 
 def rand_sparse_matrix(mu,sigma,shape):
-    # dense matrix in sparse format with random entries 
+    # dense matrix in sparse format with random entries
     # used for exercies
 
     m = shape[0]
     n = shape[1]
-        
+
     c_id = np.arange(0,n,dtype=np.int32)
     c_id = np.reshape(c_id,(1,n))
-    
+
     c = np.dot(np.ones((m,1),dtype=np.int32),c_id)
     c = c.flatten()
-    
+
     r_id = np.arange(0,m,dtype=np.int32)
     r_id = np.reshape(r_id,(m,1))
-    
+
     r = np.dot(r_id,np.ones((1,n),dtype=np.int32))
     r = r.flatten()
-    
+
     v = np.random.normal(mu,sigma,c.shape)
-    
+
     A = sparse.coo_matrix((v, (r, c)), shape)
 
     return A
 
 def arnoldi_iteration(A,n_iter,P=None):
-    
+
     m = A.shape[0]
-    
+
     if P is None:
         P = NullPreconditioner(A.shape)
-    
+
     offsets = np.arange(-1,n_iter)
-    
+
     n_el = n_iter
     for i in np.arange(1,n_iter):
         n_el += n_iter-i
-    
+
     data = array([np.arange(1,n_iter+1)]).repeat(n_iter+1,axis=0)
     H = sparse.dia_matrix((data,offsets),(n_iter+1,n_iter),dtype=np.float64)
-    
+
     c_id = np.arange(0,n_iter+1,dtype=np.int32)
     c_id = np.reshape(c_id,(1,n_iter+1))
-    
+
     c = np.dot(np.ones((m,1),dtype=np.int32),c_id)
     c = c.flatten()
-    
+
     r_id = np.arange(0,m,dtype=np.int32)
     r_id = np.reshape(r_id,(m,1))
-    
+
     r = np.dot(r_id,np.ones((1,n_iter+1),dtype=np.int32))
     r = r.flatten()
-    
+
     Q = sparse.coo_matrix((np.zeros(r.shape), (r,c)), (m,n_iter+1),dtype=np.float64)
-    
+
     b = np.zeros((m,1),dtype=np.float64)
     b[0,0] = 1
-    
+
     Q = Q.tolil()
     H = H.tolil()
-    
+
     Q[:,0] = b/la.norm(b)
 
     for n in np.arange(0,n_iter):
@@ -122,25 +122,25 @@ def arnoldi_iteration(A,n_iter,P=None):
         H[n+1,n] = la.norm(v,2)
         Q[:,n+1] = v/la.norm(v,2)
         print 'arnoldi iter: ' + str(n) + ', of: ' + str(n_iter)
-    
+
     #print '----------------------'
     return H[:-1,:],Q[:,:-1]
 
 def multiply_inverse(A,Bt,log=False):
-    
+
     v = np.zeros((A.shape[0],0))
     Bt = Bt.tolil()
-    
+
     if log == True:
         line = 'multiply inverse, 0 % done.'
         print(line),
-        
-    
+
+
     for i in range(0,Bt.shape[1]):
         f = Bt[:,i]
         s = sp_la.spsolve(A.tocsr(),f)
         s = np.reshape(s,(Bt.shape[0],1))
-        v = np.hstack([v,s])        
+        v = np.hstack([v,s])
         if log == True:
             r = float(i)/float(Bt.shape[1])
             r = int(100*r)
@@ -351,7 +351,7 @@ def add_local_to_global_coo(rows,cols,values,
     entry['cln'] = c
     # users have to control that entry and gerntry refer
     # to the same global matrix entries, but the order
-    # in wich they are stored is not the same. 
+    # in wich they are stored is not the same.
     gentry = np.zeros(r.shape[0],dtype = [('row',int),('cln',int)])
     gentry['row'] = gr
     gentry['cln'] = gc
@@ -425,11 +425,11 @@ def set_diag(A,bc_id):
     #print uno
     uno = sparse.dia_matrix((uno,0), shape = (ndofs,ndofs))
     #plt.spy(uno)
-    #plt.show() 
-    #print uno	
+    #plt.show()
+    #print uno
     A = uno.dot(A) # uno*A
     #plt.spy(A)
-    #plt.show() 
+    #plt.show()
     #print 'A = '
     #print A
     #print uno
@@ -438,7 +438,7 @@ def set_diag(A,bc_id):
     uno = np.zeros((1,ndofs))
     uno[:,bc_id] = diago[bc_id]
     #plt.spy(uno)
-    #plt.show() 
+    #plt.show()
     #for i in bc_id:
     #    uno[0,i] = diago[0,i]
     #
@@ -452,7 +452,7 @@ def set_diag(A,bc_id):
     #print uno
     uno = sparse.dia_matrix((uno,0), shape = (ndofs,ndofs))
     #plt.spy(uno)
-    #plt.show() 
+    #plt.show()
     A = A+uno
     #print 'A = '
     #print A
