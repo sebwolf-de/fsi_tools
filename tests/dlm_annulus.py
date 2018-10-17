@@ -52,31 +52,18 @@ def read_initial_condition(cn_time):
 def write_mesh():
     filename = results_dir+'mesh'#'./mesh/'+sim_prefix
     f = file(filename,"wb")
-    if ph.mesh_prefix != 'thin_':
-        np.save(f,topo_p)
-        np.save(f,x_p)
-        np.save(f,y_p)
-        np.save(f,topo_u)
-        np.save(f,x_u)
-        np.save(f,y_u)
-        np.save(f,c2f)
-        np.save(f,topo_s)
-        np.save(f,sx_n)
-        np.save(f,sy_n)
-        np.save(f,s_lgr)
-        np.save(f,t_lgr)
-    elif ph.mesh_prefix == 'thin_':
-        np.save(f,topo_p)
-        np.save(f,x_p)
-        np.save(f,y_p)
-        np.save(f,topo_u)
-        np.save(f,x_u)
-        np.save(f,y_u)
-        np.save(f,c2f)
-        np.save(f,topo_s)
-        np.save(f,sx_n)
-        np.save(f,sy_n)
-        np.save(f,s_lgr)
+    np.save(f,topo_p)
+    np.save(f,x_p)
+    np.save(f,y_p)
+    np.save(f,topo_u)
+    np.save(f,x_u)
+    np.save(f,y_u)
+    np.save(f,c2f)
+    np.save(f,topo_s)
+    np.save(f,sx_n)
+    np.save(f,sy_n)
+    np.save(f,s_lgr)
+    np.save(f,t_lgr)
     f.close()
     return
 
@@ -380,22 +367,15 @@ def write_time():
     f.close()
 
 def eval_str_area():
-    if ph.mesh_prefix == 'thin_':
-        x = np.reshape(sx_n,(sx_n.shape[0],1))
-        x = np.vstack([x,[[0]]])
-        y = np.reshape(sy_n,(sy_n.shape[0],1))
-        y = np.vstack([y,[[0]]])
-        area = geom.area_evaluation(x[:,0],y[:,0])
-    elif ph.mesh_prefix != 'thin_':
-        area = 0
-        for row in topo_s:
-            x_l = sx_n[row]
-            y_l = sy_n[row]
-            eval_p = np.zeros((x_l.shape[0],2))
-            eval_p[:,0] = x_l
-            eval_p[:,1] = y_l
-            poly = Polygon(tuple(eval_p.tolist()))
-            area+= poly.area
+    area = 0
+    for row in topo_s:
+        x_l = sx_n[row]
+        y_l = sy_n[row]
+        eval_p = np.zeros((x_l.shape[0],2))
+        eval_p[:,0] = x_l
+        eval_p[:,1] = y_l
+        poly = Polygon(tuple(eval_p.tolist()))
+        area+= poly.area
     return area
 
 def get_diffusion():
@@ -430,45 +410,24 @@ delta_y = 1./ny_p
 
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(nx_p,ny_p,delta_x,delta_y)
 
-if ph.mesh_prefix != 'thin_':
-    #nx = 4
-    #delta_x = 1./nx
-    #ny = 2
-    #delta_y = 1./ny
-    #(topo_s,s_lgr,t_lgr) = lin_t3.mesh_t3(nx,ny,delta_x,delta_y)
-    filename = './mesh_collection/' + ph.mesh_name+'.msh'
-    (topo_s,s_lgr,t_lgr) = lin_t3.load_msh(filename)
+filename = './mesh_collection/' + ph.mesh_name+'.msh'
+(topo_s,s_lgr,t_lgr) = lin_t3.load_msh(filename)
 
-    # =============================================#
-    # Square or full ellipsis initial conditions
-    #
-    #sx_zero = .5 * s_lgr
-    #sy_zero = .5 * t_lgr
-    #
-    #sx_n = .25/.9 * s_lgr;
-    #sy_n =.9      * t_lgr;
-    # =============================================#
-    R0 = .3
-    R1 = .5
-    ray = R0 + (s_lgr * (R1-R0))
-    if ph.equilibrium_at_zero == True:
-        sx_zero = np.zeros(s_lgr.shape)
-        sy_zero = np.zeros(t_lgr.shape)
-        sx_n = 1./1.4*(ray * np.cos(mth.pi/2 * t_lgr))
-        sy_n =    1.4*(ray * np.sin(mth.pi/2 * t_lgr))
-    elif ph.equilibrium_at_zero == False:
-        s_lgr = ray * np.cos(mth.pi/2 * t_lgr)
-        t_lgr = ray * np.sin(mth.pi/2 * t_lgr)
-        sx_zero = s_lgr
-        sy_zero = t_lgr
-        sx_n = 1./1.4*(s_lgr)
-        sy_n =    1.4*(t_lgr)
-elif ph.mesh_prefix == 'thin_':
-    ray = .5
-    deform = 1.4
-    (topo_s,sx_n,sy_n,s_lgr,ieq_s) = lin_t3.lin_str_mesh(ph.n_delta_s,ray,deform)
+R0 = .3
+R1 = .5
+ray = R0 + (s_lgr * (R1-R0))
+if ph.equilibrium_at_zero == True:
     sx_zero = np.zeros(s_lgr.shape)
-    sy_zero = np.zeros(s_lgr.shape)
+    sy_zero = np.zeros(t_lgr.shape)
+    sx_n = 1./1.4*(ray * np.cos(mth.pi/2 * t_lgr))
+    sy_n =    1.4*(ray * np.sin(mth.pi/2 * t_lgr))
+elif ph.equilibrium_at_zero == False:
+    s_lgr = ray * np.cos(mth.pi/2 * t_lgr)
+    t_lgr = ray * np.sin(mth.pi/2 * t_lgr)
+    sx_zero = s_lgr
+    sy_zero = t_lgr
+    sx_n = 1./1.4*(s_lgr)
+    sy_n =    1.4*(t_lgr)
 ie_s = np.arange(0,s_lgr.shape[0])
 
 if sum(ph.stampa) !=0:
@@ -503,12 +462,8 @@ dy_n_old = dy_n
 
 #Assemble the 'static' matrices
 
-if ph.mesh_prefix != 'thin_':
-    MX11 = assemble.u_v_p1_periodic(topo_s,s_lgr,t_lgr,ie_s)
-    FX11 = assemble.gradu_gradv_p1_ieq(topo_s,s_lgr,t_lgr,ie_s)
-elif ph.mesh_prefix == 'thin_':
-    MX11 = assemble.u_v_lin_p1(topo_s,s_lgr,ieq_s)
-    FX11 = assemble.gradu_gradv_lin_p1(topo_s,s_lgr,ieq_s)
+MX11 = assemble.u_v_p1_periodic(topo_s,s_lgr,t_lgr,ie_s)
+FX11 = assemble.gradu_gradv_p1_ieq(topo_s,s_lgr,t_lgr,ie_s)
 
 MX22 = MX11
 MXT11 = MX11
@@ -594,21 +549,12 @@ for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
 
     #Assemble fluid-structure coupling matrix
-    if ph.mesh_prefix != 'thin_':
-        (str_segments,fluid_id) = geom.fluid_intersect_mesh(topo_u,x_u,y_u,
-                        topo_s,sx_n,sy_n)
-        GT11 = assemble.u_s_p1_thick(x_u,y_u,topo_u,
-                        s_lgr,t_lgr,
-                        sx_n,sy_n,topo_s,ie_s,
-                        str_segments,fluid_id)
-    elif ph.mesh_prefix == 'thin_':
-        t0 = time.time()
-        (str_segments,fluid_id) = geom.fluid_intersect_string(topo_u,x_u,y_u,
-                       topo_s,sx_n,sy_n)
-        GT11 = assemble.u_s_p1(topo_u,x_u,y_u,
-                        topo_s,sx_n,sy_n,s_lgr,ieq_s,
-                        str_segments,fluid_id)
-        t1 = time.time()
+    (str_segments,fluid_id) = geom.fluid_intersect_mesh(topo_u,x_u,y_u,
+                    topo_s,sx_n,sy_n)
+    GT11 = assemble.u_s_p1_thick(x_u,y_u,topo_u,
+                    s_lgr,t_lgr,
+                    sx_n,sy_n,topo_s,ie_s,
+                    str_segments,fluid_id)
 
     GT22 = GT11
     G11 = GT11.transpose()
