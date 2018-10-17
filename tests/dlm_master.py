@@ -169,26 +169,29 @@ def structure_apply_bc(FX11, FX22, MXT11, MXT22):
     return FX11, FX22, MXT11, MXT22
 
 def coupling_apply_bc(GT11, GT22):
-    if ph.mesh_prefix == 'annulus_':
-        bc_id = np.where(y_u < delta_x/10)
-        GT22 = la_utils.clear_rows(GT22,bc_id)
-
-        bc_id = np.where(y_u > 1-delta_x/10)
+    bc_id = np.where(y_u < delta_x/10)
+    if ph.mesh_prefix == 'cavity_':
         GT11 = la_utils.clear_rows(GT11,bc_id)
-        GT22 = la_utils.clear_rows(GT22,bc_id)
+    GT22 = la_utils.clear_rows(GT22,bc_id)
 
-        bc_id = np.where(x_u > 1-delta_x/10)
-        GT11 = la_utils.clear_rows(GT11,bc_id)
-        GT22 = la_utils.clear_rows(GT22,bc_id)
+    bc_id = np.where(y_u > 1-delta_x/10)
+    GT11 = la_utils.clear_rows(GT11,bc_id)
+    GT22 = la_utils.clear_rows(GT22,bc_id)
 
-        bc_id = np.where(x_u < delta_x/10)
-        GT11 = la_utils.clear_rows(GT11,bc_id)
+    bc_id = np.where(x_u > 1-delta_x/10)
+    GT11 = la_utils.clear_rows(GT11,bc_id)
+    GT22 = la_utils.clear_rows(GT22,bc_id)
+
+    bc_id = np.where(x_u < delta_x/10)
+    GT11 = la_utils.clear_rows(GT11,bc_id)
+    if ph.mesh_prefix == 'cavity_':
+        GT22 = la_utils.clear_rows(GT22,bc_id)
 
     return GT11, GT22
 
 def assemble_blockwise_force_BDF1():#ux_n,uy_n,sx_n,sy_n):
-    f_rhs_x = 1/ph.dt*Mv11.dot(ux_n)
-    f_rhs_y = 1/ph.dt*Mv11.dot(uy_n)
+    f_rhs_x = ph.rho_fluid/ph.dt*Mv11.dot(ux_n)
+    f_rhs_y = ph.rho_fluid/ph.dt*Mv11.dot(uy_n)
 
     (f_rhs_x, f_rhs_y) = fluid_rhs_apply_bc(f_rhs_x, f_rhs_y)
 
@@ -239,8 +242,8 @@ def assemble_blockwise_matrix_BDF1():
     return mat
 
 def assemble_blockwise_force_BDF2():
-    f_rhs_x = (2*Mv11.dot(ux_n) - 0.5*Mv11.dot(ux_n_old))/ph.dt
-    f_rhs_y = (2*Mv11.dot(uy_n) - 0.5*Mv11.dot(uy_n_old))/ph.dt
+    f_rhs_x = (2*Mv11.dot(ux_n) - 0.5*Mv11.dot(ux_n_old))*ph.rho_fluid/ph.dt
+    f_rhs_y = (2*Mv11.dot(uy_n) - 0.5*Mv11.dot(uy_n_old))*ph.rho_fluid/ph.dt
 
     (f_rhs_x, f_rhs_y) = fluid_rhs_apply_bc(f_rhs_x, f_rhs_y)
 
@@ -291,8 +294,8 @@ def assemble_blockwise_matrix_BDF2():
     return mat
 
 def assemble_blockwise_force_Theta():
-    f_rhs_x = 1/ph.dt*Mv11.dot(ux_n) - 0.5*A11.dot(ux_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
-    f_rhs_y = 1/ph.dt*Mv11.dot(uy_n) - 0.5*A11.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
+    f_rhs_x = ph.rho_fluid/ph.dt*Mv11.dot(ux_n) - 0.5*ph.nu*A11.dot(ux_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
+    f_rhs_y = ph.rho_fluid/ph.dt*Mv11.dot(uy_n) - 0.5*ph.nu*A11.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
     (f_rhs_x, f_rhs_y) = fluid_rhs_apply_bc(f_rhs_x, f_rhs_y)
 
@@ -447,6 +450,9 @@ sx_zero = np.zeros(())
 sy_zero = np.zeros(())
 
 if ph.mesh_prefix == 'annulus_':
+    R0 = .3
+    R1 = .5
+    ray = R0 + (s_lgr * (R1-R0))
     s_lgr = ray * np.cos(mth.pi/2 * t_lgr)
     t_lgr = ray * np.sin(mth.pi/2 * t_lgr)
     sx_zero = s_lgr
@@ -504,7 +510,7 @@ MX22 = MX11
 MXT11 = MX11
 MXT22 = MX11
 
-FX11 = ph.kappa * FX11
+FX11 = ph.kappa*FX11
 FX22 = FX11
 
 (FX11, FX22, MXT11, MXT22) = structure_apply_bc(FX11, FX22, MXT11, MXT22)
@@ -513,8 +519,6 @@ MX = sparse.vstack([
     sparse.hstack([MX11,sparse.csr_matrix((ndofs_s,ndofs_s))]),
     sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_s)),MX22])
     ])
-
-print np.linalg.det(MX.todense())
 
 MXT = sparse.vstack([
     sparse.hstack([MXT11,sparse.csr_matrix((ndofs_s,ndofs_s))]),
@@ -528,10 +532,9 @@ FX = sparse.vstack([
 
 Mv11 = assemble.u_v_p1(topo_u,x_u,y_u)
 A11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
-A11 = A11/ph.reynolds
-A11_BDF1 = A11 + Mv11/ph.dt
-A11_BDF2 = A11 + Mv11*1.5/ph.dt
-A11_Theta = 0.5 * A11 + Mv11/ph.dt
+A11_BDF1 = ph.nu*A11 + ph.rho_fluid/ph.dt*Mv11
+A11_BDF2 = ph.nu*A11 + 1.5*ph.rho_fluid/ph.dt*Mv11
+A11_Theta = 0.5*ph.nu*A11 + ph.rho_fluid/ph.dt*Mv11
 A22_BDF1 = A11_BDF1
 A22_BDF2 = A11_BDF2
 A22_Theta = A11_Theta

@@ -9,8 +9,12 @@ class ParametersHandler:
         self.time_integration = self.params["time_integration"]
         self.base = self.params["delta_time_base"]
         self.esponente = self.params["delta_time_negative_esponent"]
-        self.kappa = self.params["structure_stiffness_kappa"]
+
+        self.kappa = self.params["kappa"]
         self.reynolds = self.params["reynolds_number"]
+        self.rho_fluid = self.params["rho_fluid"]
+        self.rho_structure = self.params["rho_structure"]
+        self.nu = self.params["nu"]
 
         self.n_delta_x = self.params["fluid_triangulation_intervals"]
         self.n_delta_s = self.params["structure_triangulation_intervals"]
@@ -28,9 +32,6 @@ class ParametersHandler:
 
         self.mesh_name = self.mesh_prefix+str(int(self.n_delta_s))
 
-        bool_conversion = {"true_string" : True, "false_string" : False}
-        self.equilibrium_at_zero = bool_conversion[self.params["equilibrium_at_zero"]]
-
         if self.solver_type == "ns_":
             sp =  self.solver_type+self.mesh_name+'_'
             sp += 'dt'+str(int(self.base))+'em'+str(int(self.esponente))
@@ -43,7 +44,6 @@ class ParametersHandler:
             sp += '_hx'+str(int(self.n_delta_x))+'_hs'+str(int(self.n_delta_s))
             sp += '_k'+str(int(self.kappa))
             sp += '_re'+str(int(self.reynolds))
-            sp += '_eq_at_zero_'+str(self.equilibrium_at_zero)
 
         self.sim_prefix = sp
 
@@ -59,7 +59,6 @@ class ParametersHandler:
         print 'hs = '+str(int(self.n_delta_s))
         print 'k  = '+str(int(self.kappa))
         print 're = '+str(int(self.reynolds))
-        print 'eq_at_zero = '+str(self.equilibrium_at_zero)
         print '-----------------------------------'
         return
 
