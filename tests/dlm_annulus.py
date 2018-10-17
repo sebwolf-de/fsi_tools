@@ -109,6 +109,55 @@ def fluid_rhs_apply_bc(f_rhs_x, f_rhs_y):
 
     return f_rhs_x, f_rhs_y
 
+def fluid_m_apply_bc(A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2):
+    bc_id = np.where(y_u < delta_x/10)
+    A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
+    A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
+    A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
+    BT2 = la_utils.clear_rows(BT2,bc_id)
+
+    bc_id = np.where(y_u > 1-delta_x/10)
+    A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
+    A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
+    A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
+    A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
+    A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
+    A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
+    BT1 = la_utils.clear_rows(BT1,bc_id)
+    BT2 = la_utils.clear_rows(BT2,bc_id)
+
+    bc_id = np.where(x_u > 1-delta_x/10)
+    A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
+    A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
+    A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
+    A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
+    A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
+    A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
+    BT1 = la_utils.clear_rows(BT1,bc_id)
+    BT2 = la_utils.clear_rows(BT2,bc_id)
+
+    bc_id = np.where(x_u < delta_x/10)
+    A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
+    A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
+    A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
+    BT1 = la_utils.clear_rows(BT1,bc_id)
+
+    return A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2
+
+def structure_apply_bc(FX11, FX22, MXT11, MXT22):
+    bc_id = np.where(sy_n < delta_x/10)
+    FX22 = la_utils.set_diag(FX22,bc_id)
+    #MX22 = la_utils.set_diag(MX22,bc_id)
+    MXT22 = la_utils.clear_rows(MXT22,bc_id)
+
+
+    bc_id = np.where(sx_n < delta_x/10)
+    FX11 = la_utils.set_diag(FX11,bc_id)
+    #MX11 = la_utils.set_diag(MX11,bc_id)
+    MXT11 = la_utils.clear_rows(MXT11,bc_id)
+
+    return FX11, FX22, MXT11, MXT22
+
 def assemble_blockwise_force_BDF1():#ux_n,uy_n,sx_n,sy_n):
     f_rhs_x = 1/ph.dt*Mv11.dot(ux_n)
     f_rhs_y = 1/ph.dt*Mv11.dot(uy_n)
@@ -434,16 +483,7 @@ MXT22 = MX11
 FX11 = ph.kappa * FX11
 FX22 = FX11
 
-bc_id = np.where(sy_n < delta_x/10)
-FX22 = la_utils.set_diag(FX22,bc_id)
-#MX22 = la_utils.set_diag(MX22,bc_id)
-MXT22 = la_utils.clear_rows(MXT22,bc_id)
-
-
-bc_id = np.where(sx_n < delta_x/10)
-FX11 = la_utils.set_diag(FX11,bc_id)
-#MX11 = la_utils.set_diag(MX11,bc_id)
-MXT11 = la_utils.clear_rows(MXT11,bc_id)
+(FX11, FX22, MXT11, MXT22) = structure_apply_bc(FX11, FX22, MXT11, MXT22)
 
 MX = sparse.vstack([
     sparse.hstack([MX11,sparse.csr_matrix((ndofs_s,ndofs_s))]),
@@ -460,13 +500,6 @@ FX = sparse.vstack([
     sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_s)),FX22])
     ])
 
-rows = np.arange(0,1)
-vals = np.ones((1))
-mp = sparse.coo_matrix((vals, (rows,rows)), shape=(1,1))
-
-rows = np.arange(0,ndofs_p)
-vals = np.ones((ndofs_p))
-Mp = sparse.coo_matrix((vals, (rows,rows)), shape=(ndofs_p,ndofs_p))
 Mv11 = assemble.u_v_p1(topo_u,x_u,y_u)
 A11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
 A11 = A11/ph.reynolds
@@ -483,38 +516,40 @@ A22_Theta = A11_Theta
 BT = sparse.vstack([BT1,BT2])
 B = BT.transpose()
 
+(A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2) = fluid_m_apply_bc(
+    A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2)
 
-bc_id = np.where( y_u < delta_x/10)
-A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
-A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
-A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
-BT2 = la_utils.clear_rows(BT2,bc_id)
-
-bc_id = np.where( y_u > 1-delta_x/10)
-A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
-A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
-A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
-A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
-A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
-A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
-BT1 = la_utils.clear_rows(BT1,bc_id)
-BT2 = la_utils.clear_rows(BT2,bc_id)
-
-bc_id = np.where( x_u > 1-delta_x/10)
-A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
-A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
-A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
-A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
-A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
-A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
-BT1 = la_utils.clear_rows(BT1,bc_id)
-BT2 = la_utils.clear_rows(BT2,bc_id)
-
-bc_id = np.where( x_u < delta_x/10)
-A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
-A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
-A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
-BT1 = la_utils.clear_rows(BT1,bc_id)
+# bc_id = np.where( y_u < delta_x/10)
+# A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
+# A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
+# A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
+# BT2 = la_utils.clear_rows(BT2,bc_id)
+#
+# bc_id = np.where( y_u > 1-delta_x/10)
+# A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
+# A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
+# A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
+# A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
+# A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
+# A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
+# BT1 = la_utils.clear_rows(BT1,bc_id)
+# BT2 = la_utils.clear_rows(BT2,bc_id)
+#
+# bc_id = np.where( x_u > 1-delta_x/10)
+# A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
+# A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
+# A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
+# A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
+# A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
+# A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
+# BT1 = la_utils.clear_rows(BT1,bc_id)
+# BT2 = la_utils.clear_rows(BT2,bc_id)
+#
+# bc_id = np.where( x_u < delta_x/10)
+# A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
+# A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
+# A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
+# BT1 = la_utils.clear_rows(BT1,bc_id)
 
 Mv = sparse.vstack([
     sparse.hstack( [Mv11, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
