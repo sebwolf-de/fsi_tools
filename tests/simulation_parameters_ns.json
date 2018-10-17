@@ -1,19 +1,23 @@
 {
     "solver_type": "ns_",
+
     "time_integration" : "BDF1",
-    "delta_time_base": 10,
-    "delta_time_negative_esponent": 1,
-    "reynolds_number" : 1,
-    "fluid_triangulation_intervals" : 5,
-    "time_intervals_to_be_simulated": 1000,
-    "time_intervals_in_between_printed_results": 10,
+    "delta_time_base": 5,
+    "delta_time_negative_esponent": 5,
+    "fluid_triangulation_intervals" : 16,
+
+    "reynolds_number" : 10,
+    "rho_fluid" : 1,
+    "rho_structure" : 1,
+    "nu" : 0.0001,
+
+    "time_intervals_to_be_simulated": 5000,
+    "time_intervals_in_between_printed_results": 2,
     "time_index_digits": 4,
     "results_directory": "results",
 
-    "structure_stiffness_kappa": 5,
+    "kappa": 5,
     "reynolds_number" : 1,
     "structure_triangulation_intervals" : 2,
-    "mesh_prefix": "str_",
-    "equilibrium_at_zero": "true_string",
-    "_equilibrium_at_zero": "false_string"
+    "mesh_prefix": "str_"
 }

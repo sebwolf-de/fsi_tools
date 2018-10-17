@@ -42,20 +42,20 @@ def assemble_blockwise_force():
     f_rhs_x = np.reshape(f_rhs[0:ndofs_u], (ndofs_u, 1))
     f_rhs_y = np.reshape(f_rhs[ndofs_u:2*ndofs_u], (ndofs_u, 1))
 
-    bc_id = np.where( y_u < delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
-
-    bc_id = np.where( x_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
-
-    bc_id = np.where( x_u < delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
-
-    bc_id = np.where( y_u > 1-delta_x/10)
+    bc_id = np.where(y_u > 1-delta_x/10)
     f_rhs_x[bc_id,:] = 1.
+    f_rhs_y[bc_id,:] = 0
+
+    bc_id = np.where(y_u < delta_x/10)
+    f_rhs_x[bc_id,:] = 0
+    f_rhs_y[bc_id,:] = 0
+
+    bc_id = np.where(x_u > 1-delta_x/10)
+    f_rhs_x[bc_id,:] = 0
+    f_rhs_y[bc_id,:] = 0
+
+    bc_id = np.where(x_u < delta_x/10)
+    f_rhs_x[bc_id,:] = 0
     f_rhs_y[bc_id,:] = 0
 
     f_rhs_x = np.reshape(f_rhs_x,(ndofs_u))
@@ -67,22 +67,44 @@ def assemble_blockwise_force():
     return rhs
 
 def assemble_blockwise_matrix():
-    #M11 = assemble.u_v_p1(topo_u,x_u,y_u)
     (K11, K12, K21, K22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n, uy_n)
-    #A11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
+    D11 = ph.rho_fluid/ph.dt*M11 + ph.nu*A11 + ph.rho_fluid*K11
+    D22 = ph.rho_fluid/ph.dt*M11 + ph.nu*A11 + ph.rho_fluid*K11
 
-    #(BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,
-    #           topo_u,x_u,y_u,c2f)
-    #BT = sparse.vstack([BT1,BT2])
+    bc_id = np.where(y_u < delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D11, bc_id)
+    K12 = la_utils.clear_rows(K12, bc_id)
+    K21 = la_utils.clear_rows(K21, bc_id)
+
+    bc_id = np.where(y_u > 1-delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D11, bc_id)
+    K12 = la_utils.clear_rows(K12, bc_id)
+    K21 = la_utils.clear_rows(K21, bc_id)
+
+    bc_id = np.where(x_u < delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D11, bc_id)
+    K12 = la_utils.clear_rows(K12, bc_id)
+    K21 = la_utils.clear_rows(K21, bc_id)
+
+    bc_id = np.where(x_u > 1-delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D11, bc_id)
+    K12 = la_utils.clear_rows(K12, bc_id)
+    K21 = la_utils.clear_rows(K21, bc_id)
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
-        sparse.hstack([M11/ph.dt + A11 + K11, K12, -BT1, sparse.csr_matrix((ndofs_u,1))]),
-        sparse.hstack([K21, M11/ph.dt + A11 + K22, -BT2, sparse.csr_matrix((ndofs_u,1))]),
+        sparse.hstack([D11, ph.rho_fluid*K12, -BT1, sparse.csr_matrix((ndofs_u,1))]),
+        sparse.hstack([ph.rho_fluid*K21, D22, -BT2, sparse.csr_matrix((ndofs_u,1))]),
         sparse.hstack([-BT1.transpose(), -BT2.transpose(), sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
         sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)), mean_p, sparse.csr_matrix((1,1))])
     ], "csr")
 
+    #plt.spy(mat)
+    #plt.show()
     #### assembly of Stokes system
     #mat = sparse.vstack([
     #    sparse.hstack([M11/ph.dt + A11, sparse.csr_matrix((ndofs_u, ndofs_u)), -BT1, sparse.csr_matrix((ndofs_u,1))]),
@@ -90,7 +112,7 @@ def assemble_blockwise_matrix():
     #    sparse.hstack([-BT1.transpose(), -BT2.transpose(), sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
     #    sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)), mean_p, sparse.csr_matrix((1,1))])
     #], "csr")
-    mat = apply_bc(mat)
+    #mat = apply_bc(mat)
 
     return mat
 
@@ -170,6 +192,22 @@ A11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,
            topo_u,x_u,y_u,c2f)
 
+bc_id = np.where(x_u < delta_x/10)
+BT1 = la_utils.clear_rows(BT1,bc_id)
+BT2 = la_utils.clear_rows(BT2,bc_id)
+
+bc_id = np.where(x_u > 1-delta_x/10)
+BT1 = la_utils.clear_rows(BT1,bc_id)
+BT2 = la_utils.clear_rows(BT2,bc_id)
+
+bc_id = np.where(y_u < delta_x/10)
+BT1 = la_utils.clear_rows(BT1,bc_id)
+BT2 = la_utils.clear_rows(BT2,bc_id)
+
+bc_id = np.where(y_u > 1-delta_x/10)
+BT1 = la_utils.clear_rows(BT1,bc_id)
+BT2 = la_utils.clear_rows(BT2,bc_id)
+
 BT = sparse.vstack([BT1,BT2])
 B = BT.transpose()
 
@@ -194,6 +232,7 @@ for cn_time in range(0,len(ph.stampa)):
     mat = assemble_blockwise_matrix()
     force = assemble_blockwise_force()
 
+
     sol_t0 = time.time()
     sol = sp_la.spsolve(mat,force)
     sol_t1 = time.time()
@@ -214,6 +253,7 @@ for cn_time in range(0,len(ph.stampa)):
 
     print '--------------------------------------'
     print 'cn_time   = ' + str(cn_time)
+    print 't         = ' + str(cn_time*ph.dt)
     print 'l2 norm u = ' + str(l2_norm(u_n))
     print 'l2 norm p = ' + str(l2_norm(p))
     print 'step time = ' + str((step_t1-step_t0))
