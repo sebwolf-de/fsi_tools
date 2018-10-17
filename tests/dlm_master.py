@@ -189,7 +189,7 @@ def coupling_apply_bc(GT11, GT22):
 
     return GT11, GT22
 
-def assemble_blockwise_force_BDF1():#ux_n,uy_n,sx_n,sy_n):
+def assemble_blockwise_force_BDF1():
     f_rhs_x = ph.rho_fluid/ph.dt*Mv11.dot(ux_n)
     f_rhs_y = ph.rho_fluid/ph.dt*Mv11.dot(uy_n)
 
@@ -418,7 +418,7 @@ def get_energy():
 def get_prefix():
     return ph.sim_prefix
 
-#Start of the script
+###Start of the script
 
 np.set_printoptions(precision=4)
 np.set_printoptions(suppress=True)
@@ -429,7 +429,7 @@ else:
     ph = ParametersHandler('simulation_parameters_fsi.json')
 ph.simulation_info()
 
-#Set up the geometry and intial conditions
+###Set up the geometry and intial conditions
 
 nx_p = ph.n_delta_x
 delta_x = 1./nx_p
@@ -501,7 +501,7 @@ dy_n = sy_n - sy_zero
 dx_n_old = dx_n
 dy_n_old = dy_n
 
-#Assemble the 'static' matrices
+###Assemble the 'static' matrices
 
 MX11 = assemble.u_v_p1_periodic(topo_s,s_lgr,t_lgr,ie_s)
 FX11 = assemble.gradu_gradv_p1_ieq(topo_s,s_lgr,t_lgr,ie_s)
@@ -577,7 +577,7 @@ eval_p = np.zeros((0,2))
 for row in topo_p:
     mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.,1])
 
-#Simulation loop
+###Simulation loop
 
 str_area_zero = eval_str_area()
 
@@ -588,7 +588,7 @@ energy = []
 for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
 
-    #Assemble fluid-structure coupling matrix
+    ###Assemble fluid-structure coupling matrix
     (str_segments,fluid_id) = geom.fluid_intersect_mesh(topo_u,x_u,y_u,
                     topo_s,sx_n,sy_n)
     GT11 = assemble.u_s_p1_thick(x_u,y_u,topo_u,
@@ -609,7 +609,7 @@ for cn_time in range(0,len(ph.stampa)):
             sparse.hstack([GT11,sparse.csr_matrix((ndofs_u,ndofs_s))]),
             sparse.hstack([sparse.csr_matrix((ndofs_u,ndofs_s)),GT22]) ])
 
-    #assemble linear system and solve
+    ###Assemble linear system and solve
     if ph.time_integration == 'BDF1':
         mat = assemble_blockwise_matrix_BDF1()
         force = assemble_blockwise_force_BDF1()
@@ -628,7 +628,7 @@ for cn_time in range(0,len(ph.stampa)):
     sol = sp_la.spsolve(mat,force)
     sol_t1 = time.time()
 
-    #update solution vector
+    ###Update solution vector
     ux_n_old = ux_n
     uy_n_old = uy_n
     u_n_old = u_n
@@ -649,7 +649,7 @@ for cn_time in range(0,len(ph.stampa)):
     sy_n = sy_zero + dy_n
     l_n = sol[2*ndofs_u+ndofs_p+2*ndofs_s:2*ndofs_u+ndofs_p+4*ndofs_s]
 
-    #Do some nice physics related stuff
+    ###Do some nice physics related stuff
     str_area = eval_str_area()
     diffusion = str_area/str_area_zero
     p_all_zero = bool(np.all(p_n==0))
@@ -676,7 +676,7 @@ for cn_time in range(0,len(ph.stampa)):
     #    print 'The simulation was aborted, since it produced nonsense!'
     #    break
 
-    #write output
+    ###Write output
     if ph.stampa[cn_time] == True:
         write_output()
     step_t1 = time.time()
