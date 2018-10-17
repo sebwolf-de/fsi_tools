@@ -92,7 +92,6 @@ def stack_rhs(f_rhs_x, f_rhs_y, p_rhs, s_rhs_x, s_rhs_y, l_rhs_x, l_rhs_y):
     return rhs
 
 def fluid_rhs_apply_bc(f_rhs_x, f_rhs_y):
-
     bc_id = np.where(y_u < delta_x/10)
     f_rhs_y[bc_id] = 0
 
@@ -147,13 +146,10 @@ def fluid_m_apply_bc(A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Thet
 def structure_apply_bc(FX11, FX22, MXT11, MXT22):
     bc_id = np.where(sy_n < delta_x/10)
     FX22 = la_utils.set_diag(FX22,bc_id)
-    #MX22 = la_utils.set_diag(MX22,bc_id)
     MXT22 = la_utils.clear_rows(MXT22,bc_id)
-
 
     bc_id = np.where(sx_n < delta_x/10)
     FX11 = la_utils.set_diag(FX11,bc_id)
-    #MX11 = la_utils.set_diag(MX11,bc_id)
     MXT11 = la_utils.clear_rows(MXT11,bc_id)
 
     return FX11, FX22, MXT11, MXT22
@@ -227,13 +223,11 @@ def assemble_blockwise_matrix_BDF1():
     mat = mat.tocsr()
     return mat
 
-def assemble_blockwise_force_BDF2():#ux_n,uy_n,ux_n_old,uy_n_old,sx_n,sy_n,sx_n_old,sy_n_old):
+def assemble_blockwise_force_BDF2():
     f_rhs_x = (2*Mv11.dot(ux_n) - 0.5*Mv11.dot(ux_n_old))/ph.dt
     f_rhs_y = (2*Mv11.dot(uy_n) - 0.5*Mv11.dot(uy_n_old))/ph.dt
 
     (f_rhs_x, f_rhs_y) = fluid_rhs_apply_bc(f_rhs_x, f_rhs_y)
-
-    #p_rhs = B.dot(u_n_old)
 
     l_rhs_x = (2*MX11.dot(dx_n) - 0.5*MX11.dot(dx_n_old))/ph.dt
     l_rhs_y = (2*MX11.dot(dy_n) - 0.5*MX11.dot(dy_n_old))/ph.dt
@@ -281,7 +275,7 @@ def assemble_blockwise_matrix_BDF2():
     mat = mat.tocsr()
     return mat
 
-def assemble_blockwise_force_Theta():#ux_n,uy_n,p_n,sx_n,sy_n,l_n):
+def assemble_blockwise_force_Theta():
     f_rhs_x = 1/ph.dt*Mv11.dot(ux_n) - 0.5*A11.dot(ux_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
     f_rhs_y = 1/ph.dt*Mv11.dot(uy_n) - 0.5*A11.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
@@ -339,18 +333,18 @@ def assemble_blockwise_matrix_Theta():
     mat = mat.tocsr()
     return mat
 
-def unassemble_sol_blocks(sol):
-    u_n = sol[0:2*ndofs_u]
-    p_n1 = sol[2*ndofs_u:2*ndofs_u+ndofs_p]
-
-    sx_n1 = np.zeros( sx_n.shape )
-    sy_n1 = np.zeros( sy_n.shape )
-
-    sx_n1 = sol[2*ndofs_u+ndofs_p:2*ndofs_u+ndofs_p+ndofs_s]
-
-    sy_n1 = sol[2*ndofs_u+ndofs_p+  ndofs_s:
-                           2*ndofs_u+ndofs_p+2*ndofs_s]
-    return u_n,p_n1,sx_n1,sy_n1
+# def unassemble_sol_blocks(sol):
+#     u_n = sol[0:2*ndofs_u]
+#     p_n1 = sol[2*ndofs_u:2*ndofs_u+ndofs_p]
+#
+#     sx_n1 = np.zeros( sx_n.shape )
+#     sy_n1 = np.zeros( sy_n.shape )
+#
+#     sx_n1 = sol[2*ndofs_u+ndofs_p:2*ndofs_u+ndofs_p+ndofs_s]
+#
+#     sy_n1 = sol[2*ndofs_u+ndofs_p+  ndofs_s:
+#                            2*ndofs_u+ndofs_p+2*ndofs_s]
+#     return u_n,p_n1,sx_n1,sy_n1
 
 def area_measure(xs,ys):
     area_mes = MX11 * sx_n + MX11 * sy_n
@@ -413,6 +407,8 @@ def get_energy():
 def get_prefix():
     return ph.sim_prefix
 
+#Start of the script
+
 np.set_printoptions(precision=4)
 np.set_printoptions(suppress=True)
 
@@ -421,6 +417,8 @@ if len(sys.argv) > 1:
 else:
     ph = ParametersHandler('simulation_parameters_fsi.json')
 ph.simulation_info()
+
+#Set up the geometry and intial conditions
 
 nx_p = ph.n_delta_x
 delta_x = 1./nx_p
@@ -471,8 +469,6 @@ elif ph.mesh_prefix == 'thin_':
     (topo_s,sx_n,sy_n,s_lgr,ieq_s) = lin_t3.lin_str_mesh(ph.n_delta_s,ray,deform)
     sx_zero = np.zeros(s_lgr.shape)
     sy_zero = np.zeros(s_lgr.shape)
-
-#(sx_n,sy_n) = read_initial_condition(40)
 ie_s = np.arange(0,s_lgr.shape[0])
 
 if sum(ph.stampa) !=0:
@@ -485,6 +481,27 @@ if sum(ph.stampa) !=0:
 ndofs_u = max(x_u.shape)
 ndofs_p = max(x_p.shape) + topo_p.shape[0]
 ndofs_s = max(ie_s)+1
+
+ux_n = np.zeros((ndofs_u))
+uy_n = np.zeros((ndofs_u))
+u_n = np.zeros((2*ndofs_u))
+l_n = np.zeros((2*ndofs_s))
+p_n = np.zeros((ndofs_p))
+
+ux_n_old = ux_n
+uy_n_old = uy_n
+u_n_old = u_n
+p_n_old = p_n
+sx_n_old = sx_n
+sy_n_old = sy_n
+l_n_old = l_n
+
+dx_n = sx_n - sx_zero
+dy_n = sy_n - sy_zero
+dx_n_old = dx_n
+dy_n_old = dy_n
+
+#Assemble the 'static' matrices
 
 if ph.mesh_prefix != 'thin_':
     MX11 = assemble.u_v_p1_periodic(topo_s,s_lgr,t_lgr,ie_s)
@@ -565,36 +582,18 @@ eval_p = np.zeros((0,2))
 for row in topo_p:
     mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.,1])
 
-ux_n = np.zeros((ndofs_u))
-uy_n = np.zeros((ndofs_u))
-u_n = np.zeros((2*ndofs_u))
-l_n = np.zeros((2*ndofs_s))
-p_n = np.zeros((ndofs_p))
-
-ux_n_old = ux_n
-uy_n_old = uy_n
-u_n_old = u_n
-p_n_old = p_n
-sx_n_old = sx_n
-sy_n_old = sy_n
-l_n_old = l_n
-
-dx_n = sx_n - sx_zero
-dy_n = sy_n - sy_zero
-dx_n_old = dx_n
-dy_n_old = dy_n
-
-grade = np.linspace(0.0, 1.0, sum(ph.stampa))
+#Simulation loop
 
 str_area_zero = eval_str_area()
 
 sol_time = np.array([])
 step_time = np.array([])
 
-color_id = 0
 energy = []
 for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
+
+    #Assemble fluid-structure coupling matrix
     if ph.mesh_prefix != 'thin_':
         (str_segments,fluid_id) = geom.fluid_intersect_mesh(topo_u,x_u,y_u,
                         topo_s,sx_n,sy_n)
@@ -606,13 +605,10 @@ for cn_time in range(0,len(ph.stampa)):
         t0 = time.time()
         (str_segments,fluid_id) = geom.fluid_intersect_string(topo_u,x_u,y_u,
                        topo_s,sx_n,sy_n)
-
         GT11 = assemble.u_s_p1(topo_u,x_u,y_u,
                         topo_s,sx_n,sy_n,s_lgr,ieq_s,
                         str_segments,fluid_id)
-
         t1 = time.time()
-        print 'G time = ' + str((t1-t0))
 
     GT22 = GT11
     G11 = GT11.transpose()
@@ -627,24 +623,26 @@ for cn_time in range(0,len(ph.stampa)):
             sparse.hstack([GT11,sparse.csr_matrix((ndofs_u,ndofs_s))]),
             sparse.hstack([sparse.csr_matrix((ndofs_u,ndofs_s)),GT22]) ])
 
+    #assemble linear system and solve
     if ph.time_integration == 'BDF1':
         mat = assemble_blockwise_matrix_BDF1()
-        force = assemble_blockwise_force_BDF1()#ux_n,uy_n,sx_n,sy_n)
+        force = assemble_blockwise_force_BDF1()
     elif ph.time_integration == 'Theta':
         mat = assemble_blockwise_matrix_Theta()
-        force = assemble_blockwise_force_Theta()#,uy_n,p_n,sx_n,sy_n,l_n)
+        force = assemble_blockwise_force_Theta()
     elif ph.time_integration == 'BDF2':
         if cn_time == 0:
             mat = assemble_blockwise_matrix_Theta()
-            force = assemble_blockwise_force_Theta()#ux_n,uy_n,sx_n,sy_n)
+            force = assemble_blockwise_force_Theta()
         else:
             mat = assemble_blockwise_matrix_BDF2()
-            force = assemble_blockwise_force_BDF2()#ux_n,uy_n,ux_n_old,uy_n_old,sx_n,sy_n,sx_n_old,sy_n_old)
+            force = assemble_blockwise_force_BDF2()
 
     sol_t0 = time.time()
     sol = sp_la.spsolve(mat,force)
     sol_t1 = time.time()
 
+    #update solution vector
     ux_n_old = ux_n
     uy_n_old = uy_n
     u_n_old = u_n
@@ -665,10 +663,9 @@ for cn_time in range(0,len(ph.stampa)):
     sy_n = sy_zero + dy_n
     l_n = sol[2*ndofs_u+ndofs_p+2*ndofs_s:2*ndofs_u+ndofs_p+4*ndofs_s]
 
+    #Do some nice physics related stuff
     str_area = eval_str_area()
-
     diffusion = str_area/str_area_zero
-
     p_all_zero = bool(np.all(p_n==0))
     exploded = bool(np.amax(p_n) > 1e+10)
 
@@ -686,11 +683,14 @@ for cn_time in range(0,len(ph.stampa)):
     print 'exploded     ? ' + str(exploded)
     print '--------------------------------------'
 
-#   if diffusion > 2:
-#        break
-#    elif diffusion < .8:
-#        break
+    if diffusion > 2:
+        print 'The simulation was aborted, since it produced nonsense!'
+        break
+    elif diffusion < .8:
+        print 'The simulation was aborted, since it produced nonsense!'
+        break
 
+    #write output
     if ph.stampa[cn_time] == True:
         write_output()
     step_t1 = time.time()
