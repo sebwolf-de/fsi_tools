@@ -91,9 +91,7 @@ def stack_rhs(f_rhs_x, f_rhs_y, p_rhs, s_rhs_x, s_rhs_y, l_rhs_x, l_rhs_y):
 
     return rhs
 
-def assemble_blockwise_force_BDF1():#ux_n,uy_n,sx_n,sy_n):
-    f_rhs_x = 1/ph.dt*Mv11.dot(ux_n)
-    f_rhs_y = 1/ph.dt*Mv11.dot(uy_n)
+def fluid_rhs_apply_bc(f_rhs_x, f_rhs_y):
 
     bc_id = np.where(y_u < delta_x/10)
     f_rhs_y[bc_id] = 0
@@ -108,6 +106,14 @@ def assemble_blockwise_force_BDF1():#ux_n,uy_n,sx_n,sy_n):
 
     bc_id = np.where(x_u < delta_x/10)
     f_rhs_x[bc_id] = 0
+
+    return f_rhs_x, f_rhs_y
+
+def assemble_blockwise_force_BDF1():#ux_n,uy_n,sx_n,sy_n):
+    f_rhs_x = 1/ph.dt*Mv11.dot(ux_n)
+    f_rhs_y = 1/ph.dt*Mv11.dot(uy_n)
+
+    (f_rhs_x, f_rhs_y) = fluid_rhs_apply_bc(f_rhs_x, f_rhs_y)
 
     l_rhs_x = 1/ph.dt*MX11.dot(dx_n)
     l_rhs_y = 1/ph.dt*MX11.dot(dy_n)
@@ -159,19 +165,7 @@ def assemble_blockwise_force_BDF2():#ux_n,uy_n,ux_n_old,uy_n_old,sx_n,sy_n,sx_n_
     f_rhs_x = (2*Mv11.dot(ux_n) - 0.5*Mv11.dot(ux_n_old))/ph.dt
     f_rhs_y = (2*Mv11.dot(uy_n) - 0.5*Mv11.dot(uy_n_old))/ph.dt
 
-    bc_id = np.where(y_u < delta_x/10)
-    f_rhs_y[bc_id] = 0
-
-    bc_id = np.where(y_u > 1-delta_x/10)
-    f_rhs_x[bc_id] = 0
-    f_rhs_y[bc_id] = 0
-
-    bc_id = np.where(x_u > 1-delta_x/10)
-    f_rhs_x[bc_id] = 0
-    f_rhs_y[bc_id] = 0
-
-    bc_id = np.where(x_u < delta_x/10)
-    f_rhs_x[bc_id] = 0
+    (f_rhs_x, f_rhs_y) = fluid_rhs_apply_bc(f_rhs_x, f_rhs_y)
 
     #p_rhs = B.dot(u_n_old)
 
@@ -225,19 +219,7 @@ def assemble_blockwise_force_Theta():#ux_n,uy_n,p_n,sx_n,sy_n,l_n):
     f_rhs_x = 1/ph.dt*Mv11.dot(ux_n) - 0.5*A11.dot(ux_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
     f_rhs_y = 1/ph.dt*Mv11.dot(uy_n) - 0.5*A11.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
-    bc_id = np.where(y_u < delta_x/10)
-    f_rhs_y[bc_id] = 0
-
-    bc_id = np.where(y_u > 1-delta_x/10)
-    f_rhs_x[bc_id] = 0
-    f_rhs_y[bc_id] = 0
-
-    bc_id = np.where(x_u > 1-delta_x/10)
-    f_rhs_x[bc_id] = 0
-    f_rhs_y[bc_id] = 0
-
-    bc_id = np.where(x_u < delta_x/10)
-    f_rhs_x[bc_id] = 0
+    (f_rhs_x, f_rhs_y) = fluid_rhs_apply_bc(f_rhs_x, f_rhs_y)
 
     p_rhs = 0.5*B.dot(u_n)
 
