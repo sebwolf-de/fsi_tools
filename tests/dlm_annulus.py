@@ -158,6 +158,23 @@ def structure_apply_bc(FX11, FX22, MXT11, MXT22):
 
     return FX11, FX22, MXT11, MXT22
 
+def coupling_apply_bc(GT11, GT22):
+    bc_id = np.where(y_u < delta_x/10)
+    GT22 = la_utils.clear_rows(GT22,bc_id)
+
+    bc_id = np.where(y_u > 1-delta_x/10)
+    GT11 = la_utils.clear_rows(GT11,bc_id)
+    GT22 = la_utils.clear_rows(GT22,bc_id)
+
+    bc_id = np.where(x_u > 1-delta_x/10)
+    GT11 = la_utils.clear_rows(GT11,bc_id)
+    GT22 = la_utils.clear_rows(GT22,bc_id)
+
+    bc_id = np.where(x_u < delta_x/10)
+    GT11 = la_utils.clear_rows(GT11,bc_id)
+
+    return GT11, GT22
+
 def assemble_blockwise_force_BDF1():#ux_n,uy_n,sx_n,sy_n):
     f_rhs_x = 1/ph.dt*Mv11.dot(ux_n)
     f_rhs_y = 1/ph.dt*Mv11.dot(uy_n)
@@ -519,38 +536,6 @@ B = BT.transpose()
 (A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2) = fluid_m_apply_bc(
     A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2)
 
-# bc_id = np.where( y_u < delta_x/10)
-# A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
-# A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
-# A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
-# BT2 = la_utils.clear_rows(BT2,bc_id)
-#
-# bc_id = np.where( y_u > 1-delta_x/10)
-# A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
-# A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
-# A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
-# A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
-# A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
-# A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
-# BT1 = la_utils.clear_rows(BT1,bc_id)
-# BT2 = la_utils.clear_rows(BT2,bc_id)
-#
-# bc_id = np.where( x_u > 1-delta_x/10)
-# A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
-# A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
-# A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
-# A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
-# A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
-# A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
-# BT1 = la_utils.clear_rows(BT1,bc_id)
-# BT2 = la_utils.clear_rows(BT2,bc_id)
-#
-# bc_id = np.where( x_u < delta_x/10)
-# A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
-# A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
-# A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
-# BT1 = la_utils.clear_rows(BT1,bc_id)
-
 Mv = sparse.vstack([
     sparse.hstack( [Mv11, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
     sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), Mv11] )
@@ -636,19 +621,7 @@ for cn_time in range(0,len(ph.stampa)):
             sparse.hstack([G11,sparse.csr_matrix((ndofs_s,ndofs_u))]),
             sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_u)),G11]) ])
 
-    bc_id = np.where( y_u < delta_x/10)
-    GT22 = la_utils.clear_rows(GT22,bc_id)
-
-    bc_id = np.where( y_u > 1-delta_x/10)
-    GT11 = la_utils.clear_rows(GT11,bc_id)
-    GT22 = la_utils.clear_rows(GT22,bc_id)
-
-    bc_id = np.where( x_u > 1-delta_x/10)
-    GT11 = la_utils.clear_rows(GT11,bc_id)
-    GT22 = la_utils.clear_rows(GT22,bc_id)
-
-    bc_id = np.where( x_u < delta_x/10)
-    GT11 = la_utils.clear_rows(GT11,bc_id)
+    (GT11, GT22) = coupling_apply_bc(GT11, GT22)
 
     GT = sparse.vstack([
             sparse.hstack([GT11,sparse.csr_matrix((ndofs_u,ndofs_s))]),
