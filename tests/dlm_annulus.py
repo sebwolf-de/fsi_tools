@@ -80,6 +80,17 @@ def write_mesh():
     f.close()
     return
 
+def stack_rhs(f_rhs_x, f_rhs_y, p_rhs, s_rhs_x, s_rhs_y, l_rhs_x, l_rhs_y):
+    rhs = np.append(f_rhs_x, f_rhs_y)
+    rhs = np.append(rhs, p_rhs)
+    rhs = np.append(rhs, s_rhs_x)
+    rhs = np.append(rhs, s_rhs_y)
+    rhs = np.append(rhs, l_rhs_x)
+    rhs = np.append(rhs, l_rhs_y)
+    rhs = np.append(rhs, np.zeros(1))
+
+    return rhs
+
 def assemble_blockwise_force_BDF1():#ux_n,uy_n,sx_n,sy_n):
     f_rhs_x = 1/ph.dt*Mv11.dot(ux_n)
     f_rhs_y = 1/ph.dt*Mv11.dot(uy_n)
@@ -98,17 +109,11 @@ def assemble_blockwise_force_BDF1():#ux_n,uy_n,sx_n,sy_n):
     bc_id = np.where(x_u < delta_x/10)
     f_rhs_x[bc_id] = 0
 
-    s_rhs_x = 1/ph.dt*MX11.dot(dx_n)
-    s_rhs_y = 1/ph.dt*MX11.dot(dy_n)
+    l_rhs_x = 1/ph.dt*MX11.dot(dx_n)
+    l_rhs_y = 1/ph.dt*MX11.dot(dy_n)
 
-    rhs = np.append(f_rhs_x, f_rhs_y)
-    rhs = np.append(rhs, np.zeros((ndofs_p)))
-    rhs = np.append(rhs, np.zeros((2*ndofs_s)))
-    rhs = np.append(rhs, s_rhs_x)
-    rhs = np.append(rhs, s_rhs_y)
-    rhs = np.append(rhs, np.zeros(1))
-
-    return rhs
+    return stack_rhs(f_rhs_x, f_rhs_y, np.zeros((ndofs_p)),
+                     np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
 
 def assemble_blockwise_matrix_BDF1():
     mat1 = sparse.hstack([A_BDF1,
@@ -173,18 +178,8 @@ def assemble_blockwise_force_BDF2():#ux_n,uy_n,ux_n_old,uy_n_old,sx_n,sy_n,sx_n_
     l_rhs_x = (2*MX11.dot(dx_n) - 0.5*MX11.dot(dx_n_old))/ph.dt
     l_rhs_y = (2*MX11.dot(dy_n) - 0.5*MX11.dot(dy_n_old))/ph.dt
 
-    #f_rhs_x = np.reshape(f_rhs_x,(ndofs_u))
-    #f_rhs_y = np.reshape(f_rhs_y,(ndofs_u))
-
-    rhs = np.append(f_rhs_x, f_rhs_y)
-    rhs = np.append(rhs, np.zeros((ndofs_p)))
-    #rhs = np.append(rhs, p_rhs)
-    rhs = np.append(rhs, np.zeros((2*ndofs_s)))
-    rhs = np.append(rhs, l_rhs_x)
-    rhs = np.append(rhs, l_rhs_y)
-    rhs = np.append(rhs, np.zeros(1))
-
-    return rhs
+    return stack_rhs(f_rhs_x, f_rhs_y, np.zeros((ndofs_p)),
+                     np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
 
 def assemble_blockwise_matrix_BDF2():
     mat1 = sparse.hstack([A_BDF2,
@@ -253,17 +248,8 @@ def assemble_blockwise_force_Theta():#ux_n,uy_n,p_n,sx_n,sy_n,l_n):
     l_rhs_y = -1/ph.dt*MX11.dot(dy_n)
     l_rhs = np.append(l_rhs_x, l_rhs_y) - np.reshape(0.5*G.dot(u_n), (2*ndofs_s))
 
-    #f_rhs_x = np.reshape(f_rhs_x,(ndofs_u))
-    #f_rhs_y = np.reshape(f_rhs_y,(ndofs_u))
-
-    rhs = np.append(f_rhs_x, f_rhs_y)
-    rhs = np.append(rhs, p_rhs)
-    rhs = np.append(rhs, s_rhs_x)
-    rhs = np.append(rhs, s_rhs_y)
-    rhs = np.append(rhs, l_rhs)
-    rhs = np.append(rhs, np.zeros(1))
-
-    return rhs
+    return stack_rhs(f_rhs_x, f_rhs_y, p_rhs,
+                     s_rhs_x, s_rhs_y, l_rhs[0:ndofs_s], l_rhs[ndofs_s:2*ndofs_s])
 
 def assemble_blockwise_matrix_Theta():
     mat1 = sparse.hstack([A_Theta,
