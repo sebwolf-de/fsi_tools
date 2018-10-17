@@ -151,8 +151,8 @@ def assemble_blockwise_matrix_BDF1():
     return mat
 
 def assemble_blockwise_force_BDF2():#ux_n,uy_n,ux_n_old,uy_n_old,sx_n,sy_n,sx_n_old,sy_n_old):
-    f_rhs_x = (2*Mv11.dot(ux_n) - 0.5*Mv11.dot(ux_n_old))/ph.dt + BT1.dot(p_n_old)
-    f_rhs_y = (2*Mv11.dot(uy_n) - 0.5*Mv11.dot(uy_n_old))/ph.dt + BT2.dot(p_n_old)
+    f_rhs_x = (2*Mv11.dot(ux_n) - 0.5*Mv11.dot(ux_n_old))/ph.dt
+    f_rhs_y = (2*Mv11.dot(uy_n) - 0.5*Mv11.dot(uy_n_old))/ph.dt
 
     bc_id = np.where(y_u < delta_x/10)
     f_rhs_y[bc_id] = 0
@@ -168,24 +168,27 @@ def assemble_blockwise_force_BDF2():#ux_n,uy_n,ux_n_old,uy_n_old,sx_n,sy_n,sx_n_
     bc_id = np.where(x_u < delta_x/10)
     f_rhs_x[bc_id] = 0
 
-    s_rhs_x = (2*MX11.dot(dx_n) - 0.5*MX11.dot(dx_n_old))/ph.dt
-    s_rhs_y = (2*MX11.dot(dy_n) - 0.5*MX11.dot(dy_n_old))/ph.dt
+    #p_rhs = B.dot(u_n_old)
+
+    l_rhs_x = (2*MX11.dot(dx_n) - 0.5*MX11.dot(dx_n_old))/ph.dt
+    l_rhs_y = (2*MX11.dot(dy_n) - 0.5*MX11.dot(dy_n_old))/ph.dt
 
     #f_rhs_x = np.reshape(f_rhs_x,(ndofs_u))
     #f_rhs_y = np.reshape(f_rhs_y,(ndofs_u))
 
     rhs = np.append(f_rhs_x, f_rhs_y)
     rhs = np.append(rhs, np.zeros((ndofs_p)))
+    #rhs = np.append(rhs, p_rhs)
     rhs = np.append(rhs, np.zeros((2*ndofs_s)))
-    rhs = np.append(rhs, s_rhs_x)
-    rhs = np.append(rhs, s_rhs_y)
+    rhs = np.append(rhs, l_rhs_x)
+    rhs = np.append(rhs, l_rhs_y)
     rhs = np.append(rhs, np.zeros(1))
 
     return rhs
 
 def assemble_blockwise_matrix_BDF2():
     mat1 = sparse.hstack([A_BDF2,
-                          -2*BT,
+                          -BT,
                           sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
                           GT,
                           sparse.csr_matrix((ndofs_u*2,1))
@@ -582,9 +585,11 @@ p_n = np.zeros((ndofs_p))
 
 ux_n_old = ux_n
 uy_n_old = uy_n
+u_n_old = u_n
 p_n_old = p_n
 sx_n_old = sx_n
 sy_n_old = sy_n
+l_n_old = l_n
 
 dx_n = sx_n - sx_zero
 dy_n = sy_n - sy_zero
@@ -666,11 +671,13 @@ for cn_time in range(0,len(ph.stampa)):
 
     ux_n_old = ux_n
     uy_n_old = uy_n
+    u_n_old = u_n
     p_n_old = p_n
     sx_n_old = sx_n
     sy_n_old = sy_n
     dx_n_old = dx_n
     dy_n_old = dy_n
+    l_n_old = l_n
 
     u_n = sol[0:2*ndofs_u]
     ux_n = sol[0:ndofs_u]
