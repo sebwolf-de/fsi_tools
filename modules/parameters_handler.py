@@ -36,14 +36,14 @@ class ParametersHandler:
             sp =  self.solver_type+self.mesh_name+'_'
             sp += 'dt'+str(int(self.base))+'em'+str(int(self.esponente))
             sp += '_hx'+str(int(self.n_delta_x))
-            sp += '_re'+str(int(self.reynolds))
+            sp += '_nu'+str(self.nu)
         elif self.solver_type == "dlm_":
             sp = self.solver_type+self.mesh_name+'_'
             sp += self.time_integration+'_'
             sp += 'dt'+str(int(self.base))+'em'+str(int(self.esponente))
             sp += '_hx'+str(int(self.n_delta_x))+'_hs'+str(int(self.n_delta_s))
-            sp += '_k'+str(int(self.kappa))
-            sp += '_re'+str(int(self.reynolds))
+            sp += '_k'+str(self.kappa)
+            sp += '_nu'+str(self.nu)
 
         self.sim_prefix = sp
 
