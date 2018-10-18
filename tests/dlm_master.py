@@ -235,7 +235,48 @@ def assemble_blockwise_force_BDF1():
                      np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
 
 def assemble_blockwise_matrix_BDF1():
-    mat1 = sparse.hstack([A_BDF1,
+    (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u,
+        np.reshape(x_u, (ndofs_u, 1)),
+        np.reshape(y_u, (ndofs_u, 1)),
+        np.reshape(ux_n, (ndofs_u, 1)),
+        np.reshape(uy_n, (ndofs_u, 1)))
+    D11 = ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S11
+    D22 = ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S22
+
+    #lower boundary
+    bc_id = np.where(y_u < delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D11, bc_id)
+    S12 = la_utils.clear_rows(S12, bc_id)
+    S21 = la_utils.clear_rows(S21, bc_id)
+
+    #upper boundary
+    bc_id = np.where(y_u > 1-delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+    S12 = la_utils.clear_rows(S12, bc_id)
+    S21 = la_utils.clear_rows(S21, bc_id)
+
+    #left boundary
+    bc_id = np.where(x_u < delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+    S12 = la_utils.clear_rows(S12, bc_id)
+    S21 = la_utils.clear_rows(S21, bc_id)
+
+    #right boundary
+    bc_id = np.where(x_u > 1-delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+    S12 = la_utils.clear_rows(S12, bc_id)
+    S21 = la_utils.clear_rows(S21, bc_id)
+
+    A = sparse.hstack([
+        sparse.vstack([D11, S12]),
+        sparse.vstack([S21, D22])
+    ])
+
+    mat1 = sparse.hstack([A,
                          -BT,
                          sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
                          GT,
@@ -489,8 +530,8 @@ if ph.mesh_prefix == 'annulus_':
     sx_n = 1./1.4*(s_lgr)
     sy_n =    1.4*(t_lgr)
 elif ph.mesh_prefix == 'cavity_':
-    s_lgr = 0.5 + 0.2*s_lgr
-    t_lgr = 0.4 + 0.2*t_lgr
+    s_lgr = 0.5 + 0.1*s_lgr
+    t_lgr = 0.2 + 0.1*t_lgr
     sx_zero = s_lgr
     sy_zero = t_lgr
     sx_n = (s_lgr)
