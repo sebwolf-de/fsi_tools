@@ -68,52 +68,72 @@ def write_mesh():
     return
 
 def stack_rhs(f_rhs_x, f_rhs_y, p_rhs, s_rhs_x, s_rhs_y, l_rhs_x, l_rhs_y):
+    (f_rhs_x, f_rhs_y) = fluid_rhs_apply_bc(f_rhs_x, f_rhs_y)
+
     rhs = np.append(f_rhs_x, f_rhs_y)
     rhs = np.append(rhs, p_rhs)
     rhs = np.append(rhs, s_rhs_x)
     rhs = np.append(rhs, s_rhs_y)
     rhs = np.append(rhs, l_rhs_x)
     rhs = np.append(rhs, l_rhs_y)
-    rhs = np.append(rhs, np.zeros(1))
+    #rhs = np.append(rhs, np.zeros(1))
 
     return rhs
 
 def fluid_rhs_apply_bc(f_rhs_x, f_rhs_y):
+    #lower boundary
     bc_id = np.where(y_u < delta_x/10)
     if ph.mesh_prefix == 'annulus_':
-        f_rhs_y[bc_id] = 0
+        f_rhs_y[bc_id] = 0.
     elif ph.mesh_prefix == 'cavity_':
-        f_rhs_x[bc_id] = 0
-        f_rhs_y[bc_id] = 0
+        f_rhs_x[bc_id] = 0.
+        f_rhs_y[bc_id] = 0.
+    elif ph.mesh_prefix == 'channel_':
+        f_rhs_x[bc_id] = 0.
+        f_rhs_y[bc_id] = 0.
 
+    #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
     if ph.mesh_prefix == 'annulus_':
-        f_rhs_x[bc_id] = 0
-        f_rhs_y[bc_id] = 0
+        f_rhs_x[bc_id] = 0.
+        f_rhs_y[bc_id] = 0.
     elif ph.mesh_prefix == 'cavity_':
         f_rhs_x[bc_id] = 1.
-        f_rhs_y[bc_id] = 0
+        f_rhs_y[bc_id] = 0.
+    elif ph.mesh_prefix == 'channel_':
+        f_rhs_x[bc_id] = 0.
+        f_rhs_y[bc_id] = 0.
 
+    #right boundary
     bc_id = np.where(x_u > 1-delta_x/10)
     if ph.mesh_prefix == 'annulus_':
-        f_rhs_x[bc_id] = 0
-        f_rhs_y[bc_id] = 0
+        f_rhs_x[bc_id] = 0.
+        f_rhs_y[bc_id] = 0.
     elif ph.mesh_prefix == 'cavity_':
-        f_rhs_x[bc_id] = 0
-        f_rhs_y[bc_id] = 0
+        f_rhs_x[bc_id] = 0.
+        f_rhs_y[bc_id] = 0.
+    #elif ph.mesh_prefix == 'channel_':
+    #    f_rhs_x[bc_id] = 4 * y_u[bc_id] * (1-y_u[bc_id])
+    #    f_rhs_y[bc_id] = 0
 
+    #left boundary
     bc_id = np.where(x_u < delta_x/10)
     if ph.mesh_prefix == 'annulus_':
-        f_rhs_x[bc_id] = 0
+        f_rhs_x[bc_id] = 0.
     elif ph.mesh_prefix == 'cavity_':
-        f_rhs_x[bc_id] = 0
-        f_rhs_y[bc_id] = 0
+        f_rhs_x[bc_id] = 0.
+        f_rhs_y[bc_id] = 0.
+    elif ph.mesh_prefix == 'channel_':
+        f_rhs_x[bc_id] = 0.1 * y_u[bc_id] * (1-y_u[bc_id])
+        f_rhs_y[bc_id] = 0.
 
     return f_rhs_x, f_rhs_y
 
+
 def fluid_m_apply_bc(A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2):
+    #lower boundary
     bc_id = np.where(y_u < delta_x/10)
-    if ph.mesh_prefix == 'cavity_':
+    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_':
         A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
         A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
         A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
@@ -123,6 +143,7 @@ def fluid_m_apply_bc(A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Thet
     A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
     BT2 = la_utils.clear_rows(BT2,bc_id)
 
+    #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
     A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
     A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
@@ -133,22 +154,25 @@ def fluid_m_apply_bc(A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Thet
     BT1 = la_utils.clear_rows(BT1,bc_id)
     BT2 = la_utils.clear_rows(BT2,bc_id)
 
+    #right boundary
     bc_id = np.where(x_u > 1-delta_x/10)
-    A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
-    A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
-    A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
-    A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
-    A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
-    A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
-    BT1 = la_utils.clear_rows(BT1,bc_id)
-    BT2 = la_utils.clear_rows(BT2,bc_id)
+    if ph.mesh_prefix == 'annulus_' or ph.mesh_prefix == 'cavity_':
+        A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
+        A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
+        A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
+        A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
+        A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
+        A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
+        BT1 = la_utils.clear_rows(BT1,bc_id)
+        BT2 = la_utils.clear_rows(BT2,bc_id)
 
+    #left boundary
     bc_id = np.where(x_u < delta_x/10)
     A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
     A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
     A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
     BT1 = la_utils.clear_rows(BT1,bc_id)
-    if ph.mesh_prefix == 'cavity_':
+    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_':
         A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
         A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
         A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
@@ -156,47 +180,56 @@ def fluid_m_apply_bc(A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Thet
 
     return A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2
 
-def structure_apply_bc(FX11, FX22, MXT11, MXT22):
+def structure_m_apply_bc(KS11, KS22, MST11, MST22):
     if ph.mesh_prefix == 'annulus_':
         bc_id = np.where(sy_n < delta_x/10)
-        FX22 = la_utils.set_diag(FX22,bc_id)
-        MXT22 = la_utils.clear_rows(MXT22,bc_id)
+        KS22 = la_utils.set_diag(KS22,bc_id)
+        MST22 = la_utils.clear_rows(MST22,bc_id)
 
         bc_id = np.where(sx_n < delta_x/10)
-        FX11 = la_utils.set_diag(FX11,bc_id)
-        MXT11 = la_utils.clear_rows(MXT11,bc_id)
+        KS11 = la_utils.set_diag(KS11,bc_id)
+        MST11 = la_utils.clear_rows(MST11,bc_id)
+    if ph.mesh_prefix == 'channel_':
+        bc_id = np.where(sy_n > 1-delta_x/10)
+        #KS11 = la_utils.set_diag(KS11,bc_id)
+        #KS22 = la_utils.set_diag(KS22,bc_id)
+        #MST11 = la_utils.clear_rows(MST11,bc_id)
+        #MST22 = la_utils.clear_rows(MST22,bc_id)
 
-    return FX11, FX22, MXT11, MXT22
+    return KS11, KS22, MST11, MST22
 
 def coupling_apply_bc(GT11, GT22):
+    #lower boundary
     bc_id = np.where(y_u < delta_x/10)
-    if ph.mesh_prefix == 'cavity_':
+    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_':
         GT11 = la_utils.clear_rows(GT11,bc_id)
     GT22 = la_utils.clear_rows(GT22,bc_id)
 
+    #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
     GT11 = la_utils.clear_rows(GT11,bc_id)
     GT22 = la_utils.clear_rows(GT22,bc_id)
 
+    #right boundary
     bc_id = np.where(x_u > 1-delta_x/10)
-    GT11 = la_utils.clear_rows(GT11,bc_id)
-    GT22 = la_utils.clear_rows(GT22,bc_id)
+    if ph.mesh_prefix == 'annulus_' or ph.mesh_prefix == 'cavity_':
+        GT11 = la_utils.clear_rows(GT11,bc_id)
+        GT22 = la_utils.clear_rows(GT22,bc_id)
 
+    #left boundary
     bc_id = np.where(x_u < delta_x/10)
     GT11 = la_utils.clear_rows(GT11,bc_id)
-    if ph.mesh_prefix == 'cavity_':
+    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_':
         GT22 = la_utils.clear_rows(GT22,bc_id)
 
     return GT11, GT22
 
 def assemble_blockwise_force_BDF1():
-    f_rhs_x = ph.rho_fluid/ph.dt*Mv11.dot(ux_n)
-    f_rhs_y = ph.rho_fluid/ph.dt*Mv11.dot(uy_n)
+    f_rhs_x = ph.rho_fluid/ph.dt*MF11.dot(ux_n)
+    f_rhs_y = ph.rho_fluid/ph.dt*MF11.dot(uy_n)
 
-    (f_rhs_x, f_rhs_y) = fluid_rhs_apply_bc(f_rhs_x, f_rhs_y)
-
-    l_rhs_x = 1/ph.dt*MX11.dot(dx_n)
-    l_rhs_y = 1/ph.dt*MX11.dot(dy_n)
+    l_rhs_x = 1/ph.dt*MS11.dot(dx_n)
+    l_rhs_y = 1/ph.dt*MS11.dot(dy_n)
 
     return stack_rhs(f_rhs_x, f_rhs_y, np.zeros((ndofs_p)),
                      np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
@@ -205,50 +238,48 @@ def assemble_blockwise_matrix_BDF1():
     mat1 = sparse.hstack([A_BDF1,
                          -BT,
                          sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
-                         GT,
-                         sparse.csr_matrix((ndofs_u*2,1))
+                         GT#,
+                         #sparse.csr_matrix((ndofs_u*2,1))
                          ])
 
     mat2 = sparse.hstack([-B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2)),
-                          sparse.csr_matrix((ndofs_p,ndofs_s*2)),
-                          mean_p.transpose()
+                          sparse.csr_matrix((ndofs_p,ndofs_s*2))#,
+                          # mean_p.transpose()
                           ])
 
     mat3 = sparse.hstack([sparse.csr_matrix((ndofs_s*2,ndofs_u*2)),
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
-                          FX,
-                          -MXT,
-                          sparse.csr_matrix((ndofs_s*2,1))
+                          KS,
+                          -MST#,
+                          # sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
     mat4 = sparse.hstack([-G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
-                          1/ph.dt*MX,
-                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
-                          sparse.csr_matrix((ndofs_s*2,1))
+                          1/ph.dt*MS,
+                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2))#,
+                          # sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
-    mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
-                          mean_p,
-                          sparse.csr_matrix((1,ndofs_s*2)),
-                          sparse.csr_matrix((1,ndofs_s*2)),
-                          sparse.csr_matrix((1,1))
-                          ])
+    # mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
+    #                       mean_p,
+    #                       sparse.csr_matrix((1,ndofs_s*2)),
+    #                       sparse.csr_matrix((1,ndofs_s*2)),
+    #                       sparse.csr_matrix((1,1))
+    #                       ])
 
-    mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
+    mat = sparse.vstack([mat1,mat2,mat3,mat4])#,mat5])
     mat = mat.tocsr()
     return mat
 
 def assemble_blockwise_force_BDF2():
-    f_rhs_x = (2*Mv11.dot(ux_n) - 0.5*Mv11.dot(ux_n_old))*ph.rho_fluid/ph.dt
-    f_rhs_y = (2*Mv11.dot(uy_n) - 0.5*Mv11.dot(uy_n_old))*ph.rho_fluid/ph.dt
+    f_rhs_x = (2*MF11.dot(ux_n) - 0.5*MF11.dot(ux_n_old))*ph.rho_fluid/ph.dt
+    f_rhs_y = (2*MF11.dot(uy_n) - 0.5*MF11.dot(uy_n_old))*ph.rho_fluid/ph.dt
 
-    (f_rhs_x, f_rhs_y) = fluid_rhs_apply_bc(f_rhs_x, f_rhs_y)
-
-    l_rhs_x = (2*MX11.dot(dx_n) - 0.5*MX11.dot(dx_n_old))/ph.dt
-    l_rhs_y = (2*MX11.dot(dy_n) - 0.5*MX11.dot(dy_n_old))/ph.dt
+    l_rhs_x = (2*MS11.dot(dx_n) - 0.5*MS11.dot(dx_n_old))/ph.dt
+    l_rhs_y = (2*MS11.dot(dy_n) - 0.5*MS11.dot(dy_n_old))/ph.dt
 
     return stack_rhs(f_rhs_x, f_rhs_y, np.zeros((ndofs_p)),
                      np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
@@ -257,55 +288,53 @@ def assemble_blockwise_matrix_BDF2():
     mat1 = sparse.hstack([A_BDF2,
                           -BT,
                           sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
-                          GT,
-                          sparse.csr_matrix((ndofs_u*2,1))
+                          GT#,
+                          # sparse.csr_matrix((ndofs_u*2,1))
                           ])
 
     mat2 = sparse.hstack([-B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2)),
-                          sparse.csr_matrix((ndofs_p,ndofs_s*2)),
-                          mean_p.transpose()
+                          sparse.csr_matrix((ndofs_p,ndofs_s*2))#,
+                          # mean_p.transpose()
                           ])
 
     mat3 = sparse.hstack([sparse.csr_matrix((ndofs_s*2,ndofs_u*2)),
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
-                          FX,
-                          -MXT,
-                          sparse.csr_matrix((ndofs_s*2,1))
+                          KS,
+                          -MST#,
+                          # sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
     mat4 = sparse.hstack([-G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
-                          1.5/ph.dt*MX,
-                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
-                          sparse.csr_matrix((ndofs_s*2,1))
+                          1.5/ph.dt*MS,
+                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2))#,
+                          # sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
-    mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
-                          mean_p,
-                          sparse.csr_matrix((1,ndofs_s*2)),
-                          sparse.csr_matrix((1,ndofs_s*2)),
-                          sparse.csr_matrix((1,1))
-                          ])
+    # mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
+    #                       mean_p,
+    #                       sparse.csr_matrix((1,ndofs_s*2)),
+    #                       sparse.csr_matrix((1,ndofs_s*2)),
+    #                       sparse.csr_matrix((1,1))
+    #                       ])
 
-    mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
+    mat = sparse.vstack([mat1,mat2,mat3,mat4])#,mat5])
     mat = mat.tocsr()
     return mat
 
 def assemble_blockwise_force_Theta():
-    f_rhs_x = ph.rho_fluid/ph.dt*Mv11.dot(ux_n) - 0.5*ph.nu*A11.dot(ux_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
-    f_rhs_y = ph.rho_fluid/ph.dt*Mv11.dot(uy_n) - 0.5*ph.nu*A11.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
-
-    (f_rhs_x, f_rhs_y) = fluid_rhs_apply_bc(f_rhs_x, f_rhs_y)
+    f_rhs_x = ph.rho_fluid/ph.dt*MF11.dot(ux_n) - 0.5*ph.nu*KF11.dot(ux_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
+    f_rhs_y = ph.rho_fluid/ph.dt*MF11.dot(uy_n) - 0.5*ph.nu*KF11.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
     p_rhs = 0.5*B.dot(u_n)
 
-    s_rhs_x = -0.5*FX11.dot(dx_n) + 0.5*MXT11.dot(np.reshape(l_n[0:ndofs_s],(ndofs_s)))
-    s_rhs_y = -0.5*FX22.dot(dy_n) + 0.5*MXT22.dot(np.reshape(l_n[ndofs_s:2*ndofs_s],(ndofs_s)))
+    s_rhs_x = -0.5*KS11.dot(dx_n) + 0.5*MST11.dot(np.reshape(l_n[0:ndofs_s],(ndofs_s)))
+    s_rhs_y = -0.5*KS22.dot(dy_n) + 0.5*MST22.dot(np.reshape(l_n[ndofs_s:2*ndofs_s],(ndofs_s)))
 
-    l_rhs_x = -1/ph.dt*MX11.dot(dx_n)
-    l_rhs_y = -1/ph.dt*MX11.dot(dy_n)
+    l_rhs_x = -1/ph.dt*MS11.dot(dx_n)
+    l_rhs_y = -1/ph.dt*MS11.dot(dy_n)
     l_rhs = np.append(l_rhs_x, l_rhs_y) - np.reshape(0.5*G.dot(u_n), (2*ndofs_s))
 
     return stack_rhs(f_rhs_x, f_rhs_y, p_rhs,
@@ -315,39 +344,39 @@ def assemble_blockwise_matrix_Theta():
     mat1 = sparse.hstack([A_Theta,
                           -0.5*BT,
                           sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
-                          0.5*GT,
-                          sparse.csr_matrix((ndofs_u*2,1))
+                          0.5*GT#,
+                          # sparse.csr_matrix((ndofs_u*2,1))
                           ])
 
     mat2 = sparse.hstack([0.5*B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2)),
-                          sparse.csr_matrix((ndofs_p,ndofs_s*2)),
-                          mean_p.transpose()
+                          sparse.csr_matrix((ndofs_p,ndofs_s*2))#,
+                          # mean_p.transpose()
                           ])
 
     mat3 = sparse.hstack([sparse.csr_matrix((ndofs_s*2,ndofs_u*2)),
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
-                          0.5*FX,
-                          -0.5*MXT,
-                          sparse.csr_matrix((ndofs_s*2,1))
+                          0.5*KS,
+                          -0.5*MST#,
+                          # sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
     mat4 = sparse.hstack([0.5*G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
-                          -1/ph.dt*MX,
-                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
-                          sparse.csr_matrix((ndofs_s*2,1))
+                          -1/ph.dt*MS,
+                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2))#,
+                          # sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
-    mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
-                          mean_p,
-                          sparse.csr_matrix((1,ndofs_s*2)),
-                          sparse.csr_matrix((1,ndofs_s*2)),
-                          sparse.csr_matrix((1,1))
-                          ])
+    # mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
+    #                       mean_p,
+    #                       sparse.csr_matrix((1,ndofs_s*2)),
+    #                       sparse.csr_matrix((1,ndofs_s*2)),
+    #                       sparse.csr_matrix((1,1))
+    #                       ])
 
-    mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
+    mat = sparse.vstack([mat1,mat2,mat3,mat4])#,mat5])
     mat = mat.tocsr()
     return mat
 
@@ -365,7 +394,7 @@ def assemble_blockwise_matrix_Theta():
 #     return u_n,p_n1,sx_n1,sy_n1
 
 def area_measure(xs,ys):
-    area_mes = MX11 * sx_n + MX11 * sy_n
+    area_mes = MS11 * sx_n + MS11 * sy_n
     area_mes = area_mes * np.ones(area_mes.shape)
     area_mes = np.sum(area_mes)
     return area_mes
@@ -433,11 +462,11 @@ ph.simulation_info()
 
 nx_p = ph.n_delta_x
 delta_x = 1./nx_p
-ny_p = nx_p
+ny_p = ph.n_delta_x
 delta_y = 1./ny_p
 (topo_p,x_p,y_p,
- topo_u,x_u,y_u,
- c2f) = lin_t3.mesh_t3_iso_t6(nx_p,ny_p,delta_x,delta_y)
+    topo_u,x_u,y_u,
+    c2f) = lin_t3.mesh_t3_iso_t6(nx_p,ny_p,delta_x,delta_y)
 
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(nx_p,ny_p,delta_x,delta_y)
 
@@ -462,6 +491,13 @@ if ph.mesh_prefix == 'annulus_':
 elif ph.mesh_prefix == 'cavity_':
     s_lgr = 0.5 + 0.2*s_lgr
     t_lgr = 0.4 + 0.2*t_lgr
+    sx_zero = s_lgr
+    sy_zero = t_lgr
+    sx_n = (s_lgr)
+    sy_n = (t_lgr)
+elif ph.mesh_prefix == 'channel_':
+    s_lgr = 0.3 + 0.1*s_lgr
+    t_lgr = 0.5 + 0.5*t_lgr
     sx_zero = s_lgr
     sy_zero = t_lgr
     sx_n = (s_lgr)
@@ -503,38 +539,38 @@ dy_n_old = dy_n
 
 ###Assemble the 'static' matrices
 
-MX11 = assemble.u_v_p1_periodic(topo_s,s_lgr,t_lgr,ie_s)
-FX11 = assemble.gradu_gradv_p1_ieq(topo_s,s_lgr,t_lgr,ie_s)
+MS11 = assemble.u_v_p1_periodic(topo_s,s_lgr,t_lgr,ie_s)
+KS11 = assemble.gradu_gradv_p1_ieq(topo_s,s_lgr,t_lgr,ie_s)
 
-MX22 = MX11
-MXT11 = MX11
-MXT22 = MX11
+MS22 = MS11
+MST11 = MS11
+MST22 = MS11
 
-FX11 = ph.kappa*FX11
-FX22 = FX11
+KS11 = ph.kappa*KS11
+KS22 = KS11
 
-(FX11, FX22, MXT11, MXT22) = structure_apply_bc(FX11, FX22, MXT11, MXT22)
+(KS11, KS22, MST11, MST22) = structure_m_apply_bc(KS11, KS22, MST11, MST22)
 
-MX = sparse.vstack([
-    sparse.hstack([MX11,sparse.csr_matrix((ndofs_s,ndofs_s))]),
-    sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_s)),MX22])
+MS = sparse.vstack([
+    sparse.hstack([MS11,sparse.csr_matrix((ndofs_s,ndofs_s))]),
+    sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_s)),MS22])
     ])
 
-MXT = sparse.vstack([
-    sparse.hstack([MXT11,sparse.csr_matrix((ndofs_s,ndofs_s))]),
-    sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_s)),MXT22])
+MST = sparse.vstack([
+    sparse.hstack([MST11,sparse.csr_matrix((ndofs_s,ndofs_s))]),
+    sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_s)),MST22])
     ])
 
-FX = sparse.vstack([
-    sparse.hstack([FX11,sparse.csr_matrix((ndofs_s,ndofs_s))]),
-    sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_s)),FX22])
+KS = sparse.vstack([
+    sparse.hstack([KS11,sparse.csr_matrix((ndofs_s,ndofs_s))]),
+    sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_s)),KS22])
     ])
 
-Mv11 = assemble.u_v_p1(topo_u,x_u,y_u)
-A11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
-A11_BDF1 = ph.nu*A11 + ph.rho_fluid/ph.dt*Mv11
-A11_BDF2 = ph.nu*A11 + 1.5*ph.rho_fluid/ph.dt*Mv11
-A11_Theta = 0.5*ph.nu*A11 + ph.rho_fluid/ph.dt*Mv11
+MF11 = assemble.u_v_p1(topo_u,x_u,y_u)
+KF11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
+A11_BDF1 = ph.nu*KF11 + ph.rho_fluid/ph.dt*MF11
+A11_BDF2 = ph.nu*KF11 + 1.5*ph.rho_fluid/ph.dt*MF11
+A11_Theta = 0.5*ph.nu*KF11 + ph.rho_fluid/ph.dt*MF11
 A22_BDF1 = A11_BDF1
 A22_BDF2 = A11_BDF2
 A22_Theta = A11_Theta
@@ -548,9 +584,9 @@ B = BT.transpose()
 (A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2) = fluid_m_apply_bc(
     A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2)
 
-Mv = sparse.vstack([
-    sparse.hstack( [Mv11, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
-    sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), Mv11] )
+MF = sparse.vstack([
+    sparse.hstack( [MF11, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
+    sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), MF11] )
     ])
 
 A_BDF1 = sparse.vstack([
@@ -568,14 +604,14 @@ A_Theta = sparse.vstack([
 
 BT = sparse.vstack([BT1,BT2])
 
-mean_p = np.zeros((1,ndofs_p))
-x_l = x_p[topo_p[0,0:3]]
-y_l = y_p[topo_p[0,0:3]]
-eval_p = np.zeros((0,2))
-(phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_p)
-
-for row in topo_p:
-    mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.,1])
+# mean_p = np.zeros((1,ndofs_p))
+# x_l = x_p[topo_p[0,0:3]]
+# y_l = y_p[topo_p[0,0:3]]
+# eval_p = np.zeros((0,2))
+# (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_p)
+#
+# for row in topo_p:
+#     mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.,1])
 
 ###Simulation loop
 
@@ -655,7 +691,7 @@ for cn_time in range(0,len(ph.stampa)):
     p_all_zero = bool(np.all(p_n==0))
     exploded = bool(np.amax(p_n) > 1e+10)
 
-    nrg =(l2_norm(FX,np.append(dx_n, dy_n)))**2 + (l2_norm(Mv,np.append(ux_n, uy_n)))**2
+    nrg =(l2_norm(KS,np.append(dx_n, dy_n)))**2 + (l2_norm(MF,np.append(ux_n, uy_n)))**2
     energy.append(nrg)
 
     if (exploded==True or p_all_zero == True):
