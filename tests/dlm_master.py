@@ -530,8 +530,8 @@ if ph.mesh_prefix == 'annulus_':
     sx_n = 1./1.4*(s_lgr)
     sy_n =    1.4*(t_lgr)
 elif ph.mesh_prefix == 'cavity_':
-    s_lgr = 0.5 + 0.1*s_lgr
-    t_lgr = 0.2 + 0.1*t_lgr
+    s_lgr = 0.5 + 0.2*s_lgr
+    t_lgr = 0.4 + 0.2*t_lgr
     sx_zero = s_lgr
     sy_zero = t_lgr
     sx_n = (s_lgr)
