@@ -196,11 +196,9 @@ def load_t3_iso_t6_file(filename_t3, filename_t6):
         coarse_to_fine[k][2] = 4*k+2
         coarse_to_fine[k][3] = 4*k+3
 
-
     topo_c = np.zeros((num_el_coarse, 4),dtype=int)
     topo_c [:,0:3] = tc
     a = x_c.shape[0]
-    print range(1,3)
     topo_c[:,3] = range(a, a+num_el_coarse)
 
     return topo_c, x_c, y_c, topo_f, x_f, y_f, coarse_to_fine
