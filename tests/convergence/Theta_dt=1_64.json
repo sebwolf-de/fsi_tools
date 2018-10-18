@@ -1,16 +1,21 @@
 {
-    "solver_type" : "dlm_",
-    "time_integration" : "Theta",
-    "delta_time_base": 15625,
-    "delta_time_negative_esponent": 6,
-    "structure_stiffness_kappa": 5,
-    "reynolds_number" : 1,
-    "fluid_triangulation_intervals" : 8,
-    "structure_triangulation_intervals" : 8,
-    "mesh_prefix": "str_",
-    "time_intervals_to_be_simulated": 193,
-    "time_intervals_in_between_printed_results": 192,
-    "equilibrium_at_zero": "false_string",
-    "time_index_digits": 3,
-    "results_directory": "results"
+  "solver_type" : "dlm_",
+  "mesh_prefix": "annulus_",
+
+  "time_integration" : "Theta",
+  "delta_time_base": 15625,
+  "delta_time_negative_esponent": 6,
+  "fluid_triangulation_intervals" : 8,
+  "structure_triangulation_intervals" : 8,
+
+  "kappa": 10,
+  "reynolds_number" : 10,
+  "rho_fluid" : 1,
+  "rho_structure" : 1,
+  "nu" : 0.1,
+
+  "time_intervals_to_be_simulated": 65,
+  "time_intervals_in_between_printed_results": 64,
+  "time_index_digits": 3,
+  "results_directory": "results"
 }
