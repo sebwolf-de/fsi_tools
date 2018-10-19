@@ -166,10 +166,6 @@ def fluid_m_apply_bc(A11, A22, A12 = None, A21 = None):
         A21 = la_utils.clear_rows(A21,bc_id)
     return A11, A22, A12, A21
 
-# def fluid_m_apply_bc(A11, A22):
-#     (A11, A12, A21, A22) = fluid_m_apply_bc(A11, sparse.csr_matrix(A11.shape), sparse.csr_matrix(A11.shape), A22)
-#     return A11, A22
-
 def pressure_m_apply_bc(BT1, BT2):
     #lower boundary
     bc_id = np.where(y_u < delta_x/10)
@@ -301,48 +297,22 @@ def assemble_blockwise_force_BDF1():
                      np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
 
 def assemble_blockwise_matrix_BDF1():
-    # (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u,
-    #     np.reshape(x_u, (ndofs_u, 1)),
-    #     np.reshape(y_u, (ndofs_u, 1)),
-    #     np.reshape(ux_n, (ndofs_u, 1)),
-    #     np.reshape(uy_n, (ndofs_u, 1)))
-    # D11 = ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S11
-    # D22 = ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S22
-    #
-    # #lower boundary
-    # bc_id = np.where(y_u < delta_x/10)
-    # D11 = la_utils.set_diag(D11, bc_id)
-    # D22 = la_utils.set_diag(D11, bc_id)
-    # S12 = la_utils.clear_rows(S12, bc_id)
-    # S21 = la_utils.clear_rows(S21, bc_id)
-    #
-    # #upper boundary
-    # bc_id = np.where(y_u > 1-delta_x/10)
-    # D11 = la_utils.set_diag(D11, bc_id)
-    # D22 = la_utils.set_diag(D22, bc_id)
-    # S12 = la_utils.clear_rows(S12, bc_id)
-    # S21 = la_utils.clear_rows(S21, bc_id)
-    #
-    # #left boundary
-    # bc_id = np.where(x_u < delta_x/10)
-    # D11 = la_utils.set_diag(D11, bc_id)
-    # D22 = la_utils.set_diag(D22, bc_id)
-    # S12 = la_utils.clear_rows(S12, bc_id)
-    # S21 = la_utils.clear_rows(S21, bc_id)
-    #
-    # #right boundary
-    # bc_id = np.where(x_u > 1-delta_x/10)
-    # D11 = la_utils.set_diag(D11, bc_id)
-    # D22 = la_utils.set_diag(D22, bc_id)
-    # S12 = la_utils.clear_rows(S12, bc_id)
-    # S21 = la_utils.clear_rows(S21, bc_id)
-    #
-    # A = sparse.hstack([
-    #     sparse.vstack([D11, S12]),
-    #     sparse.vstack([S21, D22])
-    # ])
+    (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u,
+        np.reshape(x_u, (ndofs_u, 1)),
+        np.reshape(y_u, (ndofs_u, 1)),
+        np.reshape(2*ux_n-ux_n_old, (ndofs_u, 1)),
+        np.reshape(2*uy_n-uy_n_old, (ndofs_u, 1)))
+    D11 = ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S11
+    D22 = ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S22
 
-    mat1 = sparse.hstack([A_BDF1,
+    (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
+
+    A = sparse.hstack([
+        sparse.vstack([D11, S12]),
+        sparse.vstack([S21, D22])
+    ])
+
+    mat1 = sparse.hstack([A,
                          -BT,
                          sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
                          GT,
@@ -392,7 +362,22 @@ def assemble_blockwise_force_BDF2():
                      np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
 
 def assemble_blockwise_matrix_BDF2():
-    mat1 = sparse.hstack([A_BDF2,
+    (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u,
+        np.reshape(x_u, (ndofs_u, 1)),
+        np.reshape(y_u, (ndofs_u, 1)),
+        np.reshape(2*ux_n-uy_n_old, (ndofs_u, 1)),
+        np.reshape(2*uy_n-uy_n_old, (ndofs_u, 1)))
+    D11 = 1.5*ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S11
+    D22 = 1.5*ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S22
+
+    (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
+
+    A = sparse.hstack([
+        sparse.vstack([D11, S12]),
+        sparse.vstack([S21, D22])
+    ])
+
+    mat1 = sparse.hstack([A,
                           -BT,
                           sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
                           GT,
@@ -431,9 +416,23 @@ def assemble_blockwise_matrix_BDF2():
     mat = mat.tocsr()
     return mat
 
-def assemble_blockwise_force_Theta():
-    f_rhs_x = ph.rho_fluid/ph.dt*MF11.dot(ux_n) - 0.5*ph.nu*KF11.dot(ux_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
-    f_rhs_y = ph.rho_fluid/ph.dt*MF11.dot(uy_n) - 0.5*ph.nu*KF11.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
+def assemble_convective_Theta():
+    (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u,
+            np.reshape(x_u, (ndofs_u, 1)),
+            np.reshape(y_u, (ndofs_u, 1)),
+            np.reshape(2*ux_n-ux_n_old, (ndofs_u, 1)),
+            np.reshape(2*uy_n-uy_n_old, (ndofs_u, 1)))
+
+    D11 = 0.5*ph.nu*KF11 + 0.5*ph.rho_fluid*S11
+    D22 = 0.5*ph.nu*KF11 + 0.5*ph.rho_fluid*S22
+    S12 = 0.5*S12
+    S21 = 0.5*S21
+
+    return D11, D22, S12, S21
+
+def assemble_blockwise_force_Theta(D11, D22, S12, S21):
+    f_rhs_x = ph.rho_fluid/ph.dt*MF11.dot(ux_n) - 0.5*D11.dot(ux_n) - 0.5*S12.dot(uy_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
+    f_rhs_y = ph.rho_fluid/ph.dt*MF11.dot(uy_n) - 0.5*S21.dot(ux_n) - 0.5*D22.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
     p_rhs = 0.5*B.dot(u_n)
 
@@ -447,8 +446,19 @@ def assemble_blockwise_force_Theta():
     return stack_rhs(f_rhs_x, f_rhs_y, p_rhs,
                      s_rhs_x, s_rhs_y, l_rhs[0:ndofs_s], l_rhs[ndofs_s:2*ndofs_s])
 
-def assemble_blockwise_matrix_Theta():
-    mat1 = sparse.hstack([A_Theta,
+
+def assemble_blockwise_matrix_Theta(D11, D22, S12, S21):
+    D11 = ph.rho_fluid/ph.dt*MF11 + D11
+    D22 = ph.rho_fluid/ph.dt*MF11 + D22
+
+    (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
+
+    A = sparse.hstack([
+        sparse.vstack([D11, S12]),
+        sparse.vstack([S21, D22])
+    ])
+
+    mat1 = sparse.hstack([A,
                           -0.5*BT,
                           sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
                           0.5*GT,
@@ -580,6 +590,7 @@ delta_y = 1./ny_p
 filename = './mesh_collection/' + ph.mesh_name+'.msh'
 (topo_s,s_lgr,t_lgr) = lin_t3.load_msh(filename)
 
+
 sx_n = np.zeros(())
 sy_n = np.zeros(())
 sx_zero = np.zeros(())
@@ -610,8 +621,6 @@ elif ph.mesh_prefix == 'channel_':
     sx_n = (s_lgr)
     sy_n = (t_lgr)
 
-viewers.tri_plot(s_lgr, t_lgr, topo_s)
-plt.show()
 ie_s = np.arange(0,s_lgr.shape[0])
 
 if sum(ph.stampa) !=0:
@@ -624,6 +633,10 @@ if sum(ph.stampa) !=0:
 ndofs_u = max(x_u.shape)
 ndofs_p = max(x_p.shape) + topo_p.shape[0]
 ndofs_s = max(ie_s)+1
+
+print 'DOFs velocity:  ' + str(2*ndofs_u)
+print 'DOFs pressure:  ' + str(ndofs_p)
+print 'DOFs structure: ' + str(2*ndofs_s)
 
 ux_n = np.zeros((ndofs_u))
 uy_n = np.zeros((ndofs_u))
@@ -759,12 +772,14 @@ for cn_time in range(0,len(ph.stampa)):
         mat = assemble_blockwise_matrix_BDF1()
         force = assemble_blockwise_force_BDF1()
     elif ph.time_integration == 'Theta':
-        mat = assemble_blockwise_matrix_Theta()
-        force = assemble_blockwise_force_Theta()
+        (D11, D22, S12, S21) = assemble_convective_Theta()
+        mat = assemble_blockwise_matrix_Theta(D11, D22, S12, S21)
+        force = assemble_blockwise_force_Theta(D11, D22, S12, S21)
     elif ph.time_integration == 'BDF2':
         if cn_time == 0:
-            mat = assemble_blockwise_matrix_Theta()
-            force = assemble_blockwise_force_Theta()
+            (D11, D22, S12, S21) = assemble_convective_Theta()
+            mat = assemble_blockwise_matrix_Theta(D11, D22, S12, S21)
+            force = assemble_blockwise_force_Theta(D11, D22, S12, S21)
         else:
             mat = assemble_blockwise_matrix_BDF2()
             force = assemble_blockwise_force_BDF2()
