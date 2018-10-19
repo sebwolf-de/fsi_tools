@@ -211,10 +211,11 @@ def load_msh(filename):
     topo = np.array([], dtype=int)
 
     for line in f:
-        #print line[0]
-        if line[0]=='$':
-            #print 'non fare un cippa'
-        else:
+        # print line[0]
+        # if line[0]=='$':
+        #     print 'non fare un cippa'
+        # else:
+        if line[0] != '$':
             l = map(float,line.split())
             if len(l) == 4:
                 x = np.append(x,l[1])
@@ -237,7 +238,7 @@ def load_msh(filename):
         if ck < 0:
             topo[r_id,:] = np.array([[row[0],row[2],row[1]]])
         r_id+=1
-    print r_id
+    #print r_id
     return topo,x,y
 
 
