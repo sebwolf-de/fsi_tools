@@ -213,7 +213,7 @@ def load_msh(filename):
     for line in f:
         #print line[0]
         if line[0]=='$':
-            print 'non fare un cippa'
+            #print 'non fare un cippa'
         else:
             l = map(float,line.split())
             if len(l) == 4:
