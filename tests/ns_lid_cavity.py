@@ -2,6 +2,7 @@
 
 import time
 import os
+import sys
 import numpy as np
 from scipy import sparse
 import scipy.sparse.linalg as sp_la
@@ -38,8 +39,8 @@ def assemble_blockwise_force():
     size = 2*ndofs_u+ndofs_p#+1
     rhs = np.zeros((size,1))
 
-    f_rhs_x = 1/ph.dt*M11.dot(ux_n)
-    f_rhs_y = 1/ph.dt*M22.dot(uy_n)
+    f_rhs_x = 1/ph.dt*M11.dot(2*ux_n - 0.5*ux_n_old)
+    f_rhs_y = 1/ph.dt*M22.dot(2*uy_n - 0.5*uy_n_old)
 
     #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
@@ -68,8 +69,8 @@ def assemble_blockwise_force():
 
 def assemble_blockwise_matrix():
     (K11, K12, K21, K22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n, uy_n)
-    D11 = 1/ph.dt*M11 + ph.nu*A11 + K11
-    D22 = 1/ph.dt*M11 + ph.nu*A11 + K11
+    D11 = 1.5/ph.dt*M11 + ph.nu*A11 + K11
+    D22 = 1.5/ph.dt*M11 + ph.nu*A11 + K22
 
     #lower boundary
     bc_id = np.where(y_u < delta_x/10)
@@ -148,7 +149,10 @@ def l2_norm(g):
 np.set_printoptions(precision=4)
 np.set_printoptions(suppress=True)
 
-ph = ParametersHandler('simulation_parameters_ns.json')
+if len(sys.argv) > 1:
+    ph = ParametersHandler(sys.argv[1])
+else:
+    ph = ParametersHandler('simulation_parameters_fsi.json')
 ph.simulation_info()
 
 nx_p = ph.n_delta_x
@@ -158,9 +162,11 @@ delta_y = 1./ny_p
 (topo_p,x_p,y_p,
     topo_u,x_u,y_u,
     c2f) = lin_t3.mesh_t3_iso_t6(nx_p, ny_p,delta_x,delta_y)
-(topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(nx_p,ny_p,delta_x,delta_y)
 
+(topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(nx_p,ny_p,delta_x,delta_y)
+tp = topo_p
 #(topo_p, x_p, y_p, topo_u, x_u, y_u, c2f) = lin_t3.load_t3_iso_t6_file('mesh_collection/step.msh', 'mesh_collection/step_refined.msh')
+#(topo_p, x_p, y_p, topo_u, x_u, y_u, c2f) = lin_t3.load_t3_iso_t6_file('mesh_collection/cavity_8.msh', 'mesh_collection/cavity_16.msh')
 
 if sum(ph.stampa) !=0:
     results_dir = ph.results_directory+'/'+ph.sim_prefix+'/binary_data/'
@@ -175,6 +181,8 @@ ndofs_p = max(x_p.shape) + topo_p.shape[0]
 u_n = np.zeros((2*ndofs_u,1))
 ux_n = np.zeros((ndofs_u,1))
 uy_n = np.zeros((ndofs_u,1))
+ux_n_old = np.zeros((ndofs_u,1))
+uy_n_old = np.zeros((ndofs_u,1))
 
 M11 = assemble.u_v_p1(topo_u,x_u,y_u)
 A11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
@@ -251,6 +259,9 @@ for cn_time in range(0,len(ph.stampa)):
 
     #plt.spy(mat)
     #plt.show()
+
+    ux_n_old = ux_n
+    uy_n_old = uy_n
 
     sol_t0 = time.time()
     sol = sp_la.spsolve(mat,force)
