@@ -431,8 +431,8 @@ def assemble_convective_Theta():
     return D11, D22, S12, S21
 
 def assemble_blockwise_force_Theta(D11, D22, S12, S21):
-    f_rhs_x = ph.rho_fluid/ph.dt*MF11.dot(ux_n) - 0.5*D11.dot(ux_n) - 0.5*S12.dot(uy_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
-    f_rhs_y = ph.rho_fluid/ph.dt*MF11.dot(uy_n) - 0.5*S21.dot(ux_n) - 0.5*D22.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
+    f_rhs_x = ph.rho_fluid/ph.dt*MF11.dot(ux_n) - 0.5*ph.nu*KF11.dot(ux_n) - 0.5*ph.rho_fluid*(D11.dot(ux_n) + S12.dot(uy_n)) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
+    f_rhs_y = ph.rho_fluid/ph.dt*MF11.dot(uy_n) - 0.5*ph.nu*KF11.dot(uy_n) - 0.5*ph.rho_fluid*(S21.dot(ux_n) + D22.dot(uy_n)) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
     p_rhs = 0.5*B.dot(u_n)
 
@@ -448,8 +448,8 @@ def assemble_blockwise_force_Theta(D11, D22, S12, S21):
 
 
 def assemble_blockwise_matrix_Theta(D11, D22, S12, S21):
-    D11 = ph.rho_fluid/ph.dt*MF11 + D11
-    D22 = ph.rho_fluid/ph.dt*MF11 + D22
+    D11 = ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*D11
+    D22 = ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*D22
 
     (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
 
@@ -572,7 +572,7 @@ np.set_printoptions(suppress=True)
 if len(sys.argv) > 1:
     ph = ParametersHandler(sys.argv[1])
 else:
-    ph = ParametersHandler('simulation_parameters_fsi.json')
+    ph = ParametersHandler('simulation_parameters.json')
 ph.simulation_info()
 
 ###Set up the geometry and intial conditions
@@ -587,7 +587,7 @@ delta_y = 1./ny_p
 
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(nx_p,ny_p,delta_x,delta_y)
 
-filename = './mesh_collection/' + ph.mesh_name+'.msh'
+filename = '../mesh_collection/' + ph.mesh_name+'.msh'
 (topo_s,s_lgr,t_lgr) = lin_t3.load_msh(filename)
 
 

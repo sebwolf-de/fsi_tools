@@ -152,7 +152,7 @@ np.set_printoptions(suppress=True)
 if len(sys.argv) > 1:
     ph = ParametersHandler(sys.argv[1])
 else:
-    ph = ParametersHandler('simulation_parameters_fsi.json')
+    ph = ParametersHandler('simulation_parameters.json')
 ph.simulation_info()
 
 nx_p = ph.n_delta_x
@@ -165,8 +165,8 @@ delta_y = 1./ny_p
 
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(nx_p,ny_p,delta_x,delta_y)
 tp = topo_p
-#(topo_p, x_p, y_p, topo_u, x_u, y_u, c2f) = lin_t3.load_t3_iso_t6_file('mesh_collection/step.msh', 'mesh_collection/step_refined.msh')
-#(topo_p, x_p, y_p, topo_u, x_u, y_u, c2f) = lin_t3.load_t3_iso_t6_file('mesh_collection/cavity_8.msh', 'mesh_collection/cavity_16.msh')
+#(topo_p, x_p, y_p, topo_u, x_u, y_u, c2f) = lin_t3.load_t3_iso_t6_file('../mesh_collection/step.msh', 'mesh_collection/step_refined.msh')
+#(topo_p, x_p, y_p, topo_u, x_u, y_u, c2f) = lin_t3.load_t3_iso_t6_file('../mesh_collection/cavity_8.msh', 'mesh_collection/cavity_16.msh')
 
 if sum(ph.stampa) !=0:
     results_dir = ph.results_directory+'/'+ph.sim_prefix+'/binary_data/'

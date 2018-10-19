@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import os
+import sys
 import numpy as np
 
 from pyevtk.hl import unstructuredGridToVTK
@@ -8,7 +9,10 @@ from pyevtk.vtk import VtkTriangle
 
 from parameters_handler import ParametersHandler
 
-ph = ParametersHandler('simulation_parameters_ns.json')
+if len(sys.argv) > 1:
+    ph = ParametersHandler(sys.argv[1])
+else:
+    ph = ParametersHandler('simulation_parameters_fsi.json')
 ph.simulation_info()
 
 time_list = np.where(ph.stampa)[0]

@@ -1,1 +1,2 @@
-tests/results/
+tests/DLM/results
+tests/Navier_Stokes/results

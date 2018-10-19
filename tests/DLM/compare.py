@@ -70,13 +70,13 @@ for k in range(1,7):
     #                        + l2_norm(stiffness_matrix, u_BDF1 - u_reference)**2)
     err_BDF1[k-1] = l2_norm(mass_matrix, u_BDF1 - u_reference)
 
-    input_name = results_dir+'BDF1_dt=1_'+str(2**k)+'_time'
-    f = file(input_name,"rb")
-    step_time = np.load(f)
-    sol_time = np.load(f)
-    f.close()
+    #input_name = results_dir+'BDF1_dt=1_'+str(2**k)+'_time'
+    #f = file(input_name,"rb")
+    #step_time = np.load(f)
+    #sol_time = np.load(f)
+    #f.close()
 
-    time_BDF1[k-1] = step_time
+    #time_BDF1[k-1] = step_time
 
     input_name = results_dir+'BDF2_dt=1_'+str(2**k)+'_result'
     f = file(input_name,"rb")
@@ -90,13 +90,13 @@ for k in range(1,7):
     #                       + l2_norm(stiffness_matrix, u_BDF2 - u_reference)**2)
     err_BDF2[k-1] = l2_norm(mass_matrix, u_BDF2 - u_reference)
 
-    input_name = results_dir+'BDF2_dt=1_'+str(2**k)+'_time'
-    f = file(input_name,"rb")
-    step_time = np.load(f)
-    sol_time = np.load(f)
-    f.close()
+    #input_name = results_dir+'BDF2_dt=1_'+str(2**k)+'_time'
+    #f = file(input_name,"rb")
+    #step_time = np.load(f)
+    #sol_time = np.load(f)
+    #f.close()
 
-    time_BDF2[k-1] = step_time
+    #time_BDF2[k-1] = step_time
 
     input_name = results_dir+'Theta_dt=1_'+str(2**k)+'_result'
     f = file(input_name,"rb")
@@ -110,22 +110,22 @@ for k in range(1,7):
     #                       + l2_norm(stiffness_matrix, u_Theta - u_reference)**2)
     err_Theta[k-1] = l2_norm(mass_matrix, u_Theta - u_reference)
 
-    input_name = results_dir+'Theta_dt=1_'+str(2**k)+'_time'
-    f = file(input_name,"rb")
-    step_time = np.load(f)
-    sol_time = np.load(f)
-    f.close()
+    #input_name = results_dir+'Theta_dt=1_'+str(2**k)+'_time'
+    #f = file(input_name,"rb")
+    #step_time = np.load(f)
+    #sol_time = np.load(f)
+    #f.close()
 
-    time_Theta[k-1] = step_time
+    #time_Theta[k-1] = step_time
 
 
 
-print 'BDF1 Error: '+str(err_BDF1)
-print 'BDF2 Error: '+str(err_BDF2)
+print 'BDF1 Error:  '+str(err_BDF1)
+print 'BDF2 Error:  '+str(err_BDF2)
 print 'Theta Error: '+str(err_Theta)
-print 'Error decay BDF1: '+str(np.divide(err_BDF1[0:5], err_BDF1[1:6]))
-print 'Error decay BDF2: '+str(np.divide(err_BDF2[0:5], err_BDF2[1:6]))
+print 'Error decay BDF1:  '+str(np.divide(err_BDF1[0:5], err_BDF1[1:6]))
+print 'Error decay BDF2:  '+str(np.divide(err_BDF2[0:5], err_BDF2[1:6]))
 print 'Error decay Theta: '+str(np.divide(err_Theta[0:5], err_Theta[1:6]))
-print 'Time BDF1: '+str(time_BDF1)
-print 'Time BDF2: '+str(time_BDF2)
-print 'Time Theta: '+str(time_Theta)
+#print 'Time BDF1: '+str(time_BDF1)
+#print 'Time BDF2: '+str(time_BDF2)
+#print 'Time Theta: '+str(time_Theta)
