@@ -431,8 +431,8 @@ def assemble_convective_Theta():
     return D11, D22, S12, S21
 
 def assemble_blockwise_force_Theta(D11, D22, S12, S21):
-    f_rhs_x = ph.rho_fluid/ph.dt*MF11.dot(ux_n) - 0.5*ph.nu*KF11.dot(ux_n) - 0.5*ph.rho_fluid*(D11.dot(ux_n) + S12.dot(uy_n)) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
-    f_rhs_y = ph.rho_fluid/ph.dt*MF11.dot(uy_n) - 0.5*ph.nu*KF11.dot(uy_n) - 0.5*ph.rho_fluid*(S21.dot(ux_n) + D22.dot(uy_n)) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
+    f_rhs_x = ph.rho_fluid/ph.dt*MF11.dot(ux_n) - 0.5*(D11.dot(ux_n) + S12.dot(uy_n)) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
+    f_rhs_y = ph.rho_fluid/ph.dt*MF11.dot(uy_n) - 0.5*(S21.dot(ux_n) + D22.dot(uy_n)) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
     p_rhs = 0.5*B.dot(u_n)
 
@@ -690,10 +690,10 @@ MF11 = assemble.u_v_p1(topo_u,x_u,y_u)
 KF11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
 A11_BDF1 = ph.nu*KF11 + ph.rho_fluid/ph.dt*MF11
 A11_BDF2 = ph.nu*KF11 + 1.5*ph.rho_fluid/ph.dt*MF11
-A11_Theta = 0.5*ph.nu*KF11 + ph.rho_fluid/ph.dt*MF11
+#A11_Theta = 0.5*ph.nu*KF11 + ph.rho_fluid/ph.dt*MF11
 A22_BDF1 = A11_BDF1
 A22_BDF2 = A11_BDF2
-A22_Theta = A11_Theta
+#A22_Theta = A11_Theta
 
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,
            topo_u,x_u,y_u,c2f)
@@ -703,7 +703,7 @@ B = BT.transpose()
 
 (A11_BDF1, A22_BDF1, _, _) = fluid_m_apply_bc(A11_BDF1, A22_BDF1)
 (A11_BDF2, A22_BDF2, _, _) = fluid_m_apply_bc(A11_BDF2, A22_BDF2)
-(A11_Theta, A22_Theta, _, _) = fluid_m_apply_bc(A11_Theta, A22_Theta)
+#(A11_Theta, A22_Theta, _, _) = fluid_m_apply_bc(A11_Theta, A22_Theta)
 (BT1, BT2) = pressure_m_apply_bc(BT1, BT2)
 
 MF = sparse.vstack([
@@ -719,10 +719,10 @@ A_BDF2 = sparse.vstack([
     sparse.hstack( [A11_BDF2, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
     sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), A22_BDF2] )
     ])
-A_Theta = sparse.vstack([
-    sparse.hstack( [A11_Theta, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
-    sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), A22_Theta] )
-    ])
+# A_Theta = sparse.vstack([
+#     sparse.hstack( [A11_Theta, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
+#     sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), A22_Theta] )
+#     ])
 
 BT = sparse.vstack([BT1,BT2])
 
