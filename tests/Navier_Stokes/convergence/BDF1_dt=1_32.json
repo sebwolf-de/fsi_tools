@@ -9,7 +9,6 @@
   "structure_triangulation_intervals" : 32,
 
   "kappa": 10,
-  "reynolds_number" : 10,
   "rho_fluid" : 1,
   "rho_structure" : 1,
   "nu" : 1,

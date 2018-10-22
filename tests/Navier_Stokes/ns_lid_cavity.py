@@ -35,7 +35,81 @@ def write_mesh():
     f.close()
     return
 
-def assemble_blockwise_force():
+def assemble_blockwise_force_BDF2():
+    size = 2*ndofs_u+ndofs_p#+1
+    rhs = np.zeros((size,1))
+
+    f_rhs_x = 1/ph.dt*M11.dot(ux_n)
+    f_rhs_y = 1/ph.dt*M22.dot(uy_n)
+
+    #upper boundary
+    bc_id = np.where(y_u > 1-delta_x/10)
+    f_rhs_x[bc_id,:] = 1
+    f_rhs_y[bc_id,:] = 0
+
+    #lower boundary
+    bc_id = np.where(y_u < delta_x/10)
+    f_rhs_x[bc_id,:] = 0
+    f_rhs_y[bc_id,:] = 0
+
+    #right boundary
+    bc_id = np.where(x_u > 1-delta_x/10)
+    f_rhs_x[bc_id,:] = 0
+    f_rhs_y[bc_id,:] = 0
+
+    #left boundary
+    bc_id = np.where(x_u < delta_x/10)
+    f_rhs_x[bc_id,:] = 0
+    f_rhs_y[bc_id,:] = 0
+
+    rhs[0:ndofs_u,:] = f_rhs_x
+    rhs[ndofs_u:2*ndofs_u,:] = f_rhs_y
+
+    return rhs
+
+def assemble_blockwise_matrix_BDF1():
+        (K11, K12, K21, K22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n, uy_n)
+        D11 = 1/ph.dt*M11 + K11 + ph.nu*A11
+        D22 = 1/ph.dt*M11 + K22 + ph.nu*A11
+
+        #lower boundary
+        bc_id = np.where(y_u < delta_x/10)
+        D11 = la_utils.set_diag(D11, bc_id)
+        D22 = la_utils.set_diag(D11, bc_id)
+        K12 = la_utils.clear_rows(K12, bc_id)
+        K21 = la_utils.clear_rows(K21, bc_id)
+
+        #upper boundary
+        bc_id = np.where(y_u > 1-delta_x/10)
+        D11 = la_utils.set_diag(D11, bc_id)
+        D22 = la_utils.set_diag(D22, bc_id)
+        K12 = la_utils.clear_rows(K12, bc_id)
+        K21 = la_utils.clear_rows(K21, bc_id)
+
+        #left boundary
+        bc_id = np.where(x_u < delta_x/10)
+        D11 = la_utils.set_diag(D11, bc_id)
+        D22 = la_utils.set_diag(D22, bc_id)
+        K12 = la_utils.clear_rows(K12, bc_id)
+        K21 = la_utils.clear_rows(K21, bc_id)
+
+        #right boundary
+        bc_id = np.where(x_u > 1-delta_x/10)
+        D11 = la_utils.set_diag(D11, bc_id)
+        D22 = la_utils.set_diag(D22, bc_id)
+        K12 = la_utils.clear_rows(K12, bc_id)
+        K21 = la_utils.clear_rows(K21, bc_id)
+
+        #### assembly of Navier-Stokes system
+        mat = sparse.vstack([
+            sparse.hstack([D11, K12, -BT1]), #sparse.csr_matrix((ndofs_u,1))]),
+            sparse.hstack([K21, D22, -BT2]), #sparse.csr_matrix((ndofs_u,1))]),
+            sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p))]) #, mean_p.transpose()]),
+            #sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)), mean_p, sparse.csr_matrix((1,1))])
+        ], "csr")
+        return mat
+
+def assemble_blockwise_force_BDF2():
     size = 2*ndofs_u+ndofs_p#+1
     rhs = np.zeros((size,1))
 
@@ -67,7 +141,7 @@ def assemble_blockwise_force():
 
     return rhs
 
-def assemble_blockwise_matrix():
+def assemble_blockwise_matrix_BDF2():
     (K11, K12, K21, K22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n, uy_n)
     (L11, L12, L21, L22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n_old, uy_n_old)
     D11 = 1.5/ph.dt*M11 + 2*K11 - L11 + ph.nu*A11
@@ -257,8 +331,12 @@ BT2 = la_utils.clear_rows(BT2,bc_id)
 for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
 
-    mat = assemble_blockwise_matrix()
-    force = assemble_blockwise_force()
+    if ph.time_integration == 'BDF1':
+        mat = assemble_blockwise_matrix_BDF1()
+        mat = assemble_blockwise_matrix_BDF1()
+    elif ph.time_index_digits == 'BDF2':
+        mat = assemble_blockwise_matrix_BDF2()
+        force = assemble_blockwise_force_BD2()
 
     #plt.spy(mat)
     #plt.show()
