@@ -12,7 +12,7 @@ from parameters_handler import ParametersHandler
 if len(sys.argv) > 1:
     ph = ParametersHandler(sys.argv[1])
 else:
-    ph = ParametersHandler('simulation_parameters_fsi.json')
+    ph = ParametersHandler('simulation_parameters.json')
 ph.simulation_info()
 
 time_list = np.where(ph.stampa)[0]
