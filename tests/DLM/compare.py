@@ -9,7 +9,7 @@ def l2_norm(M,g):
     l2_g = mth.sqrt(l2_g)
     return l2_g
 
-results_dir = 'results/BDF_Convergence_Analysis_Annulus/'
+results_dir = 'results/Convergence_Analysis_Annulus/'
 #results_dir = 'results/BDF_Convergence_Analysis_Cavity/'
 
 #Get mass matrix, all time integrations were being executed on the same mesh
