@@ -331,6 +331,9 @@ BT2 = la_utils.clear_rows(BT2,bc_id)
 for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
 
+
+    mat = sparse.csr_matrix((2*ndofs_u + ndofs_p, 2*ndofs_u + ndofs_p))
+    force = sparse.csr_matrix((2*ndofs_u + ndofs_p, 1))
     if ph.time_integration == 'BDF1':
         mat = assemble_blockwise_matrix_BDF1()
         mat = assemble_blockwise_matrix_BDF1()
