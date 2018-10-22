@@ -35,7 +35,7 @@ def write_mesh():
     f.close()
     return
 
-def assemble_blockwise_force_BDF2():
+def assemble_blockwise_force_BDF1():
     size = 2*ndofs_u+ndofs_p#+1
     rhs = np.zeros((size,1))
 
