@@ -82,7 +82,7 @@ cp results/ns_cavity_32_dt15625em6_hx32_nu1/binary_data/cn_time_064 results/Conv
 
 python2 ns_lid_cavity.py convergence/ref.json
 cp results/ns_cavity_32_dt5em3_hx32_nu1/binary_data/cn_time_200 results/Convergence_Analysis_Cavity/reference
-#cp results/ns_cavity_32_dt5em3_hx32_nu1/binary_data/mesh results/Convergence_Analysis_Cavity/mesh
+cp results/ns_cavity_32_dt5em3_hx32_nu1/binary_data/mesh results/Convergence_Analysis_Cavity/mesh
 
 #compare the convergence rates
 
