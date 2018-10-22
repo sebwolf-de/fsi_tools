@@ -425,8 +425,8 @@ def assemble_convective_Theta():
 
     D11 = 0.5*ph.nu*KF11 + 0.5*ph.rho_fluid*S11
     D22 = 0.5*ph.nu*KF11 + 0.5*ph.rho_fluid*S22
-    S12 = 0.5*S12
-    S21 = 0.5*S21
+    S12 = 0.5*ph.rho_fluid*S12
+    S21 = 0.5*ph.rho_fluid*S21
 
     return D11, D22, S12, S21
 
@@ -448,8 +448,8 @@ def assemble_blockwise_force_Theta(D11, D22, S12, S21):
 
 
 def assemble_blockwise_matrix_Theta(D11, D22, S12, S21):
-    D11 = ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*D11
-    D22 = ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*D22
+    D11 = ph.rho_fluid/ph.dt*MF11 + D11
+    D22 = ph.rho_fluid/ph.dt*MF11 + D22
 
     (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
 
