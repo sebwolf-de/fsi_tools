@@ -11,7 +11,6 @@ class ParametersHandler:
         self.esponente = self.params["delta_time_negative_esponent"]
 
         self.kappa = self.params["kappa"]
-        self.reynolds = self.params["reynolds_number"]
         self.rho_fluid = self.params["rho_fluid"]
         self.rho_structure = self.params["rho_structure"]
         self.nu = self.params["nu"]
@@ -30,7 +29,7 @@ class ParametersHandler:
                 self.stampa.append(False)
         self.mesh_prefix = self.params["mesh_prefix"]
 
-        self.mesh_name = self.mesh_prefix+str(int(self.n_delta_s))
+        self.mesh_name = self.mesh_prefix+str(int(self.n_delta_x))
 
         if self.solver_type == "ns_":
             sp =  self.solver_type+self.mesh_name+'_'
@@ -56,9 +55,10 @@ class ParametersHandler:
         print self.sim_prefix
         print 'dt = '+str(self.dt)#str(int(self.base))+'em'+str(int(self.esponente))
         print 'hx = '+str(int(self.n_delta_x))
-        print 'hs = '+str(int(self.n_delta_s))
+        if self.solver_type == 'dlm_':
+            print 'hs = '+str(int(self.n_delta_s))
         print 'k  = '+str(int(self.kappa))
-        print 're = '+str(int(self.reynolds))
+        print 'nu = '+str((int(self.nu)))
         print '-----------------------------------'
         return
 
