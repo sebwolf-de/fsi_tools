@@ -69,41 +69,44 @@ def assemble_blockwise_force():
 
 def assemble_blockwise_matrix():
     (K11, K12, K21, K22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n, uy_n)
-    D11 = 1.5/ph.dt*M11 + ph.nu*A11 + K11
-    D22 = 1.5/ph.dt*M11 + ph.nu*A11 + K22
+    (L11, L12, L21, L22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n_old, uy_n_old)
+    D11 = 1.5/ph.dt*M11 + 2*K11 - L11 + ph.nu*A11
+    D12 = 2*K12 - L12
+    D21 = 2*K21 - L21
+    D22 = 1.5/ph.dt*M11 + 2*K22 - L22 + ph.nu*A11
 
     #lower boundary
     bc_id = np.where(y_u < delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D11, bc_id)
-    K12 = la_utils.clear_rows(K12, bc_id)
-    K21 = la_utils.clear_rows(K21, bc_id)
+    D12 = la_utils.clear_rows(D12, bc_id)
+    D21 = la_utils.clear_rows(D21, bc_id)
 
     #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    K12 = la_utils.clear_rows(K12, bc_id)
-    K21 = la_utils.clear_rows(K21, bc_id)
+    D12 = la_utils.clear_rows(D12, bc_id)
+    D21 = la_utils.clear_rows(D21, bc_id)
 
     #left boundary
     bc_id = np.where(x_u < delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    K12 = la_utils.clear_rows(K12, bc_id)
-    K21 = la_utils.clear_rows(K21, bc_id)
+    D12 = la_utils.clear_rows(D12, bc_id)
+    D21 = la_utils.clear_rows(D21, bc_id)
 
     #right boundary
     bc_id = np.where(x_u > 1-delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    K12 = la_utils.clear_rows(K12, bc_id)
-    K21 = la_utils.clear_rows(K21, bc_id)
+    D12 = la_utils.clear_rows(D12, bc_id)
+    D21 = la_utils.clear_rows(D21, bc_id)
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
-        sparse.hstack([D11, K12, -BT1]), #sparse.csr_matrix((ndofs_u,1))]),
-        sparse.hstack([K21, D22, -BT2]), #sparse.csr_matrix((ndofs_u,1))]),
+        sparse.hstack([D11, D12, -BT1]), #sparse.csr_matrix((ndofs_u,1))]),
+        sparse.hstack([D21, D22, -BT2]), #sparse.csr_matrix((ndofs_u,1))]),
         sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p))]) #, mean_p.transpose()]),
         #sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)), mean_p, sparse.csr_matrix((1,1))])
     ], "csr")
@@ -187,8 +190,8 @@ uy_n_old = np.zeros((ndofs_u,1))
 M11 = assemble.u_v_p1(topo_u,x_u,y_u)
 A11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
 
-D11 = 1/ph.dt*M11 + ph.nu*A11
-D22 = D11
+# D11 = 1/ph.dt*M11 + ph.nu*A11
+# D22 = D11
 M22 = M11
 
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,

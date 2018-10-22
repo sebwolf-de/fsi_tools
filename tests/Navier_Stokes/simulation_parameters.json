@@ -6,7 +6,6 @@
     "delta_time_negative_esponent": 4,
     "fluid_triangulation_intervals" : 4,
 
-    "reynolds_number" : 10,
     "rho_fluid" : 1,
     "rho_structure" : 1,
     "nu" : 1,
