@@ -713,14 +713,14 @@ MF = sparse.vstack([
     sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), MF11] )
     ])
 
-A_BDF1 = sparse.vstack([
-    sparse.hstack( [A11_BDF1, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
-    sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), A22_BDF1] )
-    ])
-A_BDF2 = sparse.vstack([
-    sparse.hstack( [A11_BDF2, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
-    sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), A22_BDF2] )
-    ])
+# A_BDF1 = sparse.vstack([
+#     sparse.hstack( [A11_BDF1, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
+#     sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), A22_BDF1] )
+#     ])
+# A_BDF2 = sparse.vstack([
+#     sparse.hstack( [A11_BDF2, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
+#     sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), A22_BDF2] )
+#     ])
 # A_Theta = sparse.vstack([
 #     sparse.hstack( [A11_Theta, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
 #     sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), A22_Theta] )
