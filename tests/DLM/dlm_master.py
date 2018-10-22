@@ -287,8 +287,8 @@ def coupling_apply_bc(GT11, GT22):
     return GT11, GT22
 
 def assemble_blockwise_force_BDF1():
-    f_rhs_x = ph.rho_fluid/ph.dt*MF11.dot(ux_n)
-    f_rhs_y = ph.rho_fluid/ph.dt*MF11.dot(uy_n)
+    f_rhs_x = MF11.dot(ux_n)
+    f_rhs_y = MF11.dot(uy_n)
 
     l_rhs_x = 1/ph.dt*MS11.dot(dx_n)
     l_rhs_y = 1/ph.dt*MS11.dot(dy_n)
@@ -302,8 +302,8 @@ def assemble_blockwise_matrix_BDF1():
         np.reshape(y_u, (ndofs_u, 1)),
         np.reshape(2*ux_n-ux_n_old, (ndofs_u, 1)),
         np.reshape(2*uy_n-uy_n_old, (ndofs_u, 1)))
-    D11 = ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S11
-    D22 = ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S22
+    D11 = MF11 + ph.nu*KF11 + ph.rho_fluid*S11
+    D22 = MF11 + ph.nu*KF11 + ph.rho_fluid*S22
 
     (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
 
@@ -367,8 +367,8 @@ def assemble_blockwise_matrix_BDF2():
         np.reshape(y_u, (ndofs_u, 1)),
         np.reshape(2*ux_n-uy_n_old, (ndofs_u, 1)),
         np.reshape(2*uy_n-uy_n_old, (ndofs_u, 1)))
-    D11 = 1.5*ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S11
-    D22 = 1.5*ph.rho_fluid/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S22
+    D11 = 1.5*MF11 + ph.nu*KF11 + ph.rho_fluid*S11
+    D22 = 1.5*MF11 + ph.nu*KF11 + ph.rho_fluid*S22
 
     (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
 
@@ -423,16 +423,16 @@ def assemble_convective_Theta():
             np.reshape(2*ux_n-ux_n_old, (ndofs_u, 1)),
             np.reshape(2*uy_n-uy_n_old, (ndofs_u, 1)))
 
-    D11 = 0.5*ph.nu*KF11 + 0.5*ph.rho_fluid*S11
-    D22 = 0.5*ph.nu*KF11 + 0.5*ph.rho_fluid*S22
-    S12 = 0.5*ph.rho_fluid*S12
-    S21 = 0.5*ph.rho_fluid*S21
+    D11 = ph.nu*KF11 + ph.rho_fluid*S11
+    D22 = ph.nu*KF11 + ph.rho_fluid*S22
+    S12 = ph.rho_fluid*S12
+    S21 = ph.rho_fluid*S21
 
     return D11, D22, S12, S21
 
 def assemble_blockwise_force_Theta(D11, D22, S12, S21):
-    f_rhs_x = ph.rho_fluid/ph.dt*MF11.dot(ux_n) - 0.5*(D11.dot(ux_n) + S12.dot(uy_n)) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
-    f_rhs_y = ph.rho_fluid/ph.dt*MF11.dot(uy_n) - 0.5*(S21.dot(ux_n) + D22.dot(uy_n)) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
+    f_rhs_x = MF11.dot(ux_n) - 0.5*(D11.dot(ux_n) + S12.dot(uy_n)) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
+    f_rhs_y = MF11.dot(uy_n) - 0.5*(S21.dot(ux_n) + D22.dot(uy_n)) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
     p_rhs = 0.5*B.dot(u_n)
 
@@ -448,8 +448,10 @@ def assemble_blockwise_force_Theta(D11, D22, S12, S21):
 
 
 def assemble_blockwise_matrix_Theta(D11, D22, S12, S21):
-    D11 = ph.rho_fluid/ph.dt*MF11 + D11
-    D22 = ph.rho_fluid/ph.dt*MF11 + D22
+    D11 = MF11 + 0.5*D11
+    D22 = MF11 + 0.5*D22
+    S12 = 0.5*S12
+    S21 = 0.5*S21
 
     (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
 
@@ -686,11 +688,11 @@ KS = sparse.vstack([
     sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_s)),KS22])
     ])
 
-MF11 = assemble.u_v_p1(topo_u,x_u,y_u)
+MF11 = ph.rho_fluid/ph.dt*assemble.u_v_p1(topo_u,x_u,y_u)
 KF11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
-A11_BDF1 = ph.nu*KF11 + ph.rho_fluid/ph.dt*MF11
-A11_BDF2 = ph.nu*KF11 + 1.5*ph.rho_fluid/ph.dt*MF11
-#A11_Theta = 0.5*ph.nu*KF11 + ph.rho_fluid/ph.dt*MF11
+A11_BDF1 = ph.nu*KF11 + MF11
+A11_BDF2 = ph.nu*KF11 + 1.5*MF11
+#A11_Theta = 0.5*ph.nu*KF11 + MF11
 A22_BDF1 = A11_BDF1
 A22_BDF2 = A11_BDF2
 #A22_Theta = A11_Theta
