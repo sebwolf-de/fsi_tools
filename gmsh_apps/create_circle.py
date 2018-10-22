@@ -2,7 +2,7 @@
 
 import math
 
-n = 8
+n = 28
 for k in range(0,n):
     print 'Point('+str(k+1)+') = { '+str(math.cos(2*math.pi*k/n))+', '+str(math.sin(2*math.pi*k/n))+', 0, 1.0};'
 
