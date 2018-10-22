@@ -22,31 +22,51 @@ from shapely.geometry import Polygon
 from preconditioner import BlockPreconditioner
 from parameters_handler import ParametersHandler
 
-def read_initial_condition(cn_time):
-    #filename = './mesh/'+ph.sim_prefix
-    #f = file(filename,"rb")
-    #topo_p = np.load(f)
-    #x_p = np.load(f)
-    #y_p = np.load(f)
-    #topo_u = np.load(f)
-    #x_u = np.load(f)
-    #y_u = np.load(f)
-    #c2f = np.load(f)
-    #topo_s = np.load(f)
-    #sx_n = np.load(f)
-    #sy_n = np.load(f)
-    #s_lgr = np.load(f)
-    #t_lgr = np.load(f)
-    #f.close()
-    filename = "./"+ph.results_directory+"/"
-    filename += ph.sim_prefix + '_'+str(cn_time).zfill(4)
+def start_later(cn_time):
+    #load mesh file
+    filename = ph.results_dir+'mesh'
     f = file(filename,"rb")
-    u = np.load(f)
-    p = np.load(f)
-    xs = np.load(f)
-    ys = np.load(f)
+    topo_p = np.load(f)
+    x_p = np.load(f)
+    y_p = np.load(f)
+    topo_u = np.load(f)
+    x_u = np.load(f)
+    y_u = np.load(f)
+    c2f = np.load(f)
+    topo_s = np.load(f)
+    sx_n = np.load(f)
+    sy_n = np.load(f)
+    s_lgr = np.load(f)
+    t_lgr = np.load(f)
     f.close()
-    return xs,ys#,s_lgr,t_lgr,topo_s
+
+    #load previous timestep
+    filename = "./"+ph.results_directory+"/"
+    filename += ph.sim_prefix + '_'+str(cn_time-1).zfill(ph.time_index_digits)
+    f = file(filename,"rb")
+    u_n_old = np.load(f)
+    p_n_old = np.load(f)
+    sx_n_old = np.load(f)
+    sy_n_old = np.load(f)
+    l_n_old = np.laod(f)
+    f.close()
+    ux_n_old = u_n_old[0:ndofs_u]
+    uy_n_old = u_n_old[ndofs_u:2*ndofs_u]
+
+    #load current timestep
+    filename = "./"+ph.results_directory+"/"
+    filename += ph.sim_prefix + '_'+str(cn_time).zfill(ph.time_index_digits)
+    f = file(filename,"rb")
+    u_n = np.load(f)
+    p_n = np.load(f)
+    sx_n = np.load(f)
+    sy_n = np.load(f)
+    l_n = np.laod(f)
+    f.close()
+    ux_n = u_n[0:ndofs_u]
+    uy_n = u_n[ndofs_u:2*ndofs_u]
+
+    return
 
 
 def write_mesh():
@@ -531,6 +551,7 @@ def write_output():
     np.save(f,p_n)
     np.save(f,sx_n)
     np.save(f,sy_n)
+    np.save(f,l_n)
     f.close()
     print '--------------------------------------'
     print 'results saved to:'
