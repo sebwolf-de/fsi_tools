@@ -33,6 +33,7 @@ class ParametersHandler:
 
         if self.solver_type == "ns_":
             sp =  self.solver_type+self.mesh_name+'_'
+            sp += self.time_integration+'_'
             sp += 'dt'+str(int(self.base))+'em'+str(int(self.esponente))
             sp += '_hx'+str(int(self.n_delta_x))
             sp += '_nu'+str(self.nu)
@@ -57,7 +58,7 @@ class ParametersHandler:
         print 'hx = '+str(int(self.n_delta_x))
         if self.solver_type == 'dlm_':
             print 'hs = '+str(int(self.n_delta_s))
-        print 'k  = '+str(int(self.kappa))
+            print 'k  = '+str(int(self.kappa))
         print 'nu = '+str((int(self.nu)))
         print '-----------------------------------'
         return
