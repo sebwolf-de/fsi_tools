@@ -4,9 +4,15 @@
 
   "time_integration" : "Theta",
   "delta_time_base": 625,
+<<<<<<< HEAD
   "delta_time_negative_esponent": 4,
   "fluid_triangulation_intervals" : 8,
   "structure_triangulation_intervals" : 8,
+=======
+  "delta_time_negative_esponent": 3,
+  "fluid_triangulation_intervals" : 32,
+  "structure_triangulation_intervals" : 32,
+>>>>>>> 8381b4844175878d5c62fb64599660e0530c6211
 
   "kappa": 10,
   "rho_fluid" : 1,
