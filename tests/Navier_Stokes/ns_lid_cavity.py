@@ -36,7 +36,7 @@ def write_mesh():
     return
 
 def assemble_blockwise_force_BDF1():
-    size = 2*ndofs_u+ndofs_p#+1
+    size = 2*ndofs_u+ndofs_p
     rhs = np.zeros((size,1))
 
     f_rhs_x = 1/ph.dt*M11.dot(ux_n)
@@ -68,49 +68,39 @@ def assemble_blockwise_force_BDF1():
     return rhs
 
 def assemble_blockwise_matrix_BDF1():
-        (K11, K12, K21, K22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n, uy_n)
-        D11 = 1/ph.dt*M11 + K11 + ph.nu*A11
-        D22 = 1/ph.dt*M11 + K22 + ph.nu*A11
+        D11 = 1/ph.dt*M11 + ph.nu*A11
+        D22 = 1/ph.dt*M11 + ph.nu*A11
 
         #lower boundary
         bc_id = np.where(y_u < delta_x/10)
         D11 = la_utils.set_diag(D11, bc_id)
         D22 = la_utils.set_diag(D22, bc_id)
-        K12 = la_utils.clear_rows(K12, bc_id)
-        K21 = la_utils.clear_rows(K21, bc_id)
 
         #upper boundary
         bc_id = np.where(y_u > 1-delta_x/10)
         D11 = la_utils.set_diag(D11, bc_id)
         D22 = la_utils.set_diag(D22, bc_id)
-        K12 = la_utils.clear_rows(K12, bc_id)
-        K21 = la_utils.clear_rows(K21, bc_id)
 
         #left boundary
         bc_id = np.where(x_u < delta_x/10)
         D11 = la_utils.set_diag(D11, bc_id)
         D22 = la_utils.set_diag(D22, bc_id)
-        K12 = la_utils.clear_rows(K12, bc_id)
-        K21 = la_utils.clear_rows(K21, bc_id)
 
         #right boundary
         bc_id = np.where(x_u > 1-delta_x/10)
         D11 = la_utils.set_diag(D11, bc_id)
         D22 = la_utils.set_diag(D22, bc_id)
-        K12 = la_utils.clear_rows(K12, bc_id)
-        K21 = la_utils.clear_rows(K21, bc_id)
 
         #### assembly of Navier-Stokes system
         mat = sparse.vstack([
-            sparse.hstack([D11, K12, -BT1]), #sparse.csr_matrix((ndofs_u,1))]),
-            sparse.hstack([K21, D22, -BT2]), #sparse.csr_matrix((ndofs_u,1))]),
-            sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p))]) #, mean_p.transpose()]),
-            #sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)), mean_p, sparse.csr_matrix((1,1))])
+            sparse.hstack([D11, sparse.csr_matrix((ndofs_u, ndofs_u)), -BT1]),
+            sparse.hstack([sparse.csr_matrix((ndofs_u, ndofs_u)), D22, -BT2]),
+            sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p))])
         ], "csr")
         return mat
 
 def assemble_blockwise_force_BDF2():
-    size = 2*ndofs_u+ndofs_p#+1
+    size = 2*ndofs_u+ndofs_p
     rhs = np.zeros((size,1))
 
     f_rhs_x = 1/ph.dt*M11.dot(2*ux_n - 0.5*ux_n_old)
@@ -142,69 +132,36 @@ def assemble_blockwise_force_BDF2():
     return rhs
 
 def assemble_blockwise_matrix_BDF2():
-    (K11, K12, K21, K22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n, uy_n)
-    (L11, L12, L21, L22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n_old, uy_n_old)
-    D11 = 1.5/ph.dt*M11 + 2*K11 - L11 + ph.nu*A11
-    D12 = 2*K12 - L12
-    D21 = 2*K21 - L21
-    D22 = 1.5/ph.dt*M11 + 2*K22 - L22 + ph.nu*A11
+    D11 = 1.5/ph.dt*M11 + ph.nu*A11
+    D22 = 1.5/ph.dt*M11 + ph.nu*A11
 
     #lower boundary
     bc_id = np.where(y_u < delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    D12 = la_utils.clear_rows(D12, bc_id)
-    D21 = la_utils.clear_rows(D21, bc_id)
 
     #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    D12 = la_utils.clear_rows(D12, bc_id)
-    D21 = la_utils.clear_rows(D21, bc_id)
 
     #left boundary
     bc_id = np.where(x_u < delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    D12 = la_utils.clear_rows(D12, bc_id)
-    D21 = la_utils.clear_rows(D21, bc_id)
 
     #right boundary
     bc_id = np.where(x_u > 1-delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    D12 = la_utils.clear_rows(D12, bc_id)
-    D21 = la_utils.clear_rows(D21, bc_id)
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
-        sparse.hstack([D11, D12, -BT1]), #sparse.csr_matrix((ndofs_u,1))]),
-        sparse.hstack([D21, D22, -BT2]), #sparse.csr_matrix((ndofs_u,1))]),
-        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p))]) #, mean_p.transpose()]),
-        #sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)), mean_p, sparse.csr_matrix((1,1))])
+        sparse.hstack([D11, sparse.csr_matrix((ndofs_u, ndofs_u)), -BT1]),
+        sparse.hstack([sparse.csr_matrix((ndofs_u, ndofs_u)), D22, -BT2]),
+        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p))])
     ], "csr")
     return mat
-
-# def apply_bc(A):
-#     bc_id = np.where(y_u < delta_x/10)
-#     A = la_utils.set_diag(A, bc_id)
-#     bc_id = bc_id + np.ones(len(bc_id[0])).astype(int)*ndofs_u
-#     A = la_utils.set_diag(A, bc_id)
-#     bc_id = np.where(x_u < delta_x/10)
-#     A = la_utils.set_diag(A, bc_id)
-#     bc_id = bc_id + np.ones(len(bc_id[0])).astype(int)*ndofs_u
-#     A = la_utils.set_diag(A, bc_id)
-#     bc_id = np.where(y_u > 1 - delta_x/10)
-#     A = la_utils.set_diag(A, bc_id)
-#     bc_id = bc_id + np.ones(len(bc_id[0])).astype(int)*ndofs_u
-#     A = la_utils.set_diag(A, bc_id)
-#     bc_id = np.where(x_u > 1 - delta_x/10)
-#     A = la_utils.set_diag(A, bc_id)
-#     bc_id = bc_id + np.ones(len(bc_id[0])).astype(int)*ndofs_u
-#     A = la_utils.set_diag(A, bc_id)
-#
-#     return A
 
 def write_output():
     filename = results_dir +'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
@@ -219,7 +176,6 @@ def write_output():
     return
 
 def l2_norm(M, g):
-    #print g
     l2_g = M.dot(g)
     l2_g = np.dot(l2_g.transpose(),g)
     l2_g = mth.sqrt(l2_g)
@@ -244,8 +200,6 @@ delta_y = 1./ny_p
 
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(nx_p,ny_p,delta_x,delta_y)
 tp = topo_p
-#(topo_p, x_p, y_p, topo_u, x_u, y_u, c2f) = lin_t3.load_t3_iso_t6_file('../mesh_collection/step.msh', 'mesh_collection/step_refined.msh')
-#(topo_p, x_p, y_p, topo_u, x_u, y_u, c2f) = lin_t3.load_t3_iso_t6_file('../mesh_collection/cavity_8.msh', 'mesh_collection/cavity_16.msh')
 
 if sum(ph.stampa) !=0:
     results_dir = ph.results_directory+'/'+ph.sim_prefix+'/binary_data/'
@@ -265,9 +219,6 @@ uy_n_old = np.zeros((ndofs_u,1))
 
 M11 = assemble.u_v_p1(topo_u,x_u,y_u)
 A11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
-
-# D11 = 1/ph.dt*M11 + ph.nu*A11
-# D22 = D11
 M22 = M11
 
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,
@@ -278,29 +229,21 @@ B = BT.transpose()
 
 #left boundary
 bc_id = np.where(x_u < delta_x/10)
-#D11 = la_utils.set_diag(D11, bc_id)
-#D22 = la_utils.set_diag(D22, bc_id)
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 #right boundary
 bc_id = np.where(x_u > 1-delta_x/10)
-#D11 = la_utils.set_diag(D11, bc_id)
-#D22 = la_utils.set_diag(D22, bc_id)
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 #lower boundary
 bc_id = np.where(y_u < delta_x/10)
-#D11 = la_utils.set_diag(D11, bc_id)
-#D22 = la_utils.set_diag(D22, bc_id)
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 #upper boundary
 bc_id = np.where(y_u > 1-delta_x/10)
-#D11 = la_utils.set_diag(D11, bc_id)
-#D22 = la_utils.set_diag(D22, bc_id)
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
@@ -310,24 +253,15 @@ M = sparse.vstack([
      sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), M11] )
      ])
 
-# mean_p = np.zeros((1,ndofs_p))
-# x_l = x_p[topo_p[0,0:3]]
-# y_l = y_p[topo_p[0,0:3]]
-# eval_p = np.zeros((0,2))
-# (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_p)
-#
-# for row in topo_p:
-#     mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.,1])
-#
-# mat = sparse.vstack([
-#     sparse.hstack([D11, sparse.csr_matrix((ndofs_u, ndofs_u)), -BT1]), #sparse.csr_matrix((ndofs_u,1))]),
-#     sparse.hstack([sparse.csr_matrix((ndofs_u, ndofs_u)), D22, -BT2]), #sparse.csr_matrix((ndofs_u,1))]),
-#     sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p))])#,mean_p.transpose()]),
-#     #sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)), mean_p, sparse.csr_matrix((1,1))])
-# ], "csr")
+mean_p = np.zeros((1,ndofs_p))
+x_l = x_p[topo_p[0,0:3]]
+y_l = y_p[topo_p[0,0:3]]
+eval_p = np.zeros((0,2))
+(phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_p)
 
-#plt.spy(mat)
-#plt.show()
+for row in topo_p:
+    mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.,1])
+
 
 #### start time steppig procedure
 for cn_time in range(0,len(ph.stampa)):
