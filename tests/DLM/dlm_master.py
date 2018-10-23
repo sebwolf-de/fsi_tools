@@ -731,11 +731,17 @@ for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
 
     ###Assemble fluid-structure coupling matrix
+    if ph.time_integration == 'BDF2':
+        sx_ass = 2*sx_n - sx_n_old
+        sy_ass = 2*sy_n - sy_n_old
+    else:
+        sx_ass = sx_n
+        sy_ass = sy_n
     (str_segments,fluid_id) = geom.fluid_intersect_mesh(topo_u,x_u,y_u,
-                    topo_s,sx_n,sy_n)
+                    topo_s,sx_ass,sy_ass)
     GT11 = assemble.u_s_p1_thick(x_u,y_u,topo_u,
                     s_lgr,t_lgr,
-                    sx_n,sy_n,topo_s,ie_s,
+                    sx_ass,sy_ass,topo_s,ie_s,
                     str_segments,fluid_id)
 
     GT22 = GT11
