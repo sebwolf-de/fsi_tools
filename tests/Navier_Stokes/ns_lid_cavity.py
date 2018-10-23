@@ -44,7 +44,7 @@ def assemble_blockwise_force_BDF1():
 
     #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 1
+    f_rhs_x[bc_id,:] = 1.
     f_rhs_y[bc_id,:] = 0
 
     #lower boundary
@@ -75,7 +75,7 @@ def assemble_blockwise_matrix_BDF1():
         #lower boundary
         bc_id = np.where(y_u < delta_x/10)
         D11 = la_utils.set_diag(D11, bc_id)
-        D22 = la_utils.set_diag(D11, bc_id)
+        D22 = la_utils.set_diag(D22, bc_id)
         K12 = la_utils.clear_rows(K12, bc_id)
         K21 = la_utils.clear_rows(K21, bc_id)
 
@@ -118,7 +118,7 @@ def assemble_blockwise_force_BDF2():
 
     #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 1
+    f_rhs_x[bc_id,:] = 1.
     f_rhs_y[bc_id,:] = 0
 
     #lower boundary
@@ -152,7 +152,7 @@ def assemble_blockwise_matrix_BDF2():
     #lower boundary
     bc_id = np.where(y_u < delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
     D12 = la_utils.clear_rows(D12, bc_id)
     D21 = la_utils.clear_rows(D21, bc_id)
 
@@ -218,8 +218,10 @@ def write_output():
     print '--------------------------------------'
     return
 
-def l2_norm(g):
-    l2_g = np.dot(g.transpose(),g)
+def l2_norm(M, g):
+    #print g
+    l2_g = M.dot(g)
+    l2_g = np.dot(l2_g.transpose(),g)
     l2_g = mth.sqrt(l2_g)
     return l2_g
 
@@ -303,10 +305,10 @@ BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 
-# M = sparse.vstack([
-#     sparse.hstack( [M11, sparse.csr_matrix((ndofs_u,ndofs_u))] ),
-#     sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), M11] )
-#     ])
+M = sparse.vstack([
+     sparse.hstack( [M11, sparse.csr_matrix((ndofs_u,ndofs_u))] ),
+     sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), M11] )
+     ])
 
 # mean_p = np.zeros((1,ndofs_p))
 # x_l = x_p[topo_p[0,0:3]]
@@ -336,13 +338,10 @@ for cn_time in range(0,len(ph.stampa)):
     force = sparse.csr_matrix((2*ndofs_u + ndofs_p, 1))
     if ph.time_integration == 'BDF1':
         mat = assemble_blockwise_matrix_BDF1()
-        mat = assemble_blockwise_matrix_BDF1()
-    elif ph.time_index_digits == 'BDF2':
+        force = assemble_blockwise_force_BDF1()
+    elif ph.time_integration == 'BDF2':
         mat = assemble_blockwise_matrix_BDF2()
-        force = assemble_blockwise_force_BD2()
-
-    #plt.spy(mat)
-    #plt.show()
+        force = assemble_blockwise_force_BDF2()
 
     ux_n_old = ux_n
     uy_n_old = uy_n
@@ -364,8 +363,7 @@ for cn_time in range(0,len(ph.stampa)):
     print '--------------------------------------'
     print 'cn_time   = ' + str(cn_time)
     print 't         = ' + str(cn_time*ph.dt)
-    #print 'l2 norm u = ' + str(l2_norm(u_n))
-    #print 'l2 norm p = ' + str(l2_norm(p))
+    print 'l2 norm u = ' + str(l2_norm(M, u_n))
     print 'step time = ' + str((step_t1-step_t0))
     print 'sol  time = ' + str((sol_t1-sol_t0))
     print '--------------------------------------'
