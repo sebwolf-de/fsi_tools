@@ -654,7 +654,7 @@ elif ph.mesh_prefix == 'channel_':
     sx_n = (s_lgr)
     sy_n = (t_lgr)
 
-viewers.tri_plot(s_lgr, t_lgr, topo_s)
+#viewers.tri_plot(s_lgr, t_lgr, topo_s)
 
 ie_s = np.arange(0,s_lgr.shape[0])
 
