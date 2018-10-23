@@ -4,15 +4,9 @@
 
   "time_integration" : "BDF1",
   "delta_time_base": 25,
-<<<<<<< HEAD
   "delta_time_negative_esponent": 2,
   "fluid_triangulation_intervals" : 8,
   "structure_triangulation_intervals" : 8,
-=======
-  "delta_time_negative_esponent": 1,
-  "fluid_triangulation_intervals" : 32,
-  "structure_triangulation_intervals" : 32,
->>>>>>> 8381b4844175878d5c62fb64599660e0530c6211
 
   "kappa": 10,
   "rho_fluid" : 1,
