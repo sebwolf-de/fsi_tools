@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 from scipy import sparse
 import math as mth
@@ -9,8 +10,10 @@ def l2_norm(M,g):
     l2_g = mth.sqrt(l2_g)
     return l2_g
 
-results_dir = 'results/Convergence_Analysis_Annulus/'
+
+results_dir = 'results/Convergence_Analysis_'+sys.argv[1]+'/'
 #results_dir = 'results/BDF_Convergence_Analysis_Cavity/'
+print results_dir
 
 #Get mass matrix, all time integrations were being executed on the same mesh
 filename = results_dir+'mesh'

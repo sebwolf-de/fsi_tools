@@ -1,18 +1,18 @@
 {
   "solver_type" : "dlm_",
-  "mesh_prefix": "annulus_",
+  "mesh_prefix": "channel_",
 
-  "time_integration" : "BDF2",
+  "time_integration" : "BDF1",
   "delta_time_base": 125,
-  "delta_time_negative_esponent": 3,
-  "fluid_triangulation_intervals" : 32,
-  "structure_triangulation_intervals" : 32,
+  "delta_time_negative_esponent": 4,
+  "fluid_triangulation_intervals" : 16,
+  "structure_triangulation_intervals" : 16,
 
-  "kappa": 10,
+  "kappa" : 50,
   "reynolds_number" : 10,
   "rho_fluid" : 1,
   "rho_structure" : 1,
-  "nu" : 1,
+  "nu" : 0.1,
 
   "time_intervals_to_be_simulated": 9,
   "time_intervals_in_between_printed_results": 8,

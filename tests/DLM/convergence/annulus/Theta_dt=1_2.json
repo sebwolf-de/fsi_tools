@@ -2,11 +2,11 @@
   "solver_type" : "dlm_",
   "mesh_prefix": "annulus_",
 
-  "time_integration" : "BDF1",
+  "time_integration" : "Theta",
   "delta_time_base": 5,
   "delta_time_negative_esponent": 1,
-  "fluid_triangulation_intervals" : 32,
-  "structure_triangulation_intervals" : 32,
+  "fluid_triangulation_intervals" : 8,
+  "structure_triangulation_intervals" : 8,
 
   "kappa": 10,
   "reynolds_number" : 10,
