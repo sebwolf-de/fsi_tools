@@ -4,7 +4,7 @@
 
   "time_integration" : "BDF2",
   "delta_time_base": 5,
-  "delta_time_negative_esponent": 1,
+  "delta_time_negative_esponent": 0,
   "fluid_triangulation_intervals" : 32,
   "structure_triangulation_intervals" : 32,
 
