@@ -48,7 +48,7 @@ if not os.path.exists(str_dir):
 
 N = int(np.sqrt(x_u.shape)) - 1
 
-for k in range(1,6):
+for k in range(1,7):
     input_name = results_dir+'BDF1_dt=1_'+str(2**k)+'_result'
     f = file(input_name,"rb")
     u = np.load(f)
