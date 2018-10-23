@@ -5,8 +5,8 @@
   "time_integration" : "Theta",
   "delta_time_base": 3125,
   "delta_time_negative_esponent": 5,
-  "fluid_triangulation_intervals" : 32,
-  "structure_triangulation_intervals" : 32,
+  "fluid_triangulation_intervals" : 8,
+  "structure_triangulation_intervals" : 8,
 
   "kappa": 10,
   "rho_fluid" : 1,
@@ -14,7 +14,7 @@
   "nu" : 1,
 
   "time_intervals_to_be_simulated": 33,
-  "time_intervals_in_between_printed_results": 32,
+  "time_intervals_in_between_printed_results": 8,
   "time_index_digits": 3,
   "results_directory": "results"
 }
