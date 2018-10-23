@@ -310,8 +310,8 @@ def assemble_blockwise_force_BDF1():
     f_rhs_x = 1/ph.dt*MF11.dot(ux_n)
     f_rhs_y = 1/ph.dt*MF11.dot(uy_n)
 
-    l_rhs_x = 1/ph.dt*MS11.dot(dx_n)
-    l_rhs_y = 1/ph.dt*MS11.dot(dy_n)
+    l_rhs_x = -1/ph.dt*MS11.dot(dx_n)
+    l_rhs_y = -1/ph.dt*MS11.dot(dy_n)
 
     return stack_rhs(f_rhs_x, f_rhs_y, np.zeros((ndofs_p)),
                      np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
@@ -320,10 +320,14 @@ def assemble_blockwise_matrix_BDF1():
     (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u,
         np.reshape(x_u, (ndofs_u, 1)),
         np.reshape(y_u, (ndofs_u, 1)),
-        np.reshape(2*ux_n-ux_n_old, (ndofs_u, 1)),
-        np.reshape(2*uy_n-uy_n_old, (ndofs_u, 1)))
-    D11 = 1/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S11
-    D22 = 1/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S22
+        np.reshape(ux_n, (ndofs_u, 1)),
+        np.reshape(uy_n, (ndofs_u, 1)))
+    D11 = 1/ph.dt*MF11 + ph.nu*KF11# + ph.rho_fluid*S11
+    D22 = 1/ph.dt*MF11 + ph.nu*KF11# + ph.rho_fluid*S22
+    S12 = ph.rho_fluid*S12
+    S21 = ph.rho_fluid*S21
+    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
     (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
 
@@ -353,9 +357,9 @@ def assemble_blockwise_matrix_BDF1():
                           sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
-    mat4 = sparse.hstack([-G,
+    mat4 = sparse.hstack([G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
-                          1/ph.dt*MS,
+                          -1/ph.dt*MS,
                           sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
                           sparse.csr_matrix((ndofs_s*2,1))
                           ])
@@ -385,10 +389,14 @@ def assemble_blockwise_matrix_BDF2():
     (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u,
         np.reshape(x_u, (ndofs_u, 1)),
         np.reshape(y_u, (ndofs_u, 1)),
-        np.reshape(2*ux_n-uy_n_old, (ndofs_u, 1)),
+        np.reshape(2*ux_n-ux_n_old, (ndofs_u, 1)),
         np.reshape(2*uy_n-uy_n_old, (ndofs_u, 1)))
-    D11 = 1.5/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S11
-    D22 = 1.5/ph.dt*MF11 + ph.nu*KF11 + ph.rho_fluid*S22
+    D11 = 1.5/ph.dt*MF11 + ph.nu*KF11# + ph.rho_fluid*S11
+    D22 = 1.5/ph.dt*MF11 + ph.nu*KF11# + ph.rho_fluid*S22
+    S12 = ph.rho_fluid*S12
+    S21 = ph.rho_fluid*S21
+    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
     (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
 
@@ -440,13 +448,15 @@ def assemble_convective_Theta():
     (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u,
             np.reshape(x_u, (ndofs_u, 1)),
             np.reshape(y_u, (ndofs_u, 1)),
-            np.reshape(2*ux_n-ux_n_old, (ndofs_u, 1)),
-            np.reshape(2*uy_n-uy_n_old, (ndofs_u, 1)))
+            np.reshape(ux_n, (ndofs_u, 1)),
+            np.reshape(uy_n, (ndofs_u, 1)))
 
-    D11 = ph.nu*KF11 + ph.rho_fluid*S11
-    D22 = ph.nu*KF11 + ph.rho_fluid*S22
+    D11 = ph.nu*KF11# + ph.rho_fluid*S11
+    D22 = ph.nu*KF11# + ph.rho_fluid*S22
     S12 = ph.rho_fluid*S12
     S21 = ph.rho_fluid*S21
+    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
     return D11, D22, S12, S21
 
@@ -643,6 +653,8 @@ elif ph.mesh_prefix == 'channel_':
     sy_zero = t_lgr
     sx_n = (s_lgr)
     sy_n = (t_lgr)
+
+viewers.tri_plot(s_lgr, t_lgr, topo_s)
 
 ie_s = np.arange(0,s_lgr.shape[0])
 
