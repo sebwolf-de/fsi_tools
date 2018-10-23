@@ -144,7 +144,7 @@ def fluid_rhs_apply_bc(f_rhs_x, f_rhs_y):
         f_rhs_x[bc_id] = 0.
         f_rhs_y[bc_id] = 0.
     elif ph.mesh_prefix == 'channel_':
-        f_rhs_x[bc_id] = 0.1 * y_u[bc_id] * (1-y_u[bc_id])
+        f_rhs_x[bc_id] = 4 * y_u[bc_id] * (1-y_u[bc_id])
         f_rhs_y[bc_id] = 0.
 
     return f_rhs_x, f_rhs_y
