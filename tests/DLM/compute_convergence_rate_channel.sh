@@ -69,10 +69,10 @@ if [[ $1 == *"T"* ]]; then
   cp results/dlm_channel_16_Theta_dt25em3_hx16_hs16_k50_nu0.1/binary_data/cn_time_004 results/Convergence_Analysis_Channel/Theta_3
 
   python2 dlm_master.py convergence/channel/Theta_4.json
-  cp results/dlm_channel_16_Theta_dt125em4_hx16_hs16_k50_nu0.1/binary_data/cn_time_008 results/Convergence_Analysis_Channel/Theta_dt=4
+  cp results/dlm_channel_16_Theta_dt125em4_hx16_hs16_k50_nu0.1/binary_data/cn_time_008 results/Convergence_Analysis_Channel/Theta_4
 
   python2 dlm_master.py convergence/channel/BDF1_5.json
-  cp results/dlm_channel_16_Theta_dt625em5_hx16_hs16_k50_nu0.1/binary_data/cn_time_016 results/Convergence_Analysis_Channel/Theta_dt=5
+  cp results/dlm_channel_16_Theta_dt625em5_hx16_hs16_k50_nu0.1/binary_data/cn_time_016 results/Convergence_Analysis_Channel/Theta_5
 
   python2 dlm_master.py convergence/channel/Theta_6.json
   cp results/dlm_channel_16_Theta_dt3125em6_hx16_hs16_k50_nu0.1/binary_data/cn_time_032 results/Convergence_Analysis_Channel/Theta_6
