@@ -78,7 +78,7 @@ time_Theta = np.zeros(N-1)
 
 
 for k in range(1,N):
-    input_name = results_dir+'BDF1_dt=1_'+str(k)+'_result'
+    input_name = results_dir+'BDF1_'+str(k)+'_result'
     f = file(input_name,"rb")
     u_BDF1 = np.load(f)
     p_BDF1 = np.load(f)
@@ -92,7 +92,7 @@ for k in range(1,N):
     err_s_BDF1[k-1] = l2_norm(mass_matrix_s,
         np.append(xs_BDF1, ys_BDF1) - np.append(xs_reference, ys_reference))
 
-    #input_name = results_dir+'BDF1_dt=1_'+str(2**k)+'_time'
+    #input_name = results_dir+'BDF1_'+str(2**k)+'_time'
     #f = file(input_name,"rb")
     #step_time = np.load(f)
     #sol_time = np.load(f)
@@ -100,7 +100,7 @@ for k in range(1,N):
 
     #time_BDF1[k-1] = step_time
 
-    input_name = results_dir+'BDF2_dt=1_'+str(k)+'_result'
+    input_name = results_dir+'BDF2_'+str(k)+'_result'
     f = file(input_name,"rb")
     u_BDF2 = np.load(f)
     p_BDF2 = np.load(f)
@@ -114,7 +114,7 @@ for k in range(1,N):
     err_s_BDF2[k-1] = l2_norm(mass_matrix_s,
         np.append(xs_BDF2, ys_BDF2) - np.append(xs_reference, ys_reference))
 
-    #input_name = results_dir+'BDF2_dt=1_'+str(2**k)+'_time'
+    #input_name = results_dir+'BDF2_'+str(2**k)+'_time'
     #f = file(input_name,"rb")
     #step_time = np.load(f)
     #sol_time = np.load(f)
@@ -122,7 +122,7 @@ for k in range(1,N):
 
     #time_BDF2[k-1] = step_time
 
-    input_name = results_dir+'Theta_dt=1_'+str(k)+'_result'
+    input_name = results_dir+'Theta_'+str(k)+'_result'
     f = file(input_name,"rb")
     u_Theta = np.load(f)
     p_Theta = np.load(f)
@@ -136,7 +136,7 @@ for k in range(1,N):
     err_s_Theta[k-1] = l2_norm(mass_matrix_s,
         np.append(xs_Theta, ys_Theta) - np.append(xs_reference, ys_reference))
 
-    #input_name = results_dir+'Theta_dt=1_'+str(2**k)+'_time'
+    #input_name = results_dir+'Theta_'+str(2**k)+'_time'
     #f = file(input_name,"rb")
     #step_time = np.load(f)
     #sol_time = np.load(f)
