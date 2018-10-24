@@ -3,8 +3,8 @@
   "mesh_prefix": "channel_",
 
   "time_integration" : "Theta",
-  "delta_time_base": 125,
-  "delta_time_negative_esponent": 4,
+  "delta_time_base": 625,
+  "delta_time_negative_esponent": 5,
   "fluid_triangulation_intervals" : 16,
   "structure_triangulation_intervals" : 16,
 
@@ -14,8 +14,8 @@
   "rho_structure" : 1,
   "nu" : 0.1,
 
-  "time_intervals_to_be_simulated": 9,
-  "time_intervals_in_between_printed_results": 8,
+  "time_intervals_to_be_simulated": 17,
+  "time_intervals_in_between_printed_results": 16,
   "time_index_digits": 3,
   "results_directory": "results"
 }

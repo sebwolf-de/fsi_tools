@@ -61,10 +61,10 @@ ys_reference = np.load(f)
 f.close()
 
 
-if sys.argv[1] == 'Annulus':
-    N = 7
-else:
+if sys.argv[1] == 'Cavity':
     N = 5
+else:
+    N = 7
 
 err_u_BDF1 = np.zeros(N-1)
 err_u_BDF2 = np.zeros(N-1)

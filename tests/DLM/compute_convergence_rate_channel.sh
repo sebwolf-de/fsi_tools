@@ -30,6 +30,14 @@ if [[ $1 == *"1"* ]]; then
   python2 dlm_master.py convergence/channel/BDF1_dt\=1_16.json
   cp results/dlm_channel_16_BDF1_dt125em4_hx16_hs16_k50_nu0.1/binary_data/cn_time_008 results/Convergence_Analysis_Channel/BDF1_dt=1_16_result
   cp results/dlm_channel_16_BDF1_dt125em4_hx16_hs16_k50_nu0.1/binary_data/time results/Convergence_Analysis_Channel/BDF1_dt=1_16_time
+
+  python2 dlm_master.py convergence/channel/BDF1_dt\=1_32.json
+  cp results/dlm_channel_16_BDF1_dt625em5_hx16_hs16_k50_nu0.1/binary_data/cn_time_016 results/Convergence_Analysis_Channel/BDF1_dt=1_32_result
+  cp results/dlm_channel_16_BDF1_dt625em5_hx16_hs16_k50_nu0.1/binary_data/time results/Convergence_Analysis_Channel/BDF1_dt=1_32_time
+
+  python2 dlm_master.py convergence/channel/BDF1_dt\=1_64.json
+  cp results/dlm_channel_16_BDF1_dt3125em6_hx16_hs16_k50_nu0.1/binary_data/cn_time_032 results/Convergence_Analysis_Channel/BDF1_dt=1_64_result
+  cp results/dlm_channel_16_BDF1_dt3125em6_hx16_hs16_k50_nu0.1/binary_data/time results/Convergence_Analysis_Channel/BDF1_dt=1_64_time
 fi
 
 #compute BDF2 solutions
@@ -50,6 +58,14 @@ if [[ $1 == *"2"* ]]; then
   python2 dlm_master.py convergence/channel/BDF2_dt\=1_16.json
   cp results/dlm_channel_16_BDF2_dt125em4_hx16_hs16_k50_nu0.1/binary_data/cn_time_008 results/Convergence_Analysis_Channel/BDF2_dt=1_16_result
   cp results/dlm_channel_16_BDF2_dt125em4_hx16_hs16_k50_nu0.1/binary_data/time results/Convergence_Analysis_Channel/BDF2_dt=1_16_time
+
+  python2 dlm_master.py convergence/channel/BDF2_dt\=1_32.json
+  cp results/dlm_channel_16_BDF2_dt625em5_hx16_hs16_k50_nu0.1/binary_data/cn_time_016 results/Convergence_Analysis_Channel/BDF2_dt=1_32_result
+  cp results/dlm_channel_16_BDF2_dt625em5_hx16_hs16_k50_nu0.1/binary_data/time results/Convergence_Analysis_Channel/BDF2_dt=1_32_time
+
+  python2 dlm_master.py convergence/channel/BDF2_dt\=1_64.json
+  cp results/dlm_channel_16_BDF2_dt3125em6_hx16_hs16_k50_nu0.1/binary_data/cn_time_032 results/Convergence_Analysis_Channel/BDF2_dt=1_64_result
+  cp results/dlm_channel_16_BDF2_dt3125em6_hx16_hs16_k50_nu0.1/binary_data/time results/Convergence_Analysis_Channel/BDF2_dt=1_64_time
 fi
 
 #compute Theta solutions
@@ -70,6 +86,14 @@ if [[ $1 == *"T"* ]]; then
   python2 dlm_master.py convergence/channel/Theta_dt\=1_16.json
   cp results/dlm_channel_16_Theta_dt125em4_hx16_hs16_k50_nu0.1/binary_data/cn_time_008 results/Convergence_Analysis_Channel/Theta_dt=1_16_result
   cp results/dlm_channel_16_Theta_dt125em4_hx16_hs16_k50_nu0.1/binary_data/time results/Convergence_Analysis_Channel/Theta_dt=1_16_time
+
+  python2 dlm_master.py convergence/channel/BDF1_dt\=1_32.json
+  cp results/dlm_channel_16_Theta_dt625em5_hx16_hs16_k50_nu0.1/binary_data/cn_time_016 results/Convergence_Analysis_Channel/Theta_dt=1_32_result
+  cp results/dlm_channel_16_Theta_dt625em5_hx16_hs16_k50_nu0.1/binary_data/time results/Convergence_Analysis_Channel/Theta_dt=1_32_time
+
+  python2 dlm_master.py convergence/channel/Theta_dt\=1_64.json
+  cp results/dlm_channel_16_Theta_dt3125em6_hx16_hs16_k50_nu0.1/binary_data/cn_time_032 results/Convergence_Analysis_Channel/Theta_dt=1_64_result
+  cp results/dlm_channel_16_Theta_dt3125em6_hx16_hs16_k50_nu0.1/binary_data/time results/Convergence_Analysis_Channel/Theta_dt=1_64_time
 fi
 
 #compute reference solutions
