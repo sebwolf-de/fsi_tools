@@ -3,8 +3,8 @@
   "mesh_prefix": "cavity_",
 
   "time_integration" : "BDF1",
-  "delta_time_base": 5,
-  "delta_time_negative_esponent": 4,
+  "delta_time_base": 1,
+  "delta_time_negative_esponent": 1,
   "fluid_triangulation_intervals" : 16,
   "structure_triangulation_intervals" : 16,
 
@@ -14,8 +14,8 @@
   "rho_structure" : 1,
   "nu" : 0.01,
 
-  "time_intervals_to_be_simulated": 201,
-  "time_intervals_in_between_printed_results": 200,
+  "time_intervals_to_be_simulated": 2,
+  "time_intervals_in_between_printed_results": 1,
   "time_index_digits": 3,
   "results_directory": "results"
 }
