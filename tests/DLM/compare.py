@@ -60,17 +60,24 @@ xs_reference = np.load(f)
 ys_reference = np.load(f)
 f.close()
 
-err_u_BDF1 = np.zeros(6)
-err_u_BDF2 = np.zeros(6)
-err_u_Theta = np.zeros(6)
-err_s_BDF1 = np.zeros(6)
-err_s_BDF2 = np.zeros(6)
-err_s_Theta = np.zeros(6)
-time_BDF1 = np.zeros(6)
-time_BDF2 = np.zeros(6)
-time_Theta = np.zeros(6)
 
-for k in range(1,7):
+if sys.argv[1] == 'Annulus':
+    N = 7
+else:
+    N = 5
+
+err_u_BDF1 = np.zeros(N-1)
+err_u_BDF2 = np.zeros(N-1)
+err_u_Theta = np.zeros(N-1)
+err_s_BDF1 = np.zeros(N-1)
+err_s_BDF2 = np.zeros(N-1)
+err_s_Theta = np.zeros(N-1)
+time_BDF1 = np.zeros(N-1)
+time_BDF2 = np.zeros(N-1)
+time_Theta = np.zeros(N-1)
+
+
+for k in range(1,N):
     input_name = results_dir+'BDF1_dt=1_'+str(2**k)+'_result'
     f = file(input_name,"rb")
     u_BDF1 = np.load(f)
@@ -145,12 +152,12 @@ print 'BDF2 Error u:  '+str(err_u_BDF2)
 #print 'BDF2 Error s:  '+str(err_s_BDF2)
 print 'Theta Error u: '+str(err_u_Theta)
 #print 'Theta Error s: '+str(err_s_Theta)
-print 'Error decay BDF1 u:  '+str(np.divide(err_u_BDF1[0:5], err_u_BDF1[1:6]))
-#print 'Error decay BDF1 s:  '+str(np.divide(err_s_BDF1[0:5], err_s_BDF1[1:6]))
-print 'Error decay BDF2 u:  '+str(np.divide(err_u_BDF2[0:5], err_u_BDF2[1:6]))
-#print 'Error decay BDF2 s:  '+str(np.divide(err_s_BDF2[0:5], err_s_BDF2[1:6]))
-print 'Error decay Theta u: '+str(np.divide(err_u_Theta[0:5], err_u_Theta[1:6]))
-#print 'Error decay Theta s: '+str(np.divide(err_s_Theta[0:5], err_s_Theta[1:6]))
+print 'Error decay BDF1 u:  '+str(np.divide(err_u_BDF1[0:N-2], err_u_BDF1[1:N-1]))
+#print 'Error decay BDF1 s:  '+str(np.divide(err_s_BDF1[0:5], err_s_BDF1[1:N-1]))
+print 'Error decay BDF2 u:  '+str(np.divide(err_u_BDF2[0:N-2], err_u_BDF2[1:N-1]))
+#print 'Error decay BDF2 s:  '+str(np.divide(err_s_BDF2[0:5], err_s_BDF2[1:N-1]))
+print 'Error decay Theta u: '+str(np.divide(err_u_Theta[0:N-2], err_u_Theta[1:N-1]))
+#print 'Error decay Theta s: '+str(np.divide(err_s_Theta[0:5], err_s_Theta[1:N-1]))
 #print 'Time BDF1: '+str(time_BDF1)
 #print 'Time BDF2: '+str(time_BDF2)
 #print 'Time Theta: '+str(time_Theta)
