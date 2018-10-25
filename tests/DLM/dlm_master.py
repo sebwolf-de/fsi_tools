@@ -591,9 +591,8 @@ delta_y = 1./ny_p
 
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(nx_p,ny_p,delta_x,delta_y)
 
-filename = '../mesh_collection/' + ph.mesh_name+'.msh'
+filename = '../mesh_collection/' + ph.mesh_prefix+str(ph.n_delta_s)+'.msh'
 (topo_s,s_lgr,t_lgr) = lin_t3.load_msh(filename)
-
 
 sx_n = np.zeros(())
 sy_n = np.zeros(())
