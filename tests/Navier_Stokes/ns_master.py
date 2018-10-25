@@ -45,7 +45,7 @@ def assemble_blockwise_force_BDF1():
     #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
     f_rhs_x[bc_id,:] = 1.
-    f_rhs_y[bc_id,:] = 0
+    f_rhs_y[bc_id,:] = 0.
 
     #lower boundary
     bc_id = np.where(y_u < delta_x/10)
@@ -54,13 +54,14 @@ def assemble_blockwise_force_BDF1():
 
     #right boundary
     bc_id = np.where(x_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
+    f_rhs_x[bc_id,:] = 0.
+    f_rhs_y[bc_id,:] = 0.
+
 
     #left boundary
     bc_id = np.where(x_u < delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
+    f_rhs_x[bc_id,:] = 0.
+    f_rhs_y[bc_id,:] = 0.
 
     rhs[0:ndofs_u,:] = f_rhs_x
     rhs[ndofs_u:2*ndofs_u,:] = f_rhs_y
@@ -166,6 +167,74 @@ def assemble_blockwise_matrix_BDF2():
     ], "csr")
     return mat
 
+def assemble_blockwise_force_Theta():
+    size = 2*ndofs_u+ndofs_p+1
+    rhs = np.zeros((size,1))
+
+    print M11.dot(ux_n).shape
+    print A11.dot(ux_n).shape
+    print BT1.dot(p_n).shape
+    f_rhs_x = 1/ph.dt*M11.dot(ux_n) - 0.5*A11.dot(ux_n) + 0.5*BT1.dot(p_n)
+    f_rhs_y = 1/ph.dt*M22.dot(uy_n) - 0.5*A11.dot(uy_n) + 0.5*BT1.dot(p_n)
+
+    #upper boundary
+    bc_id = np.where(y_u > 1-delta_x/10)
+    f_rhs_x[bc_id,:] = 1.
+    f_rhs_y[bc_id,:] = 0
+
+    #lower boundary
+    bc_id = np.where(y_u < delta_x/10)
+    f_rhs_x[bc_id,:] = 0
+    f_rhs_y[bc_id,:] = 0
+
+    #right boundary
+    bc_id = np.where(x_u > 1-delta_x/10)
+    f_rhs_x[bc_id,:] = 0
+    f_rhs_y[bc_id,:] = 0
+
+    #left boundary
+    bc_id = np.where(x_u < delta_x/10)
+    f_rhs_x[bc_id,:] = 0
+    f_rhs_y[bc_id,:] = 0
+
+    rhs[0:ndofs_u,:] = f_rhs_x
+    rhs[ndofs_u:2*ndofs_u,:] = f_rhs_y
+
+    return rhs
+
+def assemble_blockwise_matrix_Theta():
+    D11 = 1/ph.dt*M11 + 0.5*ph.nu*A11
+    D22 = 1/ph.dt*M11 + 0.5*ph.nu*A11
+
+    #lower boundary
+    bc_id = np.where(y_u < delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+
+    #upper boundary
+    bc_id = np.where(y_u > 1-delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+
+    #left boundary
+    bc_id = np.where(x_u < delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+
+    #right boundary
+    bc_id = np.where(x_u > 1-delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+
+    #### assembly of Navier-Stokes system
+    mat = sparse.vstack([
+        sparse.hstack([D11, sparse.csr_matrix((ndofs_u, ndofs_u)), -0.5*BT1, sparse.csr_matrix((ndofs_u, 1))]),
+        sparse.hstack([sparse.csr_matrix((ndofs_u, ndofs_u)), D22, -0.5*BT2, sparse.csr_matrix((ndofs_u, 1))]),
+        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
+        sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
+    ], "csr")
+    return mat
+
 def write_output():
     filename = results_dir +'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
     f = file(filename,"wb")
@@ -215,6 +284,7 @@ ndofs_u = max(x_u.shape)
 ndofs_p = max(x_p.shape) + topo_p.shape[0]
 
 u_n = np.zeros((2*ndofs_u,1))
+p_n = np.zeros((ndofs_p,1))
 ux_n = np.zeros((ndofs_u,1))
 uy_n = np.zeros((ndofs_u,1))
 ux_n_old = np.zeros((ndofs_u,1))
@@ -277,8 +347,18 @@ for cn_time in range(0,len(ph.stampa)):
         mat = assemble_blockwise_matrix_BDF1()
         force = assemble_blockwise_force_BDF1()
     elif ph.time_integration == 'BDF2':
-        mat = assemble_blockwise_matrix_BDF2()
-        force = assemble_blockwise_force_BDF2()
+        if cn_time == 0:
+            mat = assemble_blockwise_matrix_Theta()
+            force = assemble_blockwise_force_Theta()
+        else:
+            mat = assemble_blockwise_matrix_BDF2()
+            force = assemble_blockwise_force_BDF2()
+    elif ph.time_integration == 'Theta':
+        mat = assemble_blockwise_matrix_Theta()
+        force = assemble_blockwise_force_Theta()
+
+    print mat.shape
+    print force.shape
 
     ux_n_old = ux_n
     uy_n_old = uy_n
@@ -288,7 +368,7 @@ for cn_time in range(0,len(ph.stampa)):
     sol_t1 = time.time()
 
     u_n = sol[0:2*ndofs_u]
-    p_n = sol[2*ndofs_u:2*ndofs_u+ndofs_p]
+    p_n = np.reshape(sol[2*ndofs_u:2*ndofs_u+ndofs_p], (ndofs_p, 1))
 
     ux_n = np.reshape(u_n[0      :  ndofs_u], ux_n.shape)
     uy_n = np.reshape(u_n[ndofs_u:2*ndofs_u], uy_n.shape)
