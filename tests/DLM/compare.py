@@ -84,7 +84,7 @@ for k in range(1,N):
 
     #err_u_BDF1[k-1] = mth.sqrt(l2_norm(mass_matrix_u, u_BDF1 - u_reference)**2
     #                        + l2_norm(stiffness_matrix, u_BDF1 - u_reference)**2)
-    err_u_BDF1[k-1] = l2_norm(mass_matrix_u, u_BDF1 - u_reference)
+    err_u_BDF1[k-1] = l2_norm(mass_matrix_u, u_BDF1 - u_reference)/l2_norm(mass_matrix_u, u_reference)
     err_s_BDF1[k-1] = l2_norm(mass_matrix_s,
         np.append(xs_BDF1, ys_BDF1) - np.append(xs_reference, ys_reference))
 
@@ -106,7 +106,7 @@ for k in range(1,N):
 
     #err_u_BDF2[k-1] = mth.sqrt(l2_norm(mass_matrix_u, u_BDF2 - u_reference)**2
     #                       + l2_norm(stiffness_matrix, u_BDF2 - u_reference)**2)
-    err_u_BDF2[k-1] = l2_norm(mass_matrix_u, u_BDF2 - u_reference)
+    err_u_BDF2[k-1] = l2_norm(mass_matrix_u, u_BDF2 - u_reference)/l2_norm(mass_matrix_u, u_reference)
     err_s_BDF2[k-1] = l2_norm(mass_matrix_s,
         np.append(xs_BDF2, ys_BDF2) - np.append(xs_reference, ys_reference))
 
@@ -128,7 +128,7 @@ for k in range(1,N):
 
     #err_u_Theta[k-1] = mth.sqrt(l2_norm(mass_matrix_u, u_Theta - u_reference)**2
     #                       + l2_norm(stiffness_matrix, u_Theta - u_reference)**2)
-    err_u_Theta[k-1] = l2_norm(mass_matrix_u, u_Theta - u_reference)
+    err_u_Theta[k-1] = l2_norm(mass_matrix_u, u_Theta - u_reference)/l2_norm(mass_matrix_u, u_reference)
     err_s_Theta[k-1] = l2_norm(mass_matrix_s,
         np.append(xs_Theta, ys_Theta) - np.append(xs_reference, ys_reference))
 
