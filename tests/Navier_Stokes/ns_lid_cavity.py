@@ -36,7 +36,7 @@ def write_mesh():
     return
 
 def assemble_blockwise_force_BDF1():
-    size = 2*ndofs_u+ndofs_p
+    size = 2*ndofs_u+ndofs_p+1
     rhs = np.zeros((size,1))
 
     f_rhs_x = 1/ph.dt*M11.dot(ux_n)
@@ -93,14 +93,16 @@ def assemble_blockwise_matrix_BDF1():
 
         #### assembly of Navier-Stokes system
         mat = sparse.vstack([
-            sparse.hstack([D11, sparse.csr_matrix((ndofs_u, ndofs_u)), -BT1]),
-            sparse.hstack([sparse.csr_matrix((ndofs_u, ndofs_u)), D22, -BT2]),
-            sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p))])
+            sparse.hstack([D11, sparse.csr_matrix((ndofs_u, ndofs_u)), -BT1, sparse.csr_matrix((ndofs_u, 1))]),
+            sparse.hstack([sparse.csr_matrix((ndofs_u, ndofs_u)), D22, -BT2, sparse.csr_matrix((ndofs_u, 1))]),
+            sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
+            sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
         ], "csr")
         return mat
 
+
 def assemble_blockwise_force_BDF2():
-    size = 2*ndofs_u+ndofs_p
+    size = 2*ndofs_u+ndofs_p+1
     rhs = np.zeros((size,1))
 
     f_rhs_x = 1/ph.dt*M11.dot(2*ux_n - 0.5*ux_n_old)
@@ -157,9 +159,10 @@ def assemble_blockwise_matrix_BDF2():
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
-        sparse.hstack([D11, sparse.csr_matrix((ndofs_u, ndofs_u)), -BT1]),
-        sparse.hstack([sparse.csr_matrix((ndofs_u, ndofs_u)), D22, -BT2]),
-        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p))])
+        sparse.hstack([D11, sparse.csr_matrix((ndofs_u, ndofs_u)), -BT1, sparse.csr_matrix((ndofs_u, 1))]),
+        sparse.hstack([sparse.csr_matrix((ndofs_u, ndofs_u)), D22, -BT2, sparse.csr_matrix((ndofs_u, 1))]),
+        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
+        sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
     ], "csr")
     return mat
 
