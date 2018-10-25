@@ -96,7 +96,7 @@ def stack_rhs(f_rhs_x, f_rhs_y, p_rhs, s_rhs_x, s_rhs_y, l_rhs_x, l_rhs_y):
     rhs = np.append(rhs, s_rhs_y)
     rhs = np.append(rhs, l_rhs_x)
     rhs = np.append(rhs, l_rhs_y)
-    rhs = np.append(rhs, np.zeros(1))
+    #rhs = np.append(rhs, np.zeros(1))
 
     return rhs
 
