@@ -332,39 +332,39 @@ def assemble_blockwise_matrix_BDF1():
     mat1 = sparse.hstack([A,
                          -BT,
                          sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
-                         GT#,
-                         #sparse.csr_matrix((ndofs_u*2,1))
+                         GT,
+                         sparse.csr_matrix((ndofs_u*2,1))
                          ])
 
     mat2 = sparse.hstack([-B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2)),
-                          sparse.csr_matrix((ndofs_p,ndofs_s*2))#,
-                          #mean_p.transpose()
+                          sparse.csr_matrix((ndofs_p,ndofs_s*2)),
+                          mean_p.transpose()
                           ])
 
     mat3 = sparse.hstack([sparse.csr_matrix((ndofs_s*2,ndofs_u*2)),
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
                           KS,
-                          -MST#,
-                          #sparse.csr_matrix((ndofs_s*2,1))
+                          -MST,
+                          sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
     mat4 = sparse.hstack([G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
                           -1/ph.dt*MS,
-                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2))#,
-                          #sparse.csr_matrix((ndofs_s*2,1))
+                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
+                          sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
     mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
                           mean_p,
                           sparse.csr_matrix((1,ndofs_s*2)),
-                          sparse.csr_matrix((1,ndofs_s*2))#,
-                          #sparse.csr_matrix((1,1))
+                          sparse.csr_matrix((1,ndofs_s*2)),
+                          sparse.csr_matrix((1,1))
                           ])
 
-    mat = sparse.vstack([mat1,mat2,mat3,mat4])#,mat5])
+    mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
     mat = mat.tocsr()
     return mat
 
@@ -394,39 +394,39 @@ def assemble_blockwise_matrix_BDF2():
     mat1 = sparse.hstack([A,
                           -BT,
                           sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
-                          GT#,
-                          #sparse.csr_matrix((ndofs_u*2,1))
+                          GT,
+                          sparse.csr_matrix((ndofs_u*2,1))
                           ])
 
     mat2 = sparse.hstack([-B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2)),
-                          sparse.csr_matrix((ndofs_p,ndofs_s*2))#,
-                          #mean_p.transpose()
+                          sparse.csr_matrix((ndofs_p,ndofs_s*2)),
+                          mean_p.transpose()
                           ])
 
     mat3 = sparse.hstack([sparse.csr_matrix((ndofs_s*2,ndofs_u*2)),
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
                           KS,
-                          -MST#,
-                          #sparse.csr_matrix((ndofs_s*2,1))
+                          -MST,
+                          sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
     mat4 = sparse.hstack([G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
                           -1.5/ph.dt*MS,
-                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2))#,
-                          #sparse.csr_matrix((ndofs_s*2,1))
+                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
+                          sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
     mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
                           mean_p,
                           sparse.csr_matrix((1,ndofs_s*2)),
-                          sparse.csr_matrix((1,ndofs_s*2))#,
-                          #sparse.csr_matrix((1,1))
+                          sparse.csr_matrix((1,ndofs_s*2)),
+                          sparse.csr_matrix((1,1))
                           ])
 
-    mat = sparse.vstack([mat1,mat2,mat3,mat4])#,mat5])
+    mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
     mat = mat.tocsr()
     return mat
 
@@ -464,39 +464,39 @@ def assemble_blockwise_matrix_Theta():
     mat1 = sparse.hstack([A,
                           -0.5*BT,
                           sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
-                          0.5*GT#,
-                          #sparse.csr_matrix((ndofs_u*2,1))
+                          0.5*GT,
+                          sparse.csr_matrix((ndofs_u*2,1))
                           ])
 
     mat2 = sparse.hstack([0.5*B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2)),
-                          sparse.csr_matrix((ndofs_p,ndofs_s*2))#,
-                          #mean_p.transpose()
+                          sparse.csr_matrix((ndofs_p,ndofs_s*2)),
+                          mean_p.transpose()
                           ])
 
     mat3 = sparse.hstack([sparse.csr_matrix((ndofs_s*2,ndofs_u*2)),
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
                           0.5*KS,
-                          -0.5*MST#,
-                          #sparse.csr_matrix((ndofs_s*2,1))
+                          -0.5*MST,
+                          sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
     mat4 = sparse.hstack([0.5*G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
                           -1/ph.dt*MS,
-                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2))#,
-                          #sparse.csr_matrix((ndofs_s*2,1))
+                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
+                          sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
     mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
                           mean_p,
                           sparse.csr_matrix((1,ndofs_s*2)),
-                          sparse.csr_matrix((1,ndofs_s*2))#,
-                          #sparse.csr_matrix((1,1))
+                          sparse.csr_matrix((1,ndofs_s*2)),
+                          sparse.csr_matrix((1,1))
                        ])
 
-    mat = sparse.vstack([mat1,mat2,mat3,mat4])#,mat5])
+    mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
     mat = mat.tocsr()
     return mat
 
