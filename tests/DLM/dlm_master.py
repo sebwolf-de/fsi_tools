@@ -437,7 +437,7 @@ def assemble_blockwise_force_Theta():
     f_rhs_x = 1/ph.dt*MF11.dot(ux_n) - 0.5*KF11.dot(ux_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
     f_rhs_y = 1/ph.dt*MF11.dot(uy_n) - 0.5*KF11.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
-    p_rhs = -0.5*B.dot(u_n)
+    p_rhs = np.zeros((ndofs_p, 1))#-0.5*B.dot(u_n)
 
     s_rhs_x = -0.5*KS11.dot(dx_n) + 0.5*MST11.dot(np.reshape(l_n[0:ndofs_s],(ndofs_s)))
     s_rhs_y = -0.5*KS22.dot(dy_n) + 0.5*MST22.dot(np.reshape(l_n[ndofs_s:2*ndofs_s],(ndofs_s)))
@@ -468,7 +468,7 @@ def assemble_blockwise_matrix_Theta():
                           #sparse.csr_matrix((ndofs_u*2,1))
                           ])
 
-    mat2 = sparse.hstack([0.5*B,
+    mat2 = sparse.hstack([-B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2))#,
