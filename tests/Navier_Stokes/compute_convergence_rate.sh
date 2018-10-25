@@ -6,6 +6,9 @@ fi
 if [[ $1 == *"2"* ]]; then
   echo "Calculate BDF2 solutions."
 fi
+if [[ $1 == *"T"* ]]; then
+  echo "Calculate Theta solutions."
+fi
 if [[ $1 == *"R"* ]]; then
   echo "Calculate reference solutions."
 fi
