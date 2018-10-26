@@ -15,7 +15,7 @@ import geom_utils as geom
 
 from parameters_handler import ParametersHandler
 
-ph = ParametersHandler('simulation_parameters_ns.json')
+ph = ParametersHandler('simulation_parameters.json')
 ph.simulation_info()
 
 time_list = np.where(ph.stampa)[0]

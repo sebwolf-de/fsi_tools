@@ -9,8 +9,7 @@ def l2_norm(M,g):
     l2_g = mth.sqrt(l2_g)
     return l2_g
 
-#results_dir = 'results/Convergence_Analysis_Annulus/'
-results_dir = 'results/Convergence_Analysis_Cavity/'
+results_dir = 'results/Convergence_Analysis_'+sys.argv[1]+'/'
 
 #Get mass matrix, all time integrations were being executed on the same mesh
 filename = results_dir+'mesh'
@@ -47,13 +46,10 @@ f.close()
 
 err_BDF1 = np.zeros(6)
 err_BDF2 = np.zeros(6)
-err_Theta = np.zeros(6)
-time_BDF1 = np.zeros(6)
-time_BDF2 = np.zeros(6)
-time_Theta = np.zeros(6)
+# err_Theta = np.zeros(6)
 
 for k in range(1,7):
-    input_name = results_dir+'BDF1_dt=1_'+str(2**k)+'_result'
+    input_name = results_dir+'BDF1_dt=1_'+str(k)
     f = file(input_name,"rb")
     u_BDF1 = np.load(f)
     p_BDF1 = np.load(f)
@@ -63,7 +59,7 @@ for k in range(1,7):
     #                        + l2_norm(stiffness_matrix, u_BDF1 - u_reference)**2)
     err_BDF1[k-1] = l2_norm(mass_matrix, u_BDF1 - u_reference)
 
-    input_name = results_dir+'BDF2_dt=1_'+str(2**k)+'_result'
+    input_name = results_dir+'BDF2_dt=1_'+str(k)
     f = file(input_name,"rb")
     u_BDF2 = np.load(f)
     p_BDF2 = np.load(f)
@@ -71,21 +67,21 @@ for k in range(1,7):
 
     #err_BDF2[k-1] = mth.sqrt(l2_norm(mass_matrix, u_BDF2 - u_reference)**2
     #                       + l2_norm(stiffness_matrix, u_BDF2 - u_reference)**2)
-    err_BDF2[k-1] = l2_norm(mass_matrix, u_BDF2 - u_reference)
-
-    input_name = results_dir+'Theta_dt=1_'+str(2**k)+'_result'
-    f = file(input_name,"rb")
-    u_Theta = np.load(f)
-    p_Theta = np.load(f)
-    f.close()
-
-    #err_Theta[k-1] = mth.sqrt(l2_norm(mass_matrix, u_Theta - u_reference)**2
-    #                       + l2_norm(stiffness_matrix, u_Theta - u_reference)**2)
-    err_Theta[k-1] = l2_norm(mass_matrix, u_Theta - u_reference)
+    # err_BDF2[k-1] = l2_norm(mass_matrix, u_BDF2 - u_reference)
+    #
+    # input_name = results_dir+'Theta_dt=1_'+str(k)
+    # f = file(input_name,"rb")
+    # u_Theta = np.load(f)
+    # p_Theta = np.load(f)
+    # f.close()
+    #
+    # #err_Theta[k-1] = mth.sqrt(l2_norm(mass_matrix, u_Theta - u_reference)**2
+    # #                       + l2_norm(stiffness_matrix, u_Theta - u_reference)**2)
+    # err_Theta[k-1] = l2_norm(mass_matrix, u_Theta - u_reference)
 
 print 'BDF1 Error:  '+str(err_BDF1)
 print 'BDF2 Error:  '+str(err_BDF2)
-print 'Theta Error: '+str(err_Theta)
+# print 'Theta Error: '+str(err_Theta)
 print 'Error decay BDF1:  '+str(np.divide(err_BDF1[0:5], err_BDF1[1:6]))
 print 'Error decay BDF2:  '+str(np.divide(err_BDF2[0:5], err_BDF2[1:6]))
-print 'Error decay Theta: '+str(np.divide(err_Theta[0:5], err_Theta[1:6]))
+# print 'Error decay Theta: '+str(np.divide(err_Theta[0:5], err_Theta[1:6]))
