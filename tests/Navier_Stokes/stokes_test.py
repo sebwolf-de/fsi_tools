@@ -41,10 +41,10 @@ def write_output():
     np.save(f,u_n)
     np.save(f,p_n)
     f.close()
-    print '--------------------------------------'
-    print 'results saved to:'
-    print filename
-    print '--------------------------------------'
+    # print '--------------------------------------'
+    # print 'results saved to:'
+    # print filename
+    # print '--------------------------------------'
     return
 
 def write_analytical():
@@ -53,10 +53,10 @@ def write_analytical():
     np.save(f,analytical)
     np.save(f,p_n)
     f.close()
-    print '--------------------------------------'
-    print 'results saved to:'
-    print filename
-    print '--------------------------------------'
+    # print '--------------------------------------'
+    # print 'results saved to:'
+    # print filename
+    # print '--------------------------------------'
     return
 
 def l2_norm(M, g):
@@ -99,6 +99,7 @@ M11 = assemble.u_v_p1(topo_u,x_u,y_u)
 A11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
 
 m_BDF1 = 1/ph.dt*M11   + A11
+m_Theta = 1/ph.dt*M11   + 0.5*A11
 m_BDF2 = 1.5/ph.dt*M11 + A11
 
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1(topo_p,x_p,y_p,
@@ -107,16 +108,14 @@ m_BDF2 = 1.5/ph.dt*M11 + A11
 BT = sparse.vstack([BT1,BT2])
 B = BT.transpose()
 
-#f_x = (-13 + 24*y_u)/64389.680634223
-#f_y = (12-24*x_u)/64389.680634223
 f_x = (2-12*x_u+12*x_u**2)*(2*y_u-6*y_u**2+4*y_u**3) + x_u**2*(1-x_u)**2*(-12+24*y_u) - 1
 f_y = -(-12+24*x_u)*y_u**2*(1-y_u)**2-(2*x_u-6*x_u**2+4*x_u**3)*(2-12*y_u+12*y_u**2)
-
 
 #left bnd
 bc_id = np.where(x_u < delta_x/10)
 m_BDF1 = la_utils.set_diag(m_BDF1,bc_id)
 m_BDF2 = la_utils.set_diag(m_BDF2,bc_id)
+m_Theta = la_utils.set_diag(m_Theta,bc_id)
 BT1 = la_utils.clear_rows(BT1, bc_id)
 BT2 = la_utils.clear_rows(BT2, bc_id)
 
@@ -124,6 +123,7 @@ BT2 = la_utils.clear_rows(BT2, bc_id)
 bc_id = np.where(x_u > 1-delta_x/10)
 m_BDF1 = la_utils.set_diag(m_BDF1,bc_id)
 m_BDF2 = la_utils.set_diag(m_BDF2,bc_id)
+m_Theta = la_utils.set_diag(m_Theta,bc_id)
 BT1 = la_utils.clear_rows(BT1, bc_id)
 BT2 = la_utils.clear_rows(BT2, bc_id)
 
@@ -131,6 +131,7 @@ BT2 = la_utils.clear_rows(BT2, bc_id)
 bc_id = np.where(y_u < delta_x/10)
 m_BDF1 = la_utils.set_diag(m_BDF1,bc_id)
 m_BDF2 = la_utils.set_diag(m_BDF2,bc_id)
+m_Theta = la_utils.set_diag(m_Theta,bc_id)
 BT1 = la_utils.clear_rows(BT1, bc_id)
 BT2 = la_utils.clear_rows(BT2, bc_id)
 
@@ -138,6 +139,7 @@ BT2 = la_utils.clear_rows(BT2, bc_id)
 bc_id = np.where(y_u > 1-delta_x/10)
 m_BDF1 = la_utils.set_diag(m_BDF1,bc_id)
 m_BDF2 = la_utils.set_diag(m_BDF2,bc_id)
+m_Theta = la_utils.set_diag(m_Theta,bc_id)
 BT1 = la_utils.clear_rows(BT1, bc_id)
 BT2 = la_utils.clear_rows(BT2, bc_id)
 
@@ -172,6 +174,12 @@ mat_BDF2 = sparse.vstack([
     sparse.hstack([-B, sparse.csr_matrix((ndofs_p, ndofs_p)), mean_p.transpose()]),
     sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
 ], "csr")
+mat_Theta = sparse.vstack([
+    sparse.hstack([m_Theta, sparse.csr_matrix((ndofs_u, ndofs_u)), -0.5*BT1, sparse.csr_matrix((ndofs_u, 1))]),
+    sparse.hstack([sparse.csr_matrix((ndofs_u, ndofs_u)), m_Theta, -0.5*BT2, sparse.csr_matrix((ndofs_u, 1))]),
+    sparse.hstack([-B, sparse.csr_matrix((ndofs_p, ndofs_p)), mean_p.transpose()]),
+    sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
+], "csr")
 
 un_x = np.zeros((ndofs_u, 1))
 un_y = np.zeros((ndofs_u, 1))
@@ -179,21 +187,32 @@ un_x_old = np.zeros((ndofs_u, 1))
 un_y_old = np.zeros((ndofs_u, 1))
 u_n = np.zeros((2*ndofs_u, 1))
 p_n = np.zeros((ndofs_p, 1))
-f_x = np.reshape(M11.dot(f_x), (ndofs_u, 1))
-f_y = np.reshape(M11.dot(f_y), (ndofs_u, 1))
 
-analytical_x = -x_u**2*(1-x_u)**2*(2*y_u-6*y_u**2+4*y_u**3)
-analytical_y = (2*x_u-6*x_u**2+4*x_u**3)*y_u**2*(1-y_u)**2
+f_x = np.reshape(f_x, (ndofs_u, 1))
+f_y = np.reshape(f_y, (ndofs_u, 1))
+analytical_x = np.reshape(-x_u**2*(1-x_u)**2*(2*y_u-6*y_u**2+4*y_u**3), (ndofs_u, 1))
+analytical_y = np.reshape((2*x_u-6*x_u**2+4*x_u**3)*y_u**2*(1-y_u)**2, (ndofs_u, 1))
 analytical = np.reshape(np.append(analytical_x, analytical_y), (2*ndofs_u, 1))
 
-##Calculate BDF1 solutions
+err = np.zeros(len(ph.stampa))
 for cn_time in range(0,len(ph.stampa)):
     if ph.time_integration == 'BDF1':
-        rhs_u_x = 1/ph.dt*M11.dot(un_x) + f_x
-        rhs_u_y = 1/ph.dt*M11.dot(un_y) + f_y
+        rhs_u_x = 1/ph.dt*M11.dot(un_x) \
+            - np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.exp(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
+        rhs_u_y = 1/ph.dt*M11.dot(un_y) \
+            - np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.exp(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
+    elif ph.time_integration == 'BDF2':
+        rhs_u_x = 1/ph.dt*M11.dot(2*un_x-0.5*un_x_old) \
+            - np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.exp(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
+        rhs_u_y = 1/ph.dt*M11.dot(2*un_y-0.5*un_y_old) \
+            - np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.exp(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
     else:
-        rhs_u_x = 1/ph.dt*M11.dot(2*un_x-0.5*un_x_old) + f_x
-        rhs_u_y = 1/ph.dt*M11.dot(2*un_y-0.5*un_y_old) + f_y
+        rhs_u_x = 1/ph.dt*M11.dot(un_x) - 0.5*A11.dot(un_x) + 0.5*BT1.dot(p_n) \
+            - 0.5*np.reshape(M11.dot(mth.exp(-cn_time*ph.dt)*analytical_x + (1-mth.exp(-cn_time*ph.dt))*f_x), (ndofs_u, 1)) \
+            - 0.5*np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.exp(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
+        rhs_u_y = 1/ph.dt*M11.dot(un_y) - 0.5*A11.dot(un_x) + 0.5*BT2.dot(p_n) \
+            - np.reshape(M11.dot(mth.exp(-cn_time*ph.dt)*analytical_y + (1-mth.exp(-cn_time*ph.dt))*f_y), (ndofs_u, 1)) \
+            - np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.exp(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
     rhs_p = np.zeros((ndofs_p, 1))
 
     #left bnd
@@ -225,7 +244,9 @@ for cn_time in range(0,len(ph.stampa)):
 
     if ph.time_integration == 'BDF1':
         sol = sp_la.spsolve(mat_BDF1, rhs)
-    else:
+    elif ph.time_integration == 'Theta' or (ph.time_integration == 'BDF2' and cn_time == 0):
+        sol = sp_la.spsolve(mat_Theta, rhs)
+    elif ph.time_integration == 'BDF2':
         sol = sp_la.spsolve(mat_BDF2, rhs)
 
     un_x_old = un_x
@@ -237,7 +258,6 @@ for cn_time in range(0,len(ph.stampa)):
 
     write_output()
 
-    print 'L2 error:  ' + str(l2_norm(M, u_n - analytical))
-    print 'sup error: ' + str(np.max(np.abs(u_n-analytical)))
+    err[cn_time] = l2_norm(M, u_n - (1-mth.exp(-cn_time*ph.dt))*analytical)
 
-write_analytical()
+print np.mean(err)
