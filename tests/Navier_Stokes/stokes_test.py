@@ -83,7 +83,6 @@ delta_y = 1./ny_p
     c2f) = lin_t3.mesh_t3_iso_t6(nx_p, ny_p,delta_x,delta_y)
 
 #(topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(nx_p,ny_p,delta_x,delta_y)
-tp = topo_p
 
 if sum(ph.stampa) !=0:
     results_dir = ph.results_directory+'/'+ph.sim_prefix+'/binary_data/'
@@ -95,21 +94,30 @@ if sum(ph.stampa) !=0:
 ndofs_u = max(x_u.shape)
 ndofs_p = max(x_p.shape)# + topo_p.shape[0]
 
-M11 = assemble.u_v_p1(topo_u,x_u,y_u)
-A11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
+print ndofs_u
+print ndofs_p
 
-m_BDF1 = 1/ph.dt*M11   + A11
-m_Theta = 1/ph.dt*M11   + 0.5*A11
-m_BDF2 = 1.5/ph.dt*M11 + A11
+M11 = assemble.u_v_p1(topo_u,x_u,y_u)
+K11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
 
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1(topo_p,x_p,y_p,
            topo_u,x_u,y_u,c2f)
 
+mean_p = np.zeros((1,ndofs_p))
+
+for row in topo_p:
+    x_l = x_p[row]
+    y_l = y_p[row]
+    eval_p = np.zeros((0,2))
+    (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_p)
+    mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.])
+
 BT = sparse.vstack([BT1,BT2])
 B = BT.transpose()
 
-f_x = (2-12*x_u+12*x_u**2)*(2*y_u-6*y_u**2+4*y_u**3) + x_u**2*(1-x_u)**2*(-12+24*y_u) - 1
-f_y = -(-12+24*x_u)*y_u**2*(1-y_u)**2-(2*x_u-6*x_u**2+4*x_u**3)*(2-12*y_u+12*y_u**2)
+m_BDF1 =  1/ph.dt*M11   + K11
+m_Theta = 1/ph.dt*M11   + 0.5*K11
+m_BDF2 =  1.5/ph.dt*M11 + K11
 
 #left bnd
 bc_id = np.where(x_u < delta_x/10)
@@ -145,18 +153,11 @@ BT2 = la_utils.clear_rows(BT2, bc_id)
 
 BT = sparse.vstack([BT1, BT2])
 
-mean_p = np.zeros((1,ndofs_p))
 
-for row in topo_p:
-    x_l = x_p[row]
-    y_l = y_p[row]
-    eval_p = np.zeros((0,2))
-    (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_p)
-    mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.])
 
-A = sparse.vstack([
-    sparse.hstack([A11, sparse.csr_matrix((ndofs_u, ndofs_u))]),
-    sparse.hstack([sparse.csr_matrix((ndofs_u, ndofs_u)), A11])
+K = sparse.vstack([
+    sparse.hstack([K11, sparse.csr_matrix((ndofs_u, ndofs_u))]),
+    sparse.hstack([sparse.csr_matrix((ndofs_u, ndofs_u)), K11])
 ], "csr")
 M = sparse.vstack([
     sparse.hstack([M11, sparse.csr_matrix((ndofs_u, ndofs_u))]),
@@ -188,6 +189,9 @@ un_y_old = np.zeros((ndofs_u, 1))
 u_n = np.zeros((2*ndofs_u, 1))
 p_n = np.zeros((ndofs_p, 1))
 
+
+f_x = (2-12*x_u+12*x_u**2)*(2*y_u-6*y_u**2+4*y_u**3) + x_u**2*(1-x_u)**2*(-12+24*y_u) - 1
+f_y = -(-12+24*x_u)*y_u**2*(1-y_u)**2-(2*x_u-6*x_u**2+4*x_u**3)*(2-12*y_u+12*y_u**2)
 f_x = np.reshape(f_x, (ndofs_u, 1))
 f_y = np.reshape(f_y, (ndofs_u, 1))
 analytical_x = np.reshape(-x_u**2*(1-x_u)**2*(2*y_u-6*y_u**2+4*y_u**3), (ndofs_u, 1))
@@ -198,21 +202,21 @@ err = np.zeros(len(ph.stampa))
 for cn_time in range(0,len(ph.stampa)):
     if ph.time_integration == 'BDF1':
         rhs_u_x = 1/ph.dt*M11.dot(un_x) \
-            - np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.exp(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
+            + np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.exp(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
         rhs_u_y = 1/ph.dt*M11.dot(un_y) \
-            - np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.exp(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
+            + np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.exp(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
     elif ph.time_integration == 'BDF2':
         rhs_u_x = 1/ph.dt*M11.dot(2*un_x-0.5*un_x_old) \
-            - np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.exp(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
+            + np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.exp(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
         rhs_u_y = 1/ph.dt*M11.dot(2*un_y-0.5*un_y_old) \
-            - np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.exp(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
+            + np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.exp(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
     else:
-        rhs_u_x = 1/ph.dt*M11.dot(un_x) - 0.5*A11.dot(un_x) + 0.5*BT1.dot(p_n) \
+        rhs_u_x = 1/ph.dt*M11.dot(un_x) - 0.5*K11.dot(un_x) + 0.5*BT1.dot(p_n) \
             - 0.5*np.reshape(M11.dot(mth.exp(-cn_time*ph.dt)*analytical_x + (1-mth.exp(-cn_time*ph.dt))*f_x), (ndofs_u, 1)) \
             - 0.5*np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.exp(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
-        rhs_u_y = 1/ph.dt*M11.dot(un_y) - 0.5*A11.dot(un_x) + 0.5*BT2.dot(p_n) \
-            - np.reshape(M11.dot(mth.exp(-cn_time*ph.dt)*analytical_y + (1-mth.exp(-cn_time*ph.dt))*f_y), (ndofs_u, 1)) \
-            - np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.exp(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
+        rhs_u_y = 1/ph.dt*M11.dot(un_y) - 0.5*K11.dot(un_x) + 0.5*BT2.dot(p_n) \
+            - 0.5*np.reshape(M11.dot(mth.exp(-cn_time*ph.dt)*analytical_y + (1-mth.exp(-cn_time*ph.dt))*f_y), (ndofs_u, 1)) \
+            - 0.5*np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.exp(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
     rhs_p = np.zeros((ndofs_p, 1))
 
     #left bnd
@@ -259,5 +263,6 @@ for cn_time in range(0,len(ph.stampa)):
     write_output()
 
     err[cn_time] = l2_norm(M, u_n - (1-mth.exp(-cn_time*ph.dt))*analytical)
-
+    print err[cn_time]
+print err[len(err)-1]
 print np.mean(err)
