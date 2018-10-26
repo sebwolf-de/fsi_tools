@@ -1,14 +1,14 @@
 {
   "solver_type" : "dlm_",
-  "mesh_prefix": "channel_",
+  "mesh_prefix": "swingbar_",
 
-  "time_integration" : "Theta",
-  "delta_time_base": 625,
-  "delta_time_negative_esponent": 5,
+  "time_integration" : "BDF2",
+  "delta_time_base": 25,
+  "delta_time_negative_esponent": 2,
   "fluid_triangulation_intervals" : 16,
   "structure_triangulation_intervals" : 16,
 
-  "kappa" : 50,
+  "kappa" : 10,
   "reynolds_number" : 10,
   "rho_fluid" : 1,
   "rho_structure" : 1,
