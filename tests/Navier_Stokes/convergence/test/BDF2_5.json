@@ -1,0 +1,20 @@
+{
+  "solver_type" : "ns_",
+  "mesh_prefix": "test_",
+
+  "time_integration" : "BDF2",
+  "delta_time_base": 15625,
+  "delta_time_negative_esponent": 6,
+  "fluid_triangulation_intervals" : 32,
+  "structure_triangulation_intervals" : 32,
+
+  "kappa": 10,
+  "rho_fluid" : 1,
+  "rho_structure" : 1,
+  "nu" : 1,
+
+  "time_intervals_to_be_simulated": 17,
+  "time_intervals_in_between_printed_results": 16,
+  "time_index_digits": 3,
+  "results_directory": "results"
+}
