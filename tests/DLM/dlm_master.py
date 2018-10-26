@@ -111,6 +111,9 @@ def fluid_rhs_apply_bc(f_rhs_x, f_rhs_y):
     elif ph.mesh_prefix == 'channel_':
         f_rhs_x[bc_id] = 0.
         f_rhs_y[bc_id] = 0.
+    elif ph.mesh_prefix == 'swingbar_':
+        f_rhs_x[bc_id] = 0.
+        f_rhs_y[bc_id] = 0.
 
     #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
@@ -121,6 +124,9 @@ def fluid_rhs_apply_bc(f_rhs_x, f_rhs_y):
         f_rhs_x[bc_id] = 1.
         f_rhs_y[bc_id] = 0.
     elif ph.mesh_prefix == 'channel_':
+        f_rhs_x[bc_id] = 0.
+        f_rhs_y[bc_id] = 0.
+    elif ph.mesh_prefix == 'swingbar_':
         f_rhs_x[bc_id] = 0.
         f_rhs_y[bc_id] = 0.
 
@@ -135,6 +141,9 @@ def fluid_rhs_apply_bc(f_rhs_x, f_rhs_y):
     #elif ph.mesh_prefix == 'channel_':
     #    f_rhs_x[bc_id] = 4 * y_u[bc_id] * (1-y_u[bc_id])
     #    f_rhs_y[bc_id] = 0
+    elif ph.mesh_prefix == 'swingbar_':
+        f_rhs_x[bc_id] = 0.
+        f_rhs_y[bc_id] = 0.
 
     #left boundary
     bc_id = np.where(x_u < delta_x/10)
@@ -146,6 +155,9 @@ def fluid_rhs_apply_bc(f_rhs_x, f_rhs_y):
     elif ph.mesh_prefix == 'channel_':
         f_rhs_x[bc_id] = 4 * y_u[bc_id] * (1-y_u[bc_id])
         f_rhs_y[bc_id] = 0.
+    elif ph.mesh_prefix == 'swingbar_':
+        f_rhs_x[bc_id] = 0.
+        f_rhs_y[bc_id] = 0.
 
     return f_rhs_x, f_rhs_y
 
@@ -156,7 +168,7 @@ def fluid_m_apply_bc(A11, A22, A12 = None, A21 = None):
         A21 = sparse.csr_matrix(A11.shape)
     #lower boundary
     bc_id = np.where(y_u < delta_x/10)
-    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_':
+    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_' or ph.mesh_prefix == 'swingbar_':
         A11 = la_utils.set_diag(A11,bc_id)
         A12 = la_utils.clear_rows(A12, bc_id)
     A22 = la_utils.set_diag(A22,bc_id)
@@ -171,7 +183,7 @@ def fluid_m_apply_bc(A11, A22, A12 = None, A21 = None):
 
     #right boundary
     bc_id = np.where(x_u > 1-delta_x/10)
-    if ph.mesh_prefix == 'annulus_' or ph.mesh_prefix == 'cavity_':
+    if ph.mesh_prefix == 'annulus_' or ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'swingbar_':
         A11 = la_utils.set_diag(A11,bc_id)
         A22 = la_utils.set_diag(A22,bc_id)
         A12 = la_utils.clear_rows(A12,bc_id)
@@ -181,7 +193,7 @@ def fluid_m_apply_bc(A11, A22, A12 = None, A21 = None):
     bc_id = np.where(x_u < delta_x/10)
     A11 = la_utils.set_diag(A11,bc_id)
     A12 = la_utils.clear_rows(A12,bc_id)
-    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_':
+    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_' or ph.mesh_prefix == 'swingbar_':
         A22 = la_utils.set_diag(A22,bc_id)
         A21 = la_utils.clear_rows(A21,bc_id)
     return A11, A22, A12, A21
@@ -189,7 +201,7 @@ def fluid_m_apply_bc(A11, A22, A12 = None, A21 = None):
 def pressure_m_apply_bc(BT1, BT2):
     #lower boundary
     bc_id = np.where(y_u < delta_x/10)
-    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_':
+    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_' or ph.mesh_prefix == 'swingbar_':
         BT1 = la_utils.clear_rows(BT1,bc_id)
     BT2 = la_utils.clear_rows(BT2,bc_id)
 
@@ -200,14 +212,14 @@ def pressure_m_apply_bc(BT1, BT2):
 
     #right boundary
     bc_id = np.where(x_u > 1-delta_x/10)
-    if ph.mesh_prefix == 'annulus_' or ph.mesh_prefix == 'cavity_':
+    if ph.mesh_prefix == 'annulus_' or ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'swingbar_':
         BT1 = la_utils.clear_rows(BT1,bc_id)
         BT2 = la_utils.clear_rows(BT2,bc_id)
 
     #left boundary
     bc_id = np.where(x_u < delta_x/10)
     BT1 = la_utils.clear_rows(BT1,bc_id)
-    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_':
+    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_' or ph.mesh_prefix == 'swingbar_':
         BT2 = la_utils.clear_rows(BT2,bc_id)
 
     return BT1, BT2
@@ -263,27 +275,23 @@ def pressure_m_apply_bc(BT1, BT2):
 #     return A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2
 
 def structure_m_apply_bc(KS11, KS22, MST11, MST22):
+    bc_id = np.where(sy_n < delta_x/10)
     if ph.mesh_prefix == 'annulus_':
-        bc_id = np.where(sy_n < delta_x/10)
         KS22 = la_utils.set_diag(KS22,bc_id)
         MST22 = la_utils.clear_rows(MST22,bc_id)
 
-        bc_id = np.where(sx_n < delta_x/10)
+    bc_id = np.where(sx_n < delta_x/10)
+    if ph.mesh_prefix == 'annulus_':
         KS11 = la_utils.set_diag(KS11,bc_id)
         MST11 = la_utils.clear_rows(MST11,bc_id)
-    if ph.mesh_prefix == 'channel_':
-        bc_id = np.where(sy_n > 1-delta_x/10)
-        #KS11 = la_utils.set_diag(KS11,bc_id)
-        #KS22 = la_utils.set_diag(KS22,bc_id)
-        #MST11 = la_utils.clear_rows(MST11,bc_id)
-        #MST22 = la_utils.clear_rows(MST22,bc_id)
+
 
     return KS11, KS22, MST11, MST22
 
 def coupling_apply_bc(GT11, GT22):
     #lower boundary
     bc_id = np.where(y_u < delta_x/10)
-    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_':
+    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_' or ph.mesh_prefix == 'swingbar_':
         GT11 = la_utils.clear_rows(GT11,bc_id)
     GT22 = la_utils.clear_rows(GT22,bc_id)
 
@@ -294,14 +302,14 @@ def coupling_apply_bc(GT11, GT22):
 
     #right boundary
     bc_id = np.where(x_u > 1-delta_x/10)
-    if ph.mesh_prefix == 'annulus_' or ph.mesh_prefix == 'cavity_':
+    if ph.mesh_prefix == 'annulus_' or ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'swingbar_':
         GT11 = la_utils.clear_rows(GT11,bc_id)
         GT22 = la_utils.clear_rows(GT22,bc_id)
 
     #left boundary
     bc_id = np.where(x_u < delta_x/10)
     GT11 = la_utils.clear_rows(GT11,bc_id)
-    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_':
+    if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_' or ph.mesh_prefix == 'swingbar_':
         GT22 = la_utils.clear_rows(GT22,bc_id)
 
     return GT11, GT22
@@ -623,8 +631,13 @@ elif ph.mesh_prefix == 'channel_':
     sy_zero = t_lgr
     sx_n = (s_lgr)
     sy_n = (t_lgr)
-
-#viewers.tri_plot(s_lgr, t_lgr, topo_s)
+elif ph.mesh_prefix == 'swingbar_':
+    s_lgr = 0.5*s_lgr
+    t_lgr = 0.45 + 0.1*t_lgr
+    sx_zero = s_lgr
+    sy_zero = t_lgr
+    sx_n = (s_lgr)
+    sy_n = (t_lgr+s_lgr**2)
 
 ie_s = np.arange(0,s_lgr.shape[0])
 
