@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 from scipy import sparse
 import math as mth
@@ -49,7 +50,7 @@ err_BDF2 = np.zeros(6)
 # err_Theta = np.zeros(6)
 
 for k in range(1,7):
-    input_name = results_dir+'BDF1_dt=1_'+str(k)
+    input_name = results_dir+'BDF1_'+str(k)
     f = file(input_name,"rb")
     u_BDF1 = np.load(f)
     p_BDF1 = np.load(f)
@@ -59,17 +60,17 @@ for k in range(1,7):
     #                        + l2_norm(stiffness_matrix, u_BDF1 - u_reference)**2)
     err_BDF1[k-1] = l2_norm(mass_matrix, u_BDF1 - u_reference)
 
-    input_name = results_dir+'BDF2_dt=1_'+str(k)
+    input_name = results_dir+'BDF2_'+str(k)
     f = file(input_name,"rb")
     u_BDF2 = np.load(f)
     p_BDF2 = np.load(f)
     f.close()
 
-    #err_BDF2[k-1] = mth.sqrt(l2_norm(mass_matrix, u_BDF2 - u_reference)**2
-    #                       + l2_norm(stiffness_matrix, u_BDF2 - u_reference)**2)
-    # err_BDF2[k-1] = l2_norm(mass_matrix, u_BDF2 - u_reference)
-    #
-    # input_name = results_dir+'Theta_dt=1_'+str(k)
+    err_BDF2[k-1] = mth.sqrt(l2_norm(mass_matrix, u_BDF2 - u_reference)**2
+                          + l2_norm(stiffness_matrix, u_BDF2 - u_reference)**2)
+    err_BDF2[k-1] = l2_norm(mass_matrix, u_BDF2 - u_reference)
+    
+    # input_name = results_dir+'Theta_'+str(k)
     # f = file(input_name,"rb")
     # u_Theta = np.load(f)
     # p_Theta = np.load(f)
