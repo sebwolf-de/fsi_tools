@@ -9,12 +9,12 @@ import la_utils
 import lin_tri_mesh as lin_t3
 
 def analytical(t):
-    return np.sin(np.pi*x) * np.sin(np.pi*y) * np.cos(t)
+    return np.sin(0.5*np.pi*x) * np.sin(np.pi*y) * np.cos(t)
 
 def f(t):
-    return np.sin(np.pi*x) * np.sin(np.pi*y) * (-np.sin(t) + 2*np.pi**2*np.cos(t))
+    return np.sin(0.5*np.pi*x) * np.sin(np.pi*y) * (-np.sin(t) + 1.25*np.pi**2*np.cos(t))
 
-n = 400
+n = 200
 dx = 1./n
 
 t0 = time.time()
@@ -24,7 +24,7 @@ print 'Mesh generation finished'
 print 'dofs   = ' + str(x.shape[0])
 print 't mesh = ' + str(t1-t0)
 
-T = 4
+T = 8
 Theta = 0.5
 
 t0 = time.time()
@@ -39,7 +39,7 @@ err_BDF1 = np.zeros((5))
 err_BDF2 = np.zeros((5))
 err_Theta = np.zeros((5))
 for t_ind in range(0, 5):
-    dt = 2**(1-t_ind)
+    dt = 2**(-t_ind)
 
     u_0 = analytical(0)
     u_1 = analytical(dt)
@@ -84,8 +84,8 @@ for t_ind in range(0, 5):
     rhs_Theta[bc_id] = 0
 
     bc_id = np.where(x > 1-dx/10)
-    rhs_BDF1[bc_id] = 0
-    rhs_Theta[bc_id] = 0
+    rhs_BDF1[bc_id] = np.sin(np.pi*y[bc_id]) * np.cos(dt)
+    rhs_Theta[bc_id] = np.sin(np.pi*y[bc_id]) * np.cos(dt)
 
     bc_id = np.where(x < dx/10)
     rhs_BDF1[bc_id] = 0
@@ -118,9 +118,9 @@ for t_ind in range(0, 5):
         rhs_Theta[bc_id] = 0
 
         bc_id = np.where(x > 1-dx/10)
-        rhs_BDF1[bc_id] = 0
-        rhs_BDF2[bc_id] = 0
-        rhs_Theta[bc_id] = 0
+        rhs_BDF1[bc_id] = np.sin(np.pi*y[bc_id]) * np.cos(k*dt)
+        rhs_BDF2[bc_id] = np.sin(np.pi*y[bc_id]) * np.cos(k*dt)
+        rhs_Theta[bc_id] = np.sin(np.pi*y[bc_id]) * np.cos(k*dt)
 
         bc_id = np.where(x < dx/10)
         rhs_BDF1[bc_id] = 0
