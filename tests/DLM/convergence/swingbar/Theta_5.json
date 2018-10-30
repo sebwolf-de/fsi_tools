@@ -14,8 +14,8 @@
   "rho_structure" : 1,
   "nu" : 0.1,
 
-  "time_intervals_to_be_simulated": 9,
-  "time_intervals_in_between_printed_results": 8,
+  "time_intervals_to_be_simulated": 17,
+  "time_intervals_in_between_printed_results": 16,
   "time_index_digits": 3,
   "results_directory": "results"
 }
