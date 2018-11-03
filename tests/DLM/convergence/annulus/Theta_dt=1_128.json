@@ -2,9 +2,9 @@
   "solver_type" : "dlm_",
   "mesh_prefix": "annulus_",
 
-  "time_integration" : "BDF2",
-  "delta_time_base": 5,
-  "delta_time_negative_esponent": 2,
+  "time_integration" : "Theta",
+  "delta_time_base": 15625,
+  "delta_time_negative_esponent": 7,
   "fluid_triangulation_intervals" : 16,
   "structure_triangulation_intervals" : 16,
 
@@ -14,7 +14,7 @@
   "rho_structure" : 1,
   "nu" : 1,
 
-  "time_intervals_to_be_simulated": 5,
+  "time_intervals_to_be_simulated": 129,
   "time_intervals_in_between_printed_results": 1,
   "time_index_digits": 3,
   "results_directory": "results"

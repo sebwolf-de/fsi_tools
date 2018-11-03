@@ -328,7 +328,35 @@ def coupling_apply_bc(GT11, GT22):
 
     return GT11, GT22
 
-def assemble_blockwise_force_BDF1():
+def assemble_kinematic_coupling(sx_n, sy_n, sx_n_old, sy_n_old):
+    if ph.time_integration == 'BDF2':
+        sx_asmbl = 2*sx_n - sx_n_old
+        sy_asmbl = 2*sy_n - sy_n_old
+    else:
+        sx_asmbl = sx_n
+        sy_asmbl = sy_n
+    (str_segments,fluid_id) = geom.fluid_intersect_mesh(topo_u,x_u,y_u,
+                    topo_s,sx_asmbl,sy_asmbl)
+    GT11 = assemble.u_s_p1_thick(x_u,y_u,topo_u,
+                    s_lgr,t_lgr,
+                    sx_asmbl,sy_asmbl,topo_s,ie_s,
+                    str_segments,fluid_id)
+
+    GT22 = GT11
+    G11 = GT11.transpose()
+
+    G = sparse.vstack([
+            sparse.hstack([G11,sparse.csr_matrix((ndofs_s,ndofs_u))]),
+            sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_u)),G11]) ])
+
+    (GT11, GT22) = coupling_apply_bc(GT11, GT22)
+
+    GT = sparse.vstack([
+            sparse.hstack([GT11,sparse.csr_matrix((ndofs_u,ndofs_s))]),
+            sparse.hstack([sparse.csr_matrix((ndofs_u,ndofs_s)),GT22]) ])
+    return G, GT, GT11, GT22
+
+def assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n):
     f_rhs_x = 1/ph.dt*MF11.dot(ux_n)
     f_rhs_y = 1/ph.dt*MF11.dot(uy_n)
 
@@ -390,7 +418,7 @@ def assemble_blockwise_matrix_BDF1():
     mat = mat.tocsr()
     return mat
 
-def assemble_blockwise_force_BDF2():
+def assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx_n_old, dy_n_old):
     f_rhs_x = 1/ph.dt*(MF11.dot(2*ux_n - 0.5*ux_n_old))
     f_rhs_y = 1/ph.dt*(MF11.dot(2*uy_n - 0.5*uy_n_old))
 
@@ -455,7 +483,7 @@ def assemble_blockwise_matrix_BDF2():
 def assemble_convective_Theta():
     return
 
-def assemble_blockwise_force_Theta():
+def assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n):
     f_rhs_x = 1/ph.dt*MF11.dot(ux_n) - 0.5*KF11.dot(ux_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
     f_rhs_y = 1/ph.dt*MF11.dot(uy_n) - 0.5*KF11.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
@@ -756,47 +784,23 @@ energy = []
 for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
 
-    ###Assemble fluid-structure coupling matrix
-    if ph.time_integration == 'BDF2':
-        sx_asmbl = 2*sx_n - sx_n_old
-        sy_asmbl = 2*sy_n - sy_n_old
-    else:
-        sx_asmbl = sx_n
-        sy_asmbl = sy_n
-    (str_segments,fluid_id) = geom.fluid_intersect_mesh(topo_u,x_u,y_u,
-                    topo_s,sx_asmbl,sy_asmbl)
-    GT11 = assemble.u_s_p1_thick(x_u,y_u,topo_u,
-                    s_lgr,t_lgr,
-                    sx_asmbl,sy_asmbl,topo_s,ie_s,
-                    str_segments,fluid_id)
-
-    GT22 = GT11
-    G11 = GT11.transpose()
-
-    G = sparse.vstack([
-            sparse.hstack([G11,sparse.csr_matrix((ndofs_s,ndofs_u))]),
-            sparse.hstack([sparse.csr_matrix((ndofs_s,ndofs_u)),G11]) ])
-
-    (GT11, GT22) = coupling_apply_bc(GT11, GT22)
-
-    GT = sparse.vstack([
-            sparse.hstack([GT11,sparse.csr_matrix((ndofs_u,ndofs_s))]),
-            sparse.hstack([sparse.csr_matrix((ndofs_u,ndofs_s)),GT22]) ])
+    ###Assemble kinematic coupling
+    (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n, sy_n, sx_n_old, sy_n_old)
 
     ###Assemble linear system and solve
     if ph.time_integration == 'BDF1':
         mat = assemble_blockwise_matrix_BDF1()
-        force = assemble_blockwise_force_BDF1()
+        force = assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n)
     elif ph.time_integration == 'Theta':
         mat = assemble_blockwise_matrix_Theta()
-        force = assemble_blockwise_force_Theta()
+        force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n)
     elif ph.time_integration == 'BDF2':
         if cn_time == 0:
             mat = assemble_blockwise_matrix_Theta()
-            force = assemble_blockwise_force_Theta()
+            force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n)
         else:
             mat = assemble_blockwise_matrix_BDF2()
-            force = assemble_blockwise_force_BDF2()
+            force = assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx_n_old, dy_n_old)
 
     sol_t0 = time.time()
     sol = sp_la.spsolve(mat,force)
