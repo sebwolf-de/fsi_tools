@@ -140,20 +140,20 @@ for k in range(1,N):
 
     #time_Theta[k-1] = step_time
 
-
-
-print 'BDF1 Error u:  '+str(err_u_BDF1)
-#print 'BDF1 Error s:  '+str(err_s_BDF1)
-print 'BDF2 Error u:  '+str(err_u_BDF2)
-#print 'BDF2 Error s:  '+str(err_s_BDF2)
-print 'Theta Error u: '+str(err_u_Theta)
-#print 'Theta Error s: '+str(err_s_Theta)
+print 'BDF1 Error u:        '+str(err_u_BDF1)
 print 'Error decay BDF1 u:  '+str(np.divide(err_u_BDF1[0:N-2], err_u_BDF1[1:N-1]))
-#print 'Error decay BDF1 s:  '+str(np.divide(err_s_BDF1[0:5], err_s_BDF1[1:N-1]))
+print 'BDF2 Error u:        '+str(err_u_BDF2)
 print 'Error decay BDF2 u:  '+str(np.divide(err_u_BDF2[0:N-2], err_u_BDF2[1:N-1]))
-#print 'Error decay BDF2 s:  '+str(np.divide(err_s_BDF2[0:5], err_s_BDF2[1:N-1]))
+print 'Theta Error u:       '+str(err_u_Theta)
 print 'Error decay Theta u: '+str(np.divide(err_u_Theta[0:N-2], err_u_Theta[1:N-1]))
-#print 'Error decay Theta s: '+str(np.divide(err_s_Theta[0:5], err_s_Theta[1:N-1]))
+
+
+print 'BDF1 Error s:        '+str(err_s_BDF1)
+print 'Error decay BDF1 s:  '+str(np.divide(err_s_BDF1[0:N-2], err_s_BDF1[1:N-1]))
+print 'BDF2 Error s:        '+str(err_s_BDF2)
+print 'Error decay BDF2 s:  '+str(np.divide(err_s_BDF2[0:N-2], err_s_BDF2[1:N-1]))
+print 'Theta Error s:       '+str(err_s_Theta)
+print 'Error decay Theta s: '+str(np.divide(err_s_Theta[0:N-2], err_s_Theta[1:N-1]))
 #print 'Time BDF1: '+str(time_BDF1)
 #print 'Time BDF2: '+str(time_BDF2)
 #print 'Time Theta: '+str(time_Theta)
