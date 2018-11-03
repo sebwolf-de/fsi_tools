@@ -89,6 +89,7 @@ def write_mesh():
 
 def stack_rhs(f_rhs_x, f_rhs_y, p_rhs, s_rhs_x, s_rhs_y, l_rhs_x, l_rhs_y):
     (f_rhs_x, f_rhs_y) = fluid_rhs_apply_bc(f_rhs_x, f_rhs_y)
+    #(s_rhs_x, s_rhs_y) = structure_rhs_apply_bc(s_rhs_x, s_rhs_y)
 
     rhs = np.append(f_rhs_x, f_rhs_y)
     rhs = np.append(rhs, p_rhs)
@@ -96,7 +97,7 @@ def stack_rhs(f_rhs_x, f_rhs_y, p_rhs, s_rhs_x, s_rhs_y, l_rhs_x, l_rhs_y):
     rhs = np.append(rhs, s_rhs_y)
     rhs = np.append(rhs, l_rhs_x)
     rhs = np.append(rhs, l_rhs_y)
-    #rhs = np.append(rhs, np.zeros(1))
+    rhs = np.append(rhs, np.zeros(1))
 
     return rhs
 
@@ -285,8 +286,21 @@ def structure_m_apply_bc(KS11, KS22, MST11, MST22):
         KS11 = la_utils.set_diag(KS11,bc_id)
         MST11 = la_utils.clear_rows(MST11,bc_id)
 
-
     return KS11, KS22, MST11, MST22
+
+def structure_rhs_apply_bc(s_rhs_x, s_rhs_y):
+    if(ph.time_integration != 'Theta'):
+        return  s_rhs_x, s_rhs_y
+
+    bc_id = np.where(sy_n < delta_x/10)
+    if ph.mesh_prefix == 'annulus_':
+        s_rhs_y[bc_id] = 0.
+
+    bc_id = np.where(sx_n < delta_x/10)
+    if ph.mesh_prefix == 'annulus_':
+        s_rhs_x[bc_id] = 0.
+
+    return s_rhs_x, s_rhs_y
 
 def coupling_apply_bc(GT11, GT22):
     #lower boundary
@@ -340,39 +354,39 @@ def assemble_blockwise_matrix_BDF1():
     mat1 = sparse.hstack([A,
                          -BT,
                          sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
-                         GT#,
-                         #sparse.csr_matrix((ndofs_u*2,1))
+                         GT,
+                         sparse.csr_matrix((ndofs_u*2,1))
                          ])
 
     mat2 = sparse.hstack([-B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2)),
-                          sparse.csr_matrix((ndofs_p,ndofs_s*2))#,
-                          #mean_p.transpose()
+                          sparse.csr_matrix((ndofs_p,ndofs_s*2)),
+                          mean_p.transpose()
                           ])
 
     mat3 = sparse.hstack([sparse.csr_matrix((ndofs_s*2,ndofs_u*2)),
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
                           KS,
-                          -MST#,
-                          #sparse.csr_matrix((ndofs_s*2,1))
+                          -MST,
+                          sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
     mat4 = sparse.hstack([G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
                           -1/ph.dt*MS,
-                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2))#,
-                          #sparse.csr_matrix((ndofs_s*2,1))
+                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
+                          sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
-    # mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
-    #                       mean_p,
-    #                       sparse.csr_matrix((1,ndofs_s*2)),
-    #                       sparse.csr_matrix((1,ndofs_s*2)),
-    #                       sparse.csr_matrix((1,1))
-    #                       ])
+    mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
+                          mean_p,
+                          sparse.csr_matrix((1,ndofs_s*2)),
+                          sparse.csr_matrix((1,ndofs_s*2)),
+                          sparse.csr_matrix((1,1))
+                          ])
 
-    mat = sparse.vstack([mat1,mat2,mat3,mat4])#,mat5])
+    mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
     mat = mat.tocsr()
     return mat
 
@@ -402,39 +416,39 @@ def assemble_blockwise_matrix_BDF2():
     mat1 = sparse.hstack([A,
                           -BT,
                           sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
-                          GT#,
-                          #sparse.csr_matrix((ndofs_u*2,1))
+                          GT,
+                          sparse.csr_matrix((ndofs_u*2,1))
                           ])
 
     mat2 = sparse.hstack([-B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2)),
-                          sparse.csr_matrix((ndofs_p,ndofs_s*2))#,
-                          #mean_p.transpose()
+                          sparse.csr_matrix((ndofs_p,ndofs_s*2)),
+                          mean_p.transpose()
                           ])
 
     mat3 = sparse.hstack([sparse.csr_matrix((ndofs_s*2,ndofs_u*2)),
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
                           KS,
-                          -MST#,
-                          #sparse.csr_matrix((ndofs_s*2,1))
+                          -MST,
+                          sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
     mat4 = sparse.hstack([G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
                           -1.5/ph.dt*MS,
-                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2))#,
-                          #sparse.csr_matrix((ndofs_s*2,1))
+                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
+                          sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
-    # mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
-    #                       mean_p,
-    #                       sparse.csr_matrix((1,ndofs_s*2)),
-    #                       sparse.csr_matrix((1,ndofs_s*2)),
-    #                       sparse.csr_matrix((1,1))
-    #                       ])
+    mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
+                          mean_p,
+                          sparse.csr_matrix((1,ndofs_s*2)),
+                          sparse.csr_matrix((1,ndofs_s*2)),
+                          sparse.csr_matrix((1,1))
+                          ])
 
-    mat = sparse.vstack([mat1,mat2,mat3,mat4])#,mat5])
+    mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
     mat = mat.tocsr()
     return mat
 
@@ -447,8 +461,8 @@ def assemble_blockwise_force_Theta():
 
     p_rhs = np.zeros((ndofs_p, 1))#-0.5*B.dot(u_n)
 
-    s_rhs_x = -0.5*KS11.dot(dx_n) + 0.5*MST11.dot(np.reshape(l_n[0:ndofs_s],(ndofs_s)))
-    s_rhs_y = -0.5*KS22.dot(dy_n) + 0.5*MST22.dot(np.reshape(l_n[ndofs_s:2*ndofs_s],(ndofs_s)))
+    s_rhs_x = np.zeros((ndofs_s, 1))#-0.5*KS11.dot(dx_n) + 0.5*MST11.dot(np.reshape(l_n[0:ndofs_s],(ndofs_s)))
+    s_rhs_y = np.zeros((ndofs_s, 1))#-0.5*KS22.dot(dy_n) + 0.5*MST22.dot(np.reshape(l_n[ndofs_s:2*ndofs_s],(ndofs_s)))
 
     l_rhs_x = -1/ph.dt*MS11.dot(dx_n)
     l_rhs_y = -1/ph.dt*MS11.dot(dy_n)
@@ -472,39 +486,39 @@ def assemble_blockwise_matrix_Theta():
     mat1 = sparse.hstack([A,
                           -0.5*BT,
                           sparse.csr_matrix((ndofs_u*2,ndofs_s*2)),
-                          0.5*GT#,
-                          #sparse.csr_matrix((ndofs_u*2,1))
+                          0.5*GT,
+                          sparse.csr_matrix((ndofs_u*2,1))
                           ])
 
     mat2 = sparse.hstack([-B,
                           sparse.csr_matrix((ndofs_p,ndofs_p)),
                           sparse.csr_matrix((ndofs_p,ndofs_s*2)),
-                          sparse.csr_matrix((ndofs_p,ndofs_s*2))#,
-                          #mean_p.transpose()
+                          sparse.csr_matrix((ndofs_p,ndofs_s*2)),
+                          mean_p.transpose()
                           ])
 
     mat3 = sparse.hstack([sparse.csr_matrix((ndofs_s*2,ndofs_u*2)),
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
-                          0.5*KS,
-                          -0.5*MST#,
-                          #sparse.csr_matrix((ndofs_s*2,1))
+                          KS,
+                          -MST,
+                          sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
     mat4 = sparse.hstack([0.5*G,
                           sparse.csr_matrix((ndofs_s*2,ndofs_p)),
                           -1/ph.dt*MS,
-                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2))#,
-                          #sparse.csr_matrix((ndofs_s*2,1))
+                          sparse.csr_matrix((ndofs_s*2,ndofs_s*2)),
+                          sparse.csr_matrix((ndofs_s*2,1))
                           ])
 
-    # mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
-    #                       mean_p,
-    #                       sparse.csr_matrix((1,ndofs_s*2)),
-    #                       sparse.csr_matrix((1,ndofs_s*2)),
-    #                       sparse.csr_matrix((1,1))
-    #                    ])
+    mat5 = sparse.hstack([sparse.csr_matrix((1,ndofs_u*2)),
+                          mean_p,
+                          sparse.csr_matrix((1,ndofs_s*2)),
+                          sparse.csr_matrix((1,ndofs_s*2)),
+                          sparse.csr_matrix((1,1))
+                       ])
 
-    mat = sparse.vstack([mat1,mat2,mat3,mat4])#,mat5])
+    mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
     mat = mat.tocsr()
     return mat
 
@@ -618,8 +632,8 @@ if ph.mesh_prefix == 'annulus_':
     sx_n = 1./1.4*(s_lgr)
     sy_n =    1.4*(t_lgr)
 elif ph.mesh_prefix == 'cavity_':
-    s_lgr = 0.6 + 0.2*s_lgr
-    t_lgr = 0.5 + 0.2*t_lgr
+    s_lgr = 0.3 + 0.2*s_lgr
+    t_lgr = 0.7 + 0.2*t_lgr
     sx_zero = s_lgr
     sy_zero = t_lgr
     sx_n = (s_lgr)
@@ -818,6 +832,8 @@ for cn_time in range(0,len(ph.stampa)):
     nrg =(l2_norm(KS,np.append(dx_n, dy_n)))**2 + (l2_norm(MF,np.append(ux_n, uy_n)))**2
     energy.append(nrg)
 
+    res = l2_norm(MS, G.dot(u_n) - 1/ph.dt * (KS.dot(np.append(dx_n, dy_n) - np.append(dx_n_old, dy_n_old))))
+
     if (exploded==True or p_all_zero == True):
         diffusion = 999
     print '--------------------------------------'
@@ -825,6 +841,7 @@ for cn_time in range(0,len(ph.stampa)):
     print 't         = ' + str(cn_time*ph.dt)
     print 'diffusion = ' + str(diffusion)
     print 'energy    = ' + str(nrg)
+    print 'residual  = ' + str(res)
     print 'pressure == 0? ' + str(p_all_zero)
     print 'exploded     ? ' + str(exploded)
     print '--------------------------------------'
