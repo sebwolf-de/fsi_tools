@@ -60,7 +60,7 @@ xs_reference = np.load(f)
 ys_reference = np.load(f)
 f.close()
 
-N = 5
+N = 7
 
 err_u_BDF1 = np.zeros(N-1)
 err_u_BDF2 = np.zeros(N-1)
