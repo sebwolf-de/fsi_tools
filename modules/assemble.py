@@ -324,29 +324,29 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
             (v_dx,v_dy,v_l,omega_v) = basis.tri_p1(x_l,y_l,eval_points)
 
 
-            #int_w_omega = np.zeros((1,3))
-            #for k in range(0,3):
-            #    int_w_omega[0,k] += omega_w/3 * sum(w_l[:,k])
+            # int_w_omega = np.zeros((1,3))
+            # for k in range(0,3):
+            #     int_w_omega[0,k] += omega_w/3 * sum(w_l[:,k])
 
-            #print "-----------"
-            #print local_mass_matrix
-            #print u_x[row]
-            #print v_dx
-            #print w_dx
+            # print "-----------"
+            # print local_mass_matrix
+            # print u_x[row]
+            # print v_dx
+            # print w_dx
 
-            local_matrix = np.dot(u_x[row].transpose(), local_mass_matrix)
+            local_matrix = np.reshape(np.dot(u_x[row].transpose(), local_mass_matrix), (1,3))
             local_matrix = np.dot(v_dx.transpose(), local_matrix)
             A11 = la_utils.add_local_to_global(A11,local_matrix,row,row)
 
-            local_matrix = np.dot(u_y[row].transpose(), local_mass_matrix)
+            local_matrix = np.reshape(np.dot(u_y[row].transpose(), local_mass_matrix), (1,3))
             local_matrix = np.dot(v_dy.transpose(), local_matrix)
             A12 = la_utils.add_local_to_global(A12,local_matrix,row,row)
 
-            local_matrix = np.dot(u_x[row].transpose(), local_mass_matrix)
+            local_matrix = np.reshape(np.dot(u_x[row].transpose(), local_mass_matrix), (1,3))
             local_matrix = np.dot(v_dx.transpose(), local_matrix)
             A21 = la_utils.add_local_to_global(A21,local_matrix,row,row)
 
-            local_matrix = np.dot(u_y[row].transpose(), local_mass_matrix)
+            local_matrix = np.reshape(np.dot(u_y[row].transpose(), local_mass_matrix), (1,3))
             local_matrix = np.dot(v_dy.transpose(), local_matrix)
             A22 = la_utils.add_local_to_global(A22,local_matrix,row,row)
 
