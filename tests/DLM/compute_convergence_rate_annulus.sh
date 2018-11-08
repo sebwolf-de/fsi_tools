@@ -114,8 +114,8 @@ fi
 
 if [[ $1 == *"R"* ]]; then
   python2 dlm_semiimplicit.py convergence/annulus/ref.json
-  cp results/dlm_annulus_8_BDF2_dt5em4_hx8_hs8_k10_nu1/binary_data/cn_time_400 results/Convergence_Analysis_Annulus/reference
-  cp results/dlm_annulus_8_BDF2_dt5em4_hx8_hs8_k10_nu1/binary_data/mesh results/Convergence_Analysis_Annulus/mesh
+  cp results/dlm_annulus_8_BDF1_dt5em4_hx8_hs8_k10_nu1/binary_data/cn_time_400 results/Convergence_Analysis_Annulus/reference
+  cp results/dlm_annulus_8_BDF1_dt5em4_hx8_hs8_k10_nu1/binary_data/mesh results/Convergence_Analysis_Annulus/mesh
 fi
 
 #compare the convergence/annulus rates
