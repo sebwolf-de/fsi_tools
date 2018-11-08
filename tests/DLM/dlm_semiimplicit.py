@@ -329,7 +329,7 @@ def coupling_apply_bc(GT11, GT22):
     return GT11, GT22
 
 def assemble_kinematic_coupling(sx_n, sy_n, sx_n_old, sy_n_old):
-    if ph.time_integration == 'BDF2':
+    if ph.time_integration != 'BDF1':
         sx_asmbl = 2*sx_n - sx_n_old
         sy_asmbl = 2*sy_n - sy_n_old
     else:
