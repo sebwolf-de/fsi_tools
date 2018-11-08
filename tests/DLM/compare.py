@@ -60,20 +60,20 @@ xs_reference = np.load(f)
 ys_reference = np.load(f)
 f.close()
 
-N = 5
+N = 6
 
-err_u_BDF1 = np.zeros(N-1)
-err_u_BDF2 = np.zeros(N-1)
-err_u_Theta = np.zeros(N-1)
-err_s_BDF1 = np.zeros(N-1)
-err_s_BDF2 = np.zeros(N-1)
-err_s_Theta = np.zeros(N-1)
-time_BDF1 = np.zeros(N-1)
-time_BDF2 = np.zeros(N-1)
-time_Theta = np.zeros(N-1)
+err_u_BDF1 = np.zeros(N)
+err_u_BDF2 = np.zeros(N)
+err_u_Theta = np.zeros(N)
+err_s_BDF1 = np.zeros(N)
+err_s_BDF2 = np.zeros(N)
+err_s_Theta = np.zeros(N)
+time_BDF1 = np.zeros(N)
+time_BDF2 = np.zeros(N)
+time_Theta = np.zeros(N)
 
 
-for k in range(1,N):
+for k in range(1,N+1):
     input_name = results_dir+'BDF1_'+str(k)
     f = file(input_name,"rb")
     u_BDF1 = np.load(f)
@@ -88,13 +88,13 @@ for k in range(1,N):
     err_s_BDF1[k-1] = l2_norm(mass_matrix_s,
         np.append(xs_BDF1, ys_BDF1) - np.append(xs_reference, ys_reference))
 
-    #input_name = results_dir+'BDF1_'+str(2**k)+'_time'
-    #f = file(input_name,"rb")
-    #step_time = np.load(f)
-    #sol_time = np.load(f)
-    #f.close()
+    input_name = results_dir+'BDF1_'+str(k)+'_time'
+    f = file(input_name,"rb")
+    step_time = np.load(f)
+    sol_time = np.load(f)
+    f.close()
 
-    #time_BDF1[k-1] = step_time
+    time_BDF1[k-1] = step_time
 
     input_name = results_dir+'BDF2_'+str(k)
     f = file(input_name,"rb")
@@ -110,13 +110,13 @@ for k in range(1,N):
     err_s_BDF2[k-1] = l2_norm(mass_matrix_s,
         np.append(xs_BDF2, ys_BDF2) - np.append(xs_reference, ys_reference))
 
-    #input_name = results_dir+'BDF2_'+str(2**k)+'_time'
-    #f = file(input_name,"rb")
-    #step_time = np.load(f)
-    #sol_time = np.load(f)
-    #f.close()
+    input_name = results_dir+'BDF2_'+str(k)+'_time'
+    f = file(input_name,"rb")
+    step_time = np.load(f)
+    sol_time = np.load(f)
+    f.close()
 
-    #time_BDF2[k-1] = step_time
+    time_BDF2[k-1] = step_time
 
     input_name = results_dir+'Theta_'+str(k)
     f = file(input_name,"rb")
@@ -132,28 +132,29 @@ for k in range(1,N):
     err_s_Theta[k-1] = l2_norm(mass_matrix_s,
         np.append(xs_Theta, ys_Theta) - np.append(xs_reference, ys_reference))
 
-    #input_name = results_dir+'Theta_'+str(2**k)+'_time'
-    #f = file(input_name,"rb")
-    #step_time = np.load(f)
-    #sol_time = np.load(f)
-    #f.close()
+    input_name = results_dir+'Theta_'+str(k)+'_time'
+    f = file(input_name,"rb")
+    step_time = np.load(f)
+    sol_time = np.load(f)
+    f.close()
 
-    #time_Theta[k-1] = step_time
+    time_Theta[k-1] = step_time
 
 print 'BDF1 Error u:        '+str(err_u_BDF1)
-print 'Error decay BDF1 u:  '+str(np.divide(err_u_BDF1[0:N-2], err_u_BDF1[1:N-1]))
+print 'Error decay BDF1 u:  '+str(np.divide(err_u_BDF1[0:N-1], err_u_BDF1[1:N]))
 print 'BDF2 Error u:        '+str(err_u_BDF2)
-print 'Error decay BDF2 u:  '+str(np.divide(err_u_BDF2[0:N-2], err_u_BDF2[1:N-1]))
+print 'Error decay BDF2 u:  '+str(np.divide(err_u_BDF2[0:N-1], err_u_BDF2[1:N]))
 print 'Theta Error u:       '+str(err_u_Theta)
-print 'Error decay Theta u: '+str(np.divide(err_u_Theta[0:N-2], err_u_Theta[1:N-1]))
+print 'Error decay Theta u: '+str(np.divide(err_u_Theta[0:N-1], err_u_Theta[1:N]))
 
 
 print 'BDF1 Error s:        '+str(err_s_BDF1)
-print 'Error decay BDF1 s:  '+str(np.divide(err_s_BDF1[0:N-2], err_s_BDF1[1:N-1]))
+print 'Error decay BDF1 s:  '+str(np.divide(err_s_BDF1[0:N-1], err_s_BDF1[1:N]))
 print 'BDF2 Error s:        '+str(err_s_BDF2)
-print 'Error decay BDF2 s:  '+str(np.divide(err_s_BDF2[0:N-2], err_s_BDF2[1:N-1]))
+print 'Error decay BDF2 s:  '+str(np.divide(err_s_BDF2[0:N-1], err_s_BDF2[1:N]))
 print 'Theta Error s:       '+str(err_s_Theta)
-print 'Error decay Theta s: '+str(np.divide(err_s_Theta[0:N-2], err_s_Theta[1:N-1]))
-#print 'Time BDF1: '+str(time_BDF1)
-#print 'Time BDF2: '+str(time_BDF2)
-#print 'Time Theta: '+str(time_Theta)
+print 'Error decay Theta s: '+str(np.divide(err_s_Theta[0:N-1], err_s_Theta[1:N]))
+
+print 'Time BDF1:  '+str(time_BDF1)
+print 'Time BDF2:  '+str(time_BDF2)
+print 'Time Theta: '+str(time_Theta)
