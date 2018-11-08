@@ -79,8 +79,8 @@ from parameters_handler import ParametersHandler
 #     f.close()
 #     ux_n = u_n[0:ndofs_u]
 #     uy_n = u_n[ndofs_u:2*ndofs_u]
-
-    return
+#     
+#     return
 
 
 def write_mesh():
