@@ -22,49 +22,63 @@ from shapely.geometry import Polygon
 from preconditioner import BlockPreconditioner
 from parameters_handler import ParametersHandler
 
-def start_later(cn_time):
-    #load mesh file
-    filename = ph.results_dir+'mesh'
-    f = file(filename,"rb")
-    topo_p = np.load(f)
-    x_p = np.load(f)
-    y_p = np.load(f)
-    topo_u = np.load(f)
-    x_u = np.load(f)
-    y_u = np.load(f)
-    c2f = np.load(f)
-    topo_s = np.load(f)
-    sx_n = np.load(f)
-    sy_n = np.load(f)
-    s_lgr = np.load(f)
-    t_lgr = np.load(f)
-    f.close()
-
-    #load previous timestep
-    filename = "./"+ph.results_directory+"/"
-    filename += ph.sim_prefix + '_'+str(cn_time-1).zfill(ph.time_index_digits)
-    f = file(filename,"rb")
-    u_n_old = np.load(f)
-    p_n_old = np.load(f)
-    sx_n_old = np.load(f)
-    sy_n_old = np.load(f)
-    l_n_old = np.laod(f)
-    f.close()
-    ux_n_old = u_n_old[0:ndofs_u]
-    uy_n_old = u_n_old[ndofs_u:2*ndofs_u]
-
-    #load current timestep
-    filename = "./"+ph.results_directory+"/"
-    filename += ph.sim_prefix + '_'+str(cn_time).zfill(ph.time_index_digits)
-    f = file(filename,"rb")
-    u_n = np.load(f)
-    p_n = np.load(f)
-    sx_n = np.load(f)
-    sy_n = np.load(f)
-    l_n = np.laod(f)
-    f.close()
-    ux_n = u_n[0:ndofs_u]
-    uy_n = u_n[ndofs_u:2*ndofs_u]
+# def start_later(cn_time):
+#     #load mesh file
+#     filename = results_dir+'/mesh'
+#     f = file(filename,"rb")
+#     topo_p = np.load(f)
+#     x_p = np.load(f)
+#     y_p = np.load(f)
+#     topo_u = np.load(f)
+#     x_u = np.load(f)
+#     y_u = np.load(f)
+#     c2f = np.load(f)
+#     topo_s = np.load(f)
+#     sx_n = np.load(f)
+#     sy_n = np.load(f)
+#     s_lgr = np.load(f)
+#     t_lgr = np.load(f)
+#     f.close()
+#
+#     global u_n_old
+#     global p_n_old
+#     global sx_n_old
+#     global sy_n_old
+#     global l_n_old
+#     global ux_n_old
+#     global uy_n_old
+#     #load previous timestep
+#     filename = "./"+results_dir+"/"
+#     filename += 'cn_time_'+str(cn_time-1).zfill(ph.time_index_digits)
+#     f = file(filename,"rb")
+#     u_n_old = np.load(f)
+#     p_n_old = np.load(f)
+#     sx_n_old = np.load(f)
+#     sy_n_old = np.load(f)
+#     l_n_old = np.load(f)
+#     f.close()
+#     ux_n_old = u_n_old[0:ndofs_u]
+#     uy_n_old = u_n_old[ndofs_u:2*ndofs_u]
+#
+#     global u_n
+#     global p_n
+#     global sx_n
+#     global sy_n
+#     global l_n
+#     global ux_n
+#     global uy_n
+#     #load current timestep
+#     filename = "./"+results_dir+"/"
+#     filename += 'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
+#     f = file(filename,"rb")
+#     u_n = np.load(f)
+#     p_n = np.load(f)
+#     sx_n = np.load(f)
+#     sy_n = np.load(f)
+#     l_n = np.load(f)
+#     f.close()
+#     ux_n = u_n[0:ndofs_u]
+#     uy_n = u_n[ndofs_u:2*ndofs_u]
 
     return
 
@@ -367,10 +381,11 @@ def assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n):
                      np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
 
 def assemble_blockwise_matrix_BDF1():
-    D11 = 1/ph.dt*MF11 + KF11
-    D22 = 1/ph.dt*MF11 + KF11
-    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
-    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    (S11, S12, S21, S22) = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+    D11 = 1/ph.dt*MF11 + KF11 + S11
+    D22 = 1/ph.dt*MF11 + KF11 + S22
+    # S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    # S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
     (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
 
@@ -729,8 +744,6 @@ MST22 = MS11
 KS11 = ph.kappa*KS11
 KS22 = KS11
 
-
-
 (KS11, KS22, MST11, MST22) = structure_m_apply_bc(KS11, KS22, MST11, MST22)
 
 MS = sparse.vstack([
@@ -792,6 +805,7 @@ energy = []
 TOL = 1e-8
 max_iter = 15
 residuals = np.zeros((len(ph.stampa), max_iter))
+
 for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
     sol_time = 0
