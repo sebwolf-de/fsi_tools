@@ -789,8 +789,8 @@ step_time = np.array([])
 
 energy = []
 
-TOL = ph.dt**3
-max_iter = 10
+TOL = 1e-8
+max_iter = 15
 residuals = np.zeros((len(ph.stampa), max_iter))
 for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
@@ -808,24 +808,23 @@ for cn_time in range(0,len(ph.stampa)):
     u_n1 = u_n
     l_n1 = l_n
 
+    ###Assemble linear system and right hand side
+    if ph.time_integration == 'BDF1':
+        mat = assemble_blockwise_matrix_BDF1()
+        force = assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n)
+    elif ph.time_integration == 'Theta':
+        mat = assemble_blockwise_matrix_Theta()
+        force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n)
+    elif ph.time_integration == 'BDF2':
+        if cn_time == 0:
+            mat = assemble_blockwise_matrix_Theta()
+            force = assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n)
+        else:
+            mat = assemble_blockwise_matrix_Theta()
+            force = assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx_n_old, dy_n_old)
+
 
     for k in range(0, max_iter):
-
-        ###Assemble linear system and solve
-        if ph.time_integration == 'BDF1':
-            mat = assemble_blockwise_matrix_BDF1()
-            force = assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n)
-        elif ph.time_integration == 'Theta':
-            mat = assemble_blockwise_matrix_Theta()
-            force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n)
-        elif ph.time_integration == 'BDF2':
-            if cn_time == 0:
-                mat = assemble_blockwise_matrix_BDF1()
-                force = assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n)
-            else:
-                mat = assemble_blockwise_matrix_BDF2()
-                force = assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx_n_old, dy_n_old)
-
         sol_t0 = time.time()
         sol = sp_la.spsolve(mat,force)
         sol_t1 = time.time()
@@ -841,28 +840,51 @@ for cn_time in range(0,len(ph.stampa)):
         sy_n1 = sy_zero + dy_n1
         l_n1 = sol[2*ndofs_u+ndofs_p+2*ndofs_s:2*ndofs_u+ndofs_p+4*ndofs_s]
 
-        D11 = 1/ph.dt*MF11 + KF11
-        D22 = 1/ph.dt*MF11 + KF11
-        S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
-        S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
+        # mat_11 = mat[range(0,2*ndofs_u),:][:,range(0,2*ndofs_u)]
 
-        (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
-
-        A = sparse.hstack([
-            sparse.vstack([D11, S12]),
-            sparse.vstack([S21, D22])
-            ])
+        ###Assemble the matrices again with the new computed coupling
         (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n1, sy_n1)
 
-        res = l2_norm(MS, G.dot(u_n1) - 1/ph.dt * (MS.dot(np.append(sx_n1, sy_n1) - np.append(sx_n, sy_n))))
-        res += l2_norm(MF, A.dot(u_n1) - MF.dot(u_n)/ph.dt - BT.dot(p_n1) + GT.dot(l_n1))
+        if ph.time_integration == 'BDF1':
+            mat = assemble_blockwise_matrix_BDF1()
+        elif ph.time_integration == 'Theta':
+            mat = assemble_blockwise_matrix_Theta()
+        elif ph.time_integration == 'BDF2':
+            if cn_time == 0:
+                mat = assemble_blockwise_matrix_Theta()
+            else:
+                mat = assemble_blockwise_matrix_BDF2()
 
+        # if ph.time_integration == 'Theta':
+        #     res_coupling = l2_norm(MS, 0.5*G.dot(u_n1) + 0.5*H.dot(u_n) - 1./ph.dt*MS.dot(np.append(sx_n1, sy_n1) - np.append(sx_n, sy_n)))
+        #     res_fluid =  l2_norm(MF, mat_11.dot(u_n1) - 0.5*BT.dot(p_n1) + 0.5*GT.dot(l_n1) - force[0:2*ndofs_u])
+        # elif ph.time_integration == 'BDF1':
+        #     res_coupling = l2_norm(MS, G.dot(u_n1) - 1./ph.dt*MS.dot(np.append(sx_n1, sy_n1) - np.append(sx_n, sy_n)))
+        #     res_fluid =  l2_norm(MF, mat_11.dot(u_n1) - BT.dot(p_n1) + GT.dot(l_n1) - force[0:2*ndofs_u])
+        # else:
+        #     res_coupling = l2_norm(MS, G.dot(u_n1) - 1./ph.dt*MS.dot(1.5*np.append(sx_n1, sy_n1) - 2*np.append(sx_n, sy_n) + 0.5*np.append(sx_n_old, sy_n_old)))
+        #     res_fluid =  l2_norm(MF, mat_11.dot(u_n1) - BT.dot(p_n1) + GT.dot(l_n1) - force[0:2*ndofs_u])
+        #
+        # print res_coupling
+        # print res_fluid
+        #
+        # res = res_coupling + res_fluid
+
+        ### Calculate the residual
+        res = np.linalg.norm(mat.dot(sol) - force)
         residuals[cn_time, k] = res
         print 'Nonlinear solver: ' + str(k+1) + 'th iteration, res = ' + '{:.2e}'.format(res)
+        ### Decide whether to stop the nonlinear solver
         if(res < TOL):
             print 'Nonlinear solver converged after ' + str(k+1) + ' iterations.'
             print '-----'
             break
+        # elif k >= 1:
+        #     if (residuals[cn_time, k-1] / residuals[cn_time, k] < 1 + TOL):
+        #         residuals[cn_time, range(k+1,max_iter)] = float('nan')
+        #         print 'Nonlinear solver did not converge.'
+        #         print '-----'
+        #         break
 
     ###Update solution vector
     ux_n_old = ux_n
@@ -917,7 +939,7 @@ for cn_time in range(0,len(ph.stampa)):
     print '-----------------------------------'
 
     step_time = np.append(step_time, step_t1-step_t0)
-    sol_time = np.append(sol_time, sol_t1-sol_t0)
+    sol_time = np.append(sol_time, sol_time)
 
 write_time()
 print np.log10(residuals)
