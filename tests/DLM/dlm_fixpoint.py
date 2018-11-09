@@ -79,7 +79,7 @@ from parameters_handler import ParametersHandler
 #     f.close()
 #     ux_n = u_n[0:ndofs_u]
 #     uy_n = u_n[ndofs_u:2*ndofs_u]
-#     
+#
 #     return
 
 
@@ -444,10 +444,11 @@ def assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx
                      np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
 
 def assemble_blockwise_matrix_BDF2():
-    D11 = 1.5/ph.dt*MF11 + KF11
-    D22 = 1.5/ph.dt*MF11 + KF11
-    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
-    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    (S11, S12, S21, S22) = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+    D11 = 1.5/ph.dt*MF11 + KF11 + S11
+    D22 = 1.5/ph.dt*MF11 + KF11 + S22
+    # S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    # S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
     (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
 
@@ -709,9 +710,10 @@ ndofs_u = max(x_u.shape)
 ndofs_p = max(x_p.shape) + topo_p.shape[0]
 ndofs_s = max(ie_s)+1
 
-print 'DOFs velocity:  ' + str(2*ndofs_u)
-print 'DOFs pressure:  ' + str(ndofs_p)
-print 'DOFs structure: ' + str(2*ndofs_s)
+print 'DOFs velocity:   ' + str(2*ndofs_u)
+print 'DOFs pressure:   ' + str(ndofs_p)
+print 'DOFs structure:  ' + str(2*ndofs_s)
+print 'DOFs lagrangian: ' + str(2*ndofs_s)
 
 ux_n = np.zeros((ndofs_u))
 uy_n = np.zeros((ndofs_u))
@@ -802,8 +804,8 @@ step_time = np.array([])
 
 energy = []
 
-TOL = 1e-8
-max_iter = 15
+TOL = 1e-5
+max_iter = 30
 residuals = np.zeros((len(ph.stampa), max_iter))
 
 for cn_time in range(0,len(ph.stampa)):
