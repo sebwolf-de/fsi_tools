@@ -32,6 +32,7 @@ topo_s = np.load(f)
 x_s = np.load(f)
 y_s = np.load(f)
 s_lgr = np.load(f)
+t_lgr = np.load(f)
 f.close()
 
 z_u = np.zeros(x_u.shape)
@@ -56,8 +57,8 @@ for cn_time in time_list:
     f = file(input_name,"rb")
     u = np.load(f)
     p = np.load(f)
-    s_x = np.load(f) - x_s
-    s_y = np.load(f) - y_s
+    s_x = np.load(f) - s_lgr
+    s_y = np.load(f) - t_lgr
     f.close()
 
     ndofs = u.shape[0]/2
@@ -65,4 +66,4 @@ for cn_time in time_list:
     u_y = u[ndofs:2*ndofs]
 
     unstructuredGridToVTK(vtk_dir+'fluid_cn_time_'+str(cn_time).zfill(ph.time_index_digits), x_u, y_u, z_u, connectivity = topo_u, offsets = offset_u, cell_types = ctype_u, cellData = None, pointData = {"vel": (u_x, u_y, z_u)})
-    unstructuredGridToVTK(vtk_dir+'structure_cn_time_'+str(cn_time).zfill(ph.time_index_digits), x_s, y_s, z_s, connectivity = topo_s, offsets = offset_s, cell_types = ctype_s, cellData = None, pointData = {"ds": (s_x, s_y, z_s)})
+    unstructuredGridToVTK(vtk_dir+'structure_cn_time_'+str(cn_time).zfill(ph.time_index_digits), s_lgr, t_lgr, z_s, connectivity = topo_s, offsets = offset_s, cell_types = ctype_s, cellData = None, pointData = {"ds": (s_x, s_y, z_s)})
