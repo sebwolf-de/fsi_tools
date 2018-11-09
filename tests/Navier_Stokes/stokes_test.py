@@ -202,21 +202,21 @@ err = np.zeros(len(ph.stampa))
 for cn_time in range(0,len(ph.stampa)):
     if ph.time_integration == 'BDF1':
         rhs_u_x = 1/ph.dt*M11.dot(un_x) \
-            + np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.exp(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
+            + np.reshape(M11.dot(mth.cos(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.sin(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
         rhs_u_y = 1/ph.dt*M11.dot(un_y) \
-            + np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.exp(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
+            + np.reshape(M11.dot(mth.cos(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.sin(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
     elif ph.time_integration == 'BDF2':
         rhs_u_x = 1/ph.dt*M11.dot(2*un_x-0.5*un_x_old) \
-            + np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.exp(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
+            + np.reshape(M11.dot(mth.cos(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.sin(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
         rhs_u_y = 1/ph.dt*M11.dot(2*un_y-0.5*un_y_old) \
-            + np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.exp(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
+            + np.reshape(M11.dot(mth.cos(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.sin(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
     else:
         rhs_u_x = 1/ph.dt*M11.dot(un_x) - 0.5*K11.dot(un_x) + 0.5*BT1.dot(p_n) \
-            - 0.5*np.reshape(M11.dot(mth.exp(-cn_time*ph.dt)*analytical_x + (1-mth.exp(-cn_time*ph.dt))*f_x), (ndofs_u, 1)) \
-            - 0.5*np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.exp(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
+            - 0.5*np.reshape(M11.dot(mth.cos(-cn_time*ph.dt)*analytical_x + (1-mth.sin(-cn_time*ph.dt))*f_x), (ndofs_u, 1)) \
+            - 0.5*np.reshape(M11.dot(mth.cos(-(cn_time+1)*ph.dt)*analytical_x + (1-mth.sin(-(cn_time+1)*ph.dt))*f_x), (ndofs_u, 1))
         rhs_u_y = 1/ph.dt*M11.dot(un_y) - 0.5*K11.dot(un_x) + 0.5*BT2.dot(p_n) \
-            - 0.5*np.reshape(M11.dot(mth.exp(-cn_time*ph.dt)*analytical_y + (1-mth.exp(-cn_time*ph.dt))*f_y), (ndofs_u, 1)) \
-            - 0.5*np.reshape(M11.dot(mth.exp(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.exp(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
+            - 0.5*np.reshape(M11.dot(mth.cos(-cn_time*ph.dt)*analytical_y + (1-mth.sin(-cn_time*ph.dt))*f_y), (ndofs_u, 1)) \
+            - 0.5*np.reshape(M11.dot(mth.cos(-(cn_time+1)*ph.dt)*analytical_y + (1-mth.sin(-(cn_time+1)*ph.dt))*f_y), (ndofs_u, 1))
     rhs_p = np.zeros((ndofs_p, 1))
 
     #left bnd
@@ -262,7 +262,7 @@ for cn_time in range(0,len(ph.stampa)):
 
     write_output()
 
-    err[cn_time] = l2_norm(M, u_n - (1-mth.exp(-cn_time*ph.dt))*analytical)
+    err[cn_time] = l2_norm(M, u_n - (1-mth.sin(-cn_time*ph.dt))*analytical)
     print err[cn_time]
 print err[len(err)-1]
 print np.mean(err)
