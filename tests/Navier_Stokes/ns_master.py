@@ -39,8 +39,8 @@ def assemble_blockwise_force_BDF1():
     size = 2*ndofs_u+ndofs_p+1
     rhs = np.zeros((size,1))
 
-    f_rhs_x = 1/ph.dt*M11.dot(ux_n)
-    f_rhs_y = 1/ph.dt*M22.dot(uy_n)
+    f_rhs_x = ph.rho_fluid/ph.dt*M11.dot(ux_n)
+    f_rhs_y = ph.rho_fluid/ph.dt*M22.dot(uy_n)
 
     #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
@@ -57,7 +57,6 @@ def assemble_blockwise_force_BDF1():
     f_rhs_x[bc_id,:] = 0.
     f_rhs_y[bc_id,:] = 0.
 
-
     #left boundary
     bc_id = np.where(x_u < delta_x/10)
     f_rhs_x[bc_id,:] = 0.
@@ -66,41 +65,52 @@ def assemble_blockwise_force_BDF1():
     rhs[0:ndofs_u,:] = f_rhs_x
     rhs[ndofs_u:2*ndofs_u,:] = f_rhs_y
 
-    return rhs
+    return np.reshape(rhs, (size))
 
 def assemble_blockwise_matrix_BDF1():
-        D11 = 1/ph.dt*M11 + ph.nu*A11
-        D22 = 1/ph.dt*M11 + ph.nu*A11
+    (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+    D11 = ph.rho_fluid/ph.dt*M11 + ph.nu*A11 + ph.rho_fluid*S11
+    D22 = ph.rho_fluid/ph.dt*M11 + ph.nu*A11 + ph.rho_fluid*S22
 
-        #lower boundary
-        bc_id = np.where(y_u < delta_x/10)
-        D11 = la_utils.set_diag(D11, bc_id)
-        D22 = la_utils.set_diag(D22, bc_id)
+    #lower boundary
+    bc_id = np.where(y_u < delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+    S12 = la_utils.clear_rows(S12, bc_id)
+    S21 = la_utils.clear_rows(S21, bc_id)
 
-        #upper boundary
-        bc_id = np.where(y_u > 1-delta_x/10)
-        D11 = la_utils.set_diag(D11, bc_id)
-        D22 = la_utils.set_diag(D22, bc_id)
+    #upper boundary
+    bc_id = np.where(y_u > 1-delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+    S12 = la_utils.clear_rows(S12, bc_id)
+    S21 = la_utils.clear_rows(S21, bc_id)
 
-        #left boundary
-        bc_id = np.where(x_u < delta_x/10)
-        D11 = la_utils.set_diag(D11, bc_id)
-        D22 = la_utils.set_diag(D22, bc_id)
+    #left boundary
+    bc_id = np.where(x_u < delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+    S12 = la_utils.clear_rows(S12, bc_id)
+    S21 = la_utils.clear_rows(S21, bc_id)
 
-        #right boundary
-        bc_id = np.where(x_u > 1-delta_x/10)
-        D11 = la_utils.set_diag(D11, bc_id)
-        D22 = la_utils.set_diag(D22, bc_id)
+    #right boundary
+    bc_id = np.where(x_u > 1-delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+    S12 = la_utils.clear_rows(S12, bc_id)
+    S21 = la_utils.clear_rows(S21, bc_id)
 
-        #### assembly of Navier-Stokes system
-        mat = sparse.vstack([
-            sparse.hstack([D11, sparse.csr_matrix((ndofs_u, ndofs_u)), -BT1, sparse.csr_matrix((ndofs_u, 1))]),
-            sparse.hstack([sparse.csr_matrix((ndofs_u, ndofs_u)), D22, -BT2, sparse.csr_matrix((ndofs_u, 1))]),
-            sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
-            sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
-        ], "csr")
-        return mat
+    S12 = ph.rho_fluid*S12
+    S21 = ph.rho_fluid*S21
 
+    #### assembly of Navier-Stokes system
+    mat = sparse.vstack([
+        sparse.hstack([D11, S12, -BT1, sparse.csr_matrix((ndofs_u, 1))]),
+        sparse.hstack([S21, D22, -BT2, sparse.csr_matrix((ndofs_u, 1))]),
+        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
+        sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
+    ], "csr")
+    return mat
 
 def assemble_blockwise_force_BDF2():
     size = 2*ndofs_u+ndofs_p+1
@@ -336,36 +346,60 @@ for row in topo_p:
     mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.,1])
 
 
+max_iter = 10
+TOL = 1e-8
+residuals = np.zeros((len(ph.stampa), max_iter))
 #### start time steppig procedure
 for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
+    t_sol = 0
+    ux_n1 = ux_n
+    uy_n1 = uy_n
+    force = assemble_blockwise_force_BDF1()
+    mat = assemble_blockwise_matrix_BDF1()
 
+    for k in range(0, max_iter):
+        sol_t0 = time.time()
+        sol = sp_la.spsolve(mat,force)
+        sol_t1 = time.time()
+        t_sol += sol_t1 - sol_t0
 
-    mat = sparse.csr_matrix((2*ndofs_u + ndofs_p, 2*ndofs_u + ndofs_p))
-    force = sparse.csr_matrix((2*ndofs_u + ndofs_p, 1))
-    if ph.time_integration == 'BDF1':
+        ux_n1 = sol[0:ndofs_u]
+        uy_n1 = sol[ndofs_u:2*ndofs_u]
+        u_n1 = sol[0:2*ndofs_u]
+        p_n1 = sol[2*ndofs_u:2*ndofs_u+ndofs_p]
+        
         mat = assemble_blockwise_matrix_BDF1()
-        force = assemble_blockwise_force_BDF1()
-    elif ph.time_integration == 'BDF2':
-        if cn_time == 0:
-            mat = assemble_blockwise_matrix_Theta()
-            force = assemble_blockwise_force_Theta()
-        else:
-            mat = assemble_blockwise_matrix_BDF2()
-            force = assemble_blockwise_force_BDF2()
-    elif ph.time_integration == 'Theta':
-        mat = assemble_blockwise_matrix_Theta()
-        force = assemble_blockwise_force_Theta()
+        res = np.linalg.norm(mat.dot(sol) - force)
+        residuals[cn_time, k] = res
+        print 'Nonlinear solver: ' + str(k+1) + 'th iteration, res = ' + '{:.2e}'.format(res)
+        ### Decide whether to stop the nonlinear solver
+        if(res < TOL):
+            print 'Nonlinear solver converged after ' + str(k+1) + ' iterations.'
+            print '-----'
+            break
 
-    print mat.shape
-    print force.shape
-
-    ux_n_old = ux_n
-    uy_n_old = uy_n
-
-    sol_t0 = time.time()
-    sol = sp_la.spsolve(mat,force)
-    sol_t1 = time.time()
+    # mat = sparse.csr_matrix((2*ndofs_u + ndofs_p, 2*ndofs_u + ndofs_p))
+    # force = sparse.csr_matrix((2*ndofs_u + ndofs_p, 1))
+    # if ph.time_integration == 'BDF1':
+    #     mat = assemble_blockwise_matrix_BDF1()
+    #     force = assemble_blockwise_force_BDF1()
+    # elif ph.time_integration == 'BDF2':
+    #     if cn_time == 0:
+    #         mat = assemble_blockwise_matrix_Theta()
+    #         force = assemble_blockwise_force_Theta()
+    #     else:
+    #         mat = assemble_blockwise_matrix_BDF2()
+    #         force = assemble_blockwise_force_BDF2()
+    # elif ph.time_integration == 'Theta':
+    #     mat = assemble_blockwise_matrix_Theta()
+    #     force = assemble_blockwise_force_Theta()
+    #
+    # print mat.shape
+    # print force.shape
+    #
+    # ux_n_old = ux_n
+    # uy_n_old = uy_n
 
     u_n = sol[0:2*ndofs_u]
     p_n = np.reshape(sol[2*ndofs_u:2*ndofs_u+ndofs_p], (ndofs_p, 1))
@@ -382,5 +416,5 @@ for cn_time in range(0,len(ph.stampa)):
     print 't         = ' + str(cn_time*ph.dt)
     print 'l2 norm u = ' + str(l2_norm(M, u_n))
     print 'step time = ' + str((step_t1-step_t0))
-    print 'sol  time = ' + str((sol_t1-sol_t0))
+    print 'sol  time = ' + str(t_sol)
     print '--------------------------------------'
