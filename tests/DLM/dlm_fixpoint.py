@@ -239,56 +239,6 @@ def pressure_m_apply_bc(BT1, BT2):
 
     return BT1, BT2
 
-# def fluid_m_apply_bc_old(A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2):
-#     #lower boundary
-#     bc_id = np.where(y_u < delta_x/10)
-#     if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_':
-#         A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
-#         A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
-#         A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
-#         BT1 = la_utils.clear_rows(BT1,bc_id)
-#     A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
-#     A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
-#     A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
-#     BT2 = la_utils.clear_rows(BT2,bc_id)
-#
-#     #upper boundary
-#     bc_id = np.where(y_u > 1-delta_x/10)
-#     A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
-#     A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
-#     A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
-#     A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
-#     A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
-#     A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
-#     BT1 = la_utils.clear_rows(BT1,bc_id)
-#     BT2 = la_utils.clear_rows(BT2,bc_id)
-#
-#     #right boundary
-#     bc_id = np.where(x_u > 1-delta_x/10)
-#     if ph.mesh_prefix == 'annulus_' or ph.mesh_prefix == 'cavity_':
-#         A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
-#         A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
-#         A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
-#         A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
-#         A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
-#         A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
-#         BT1 = la_utils.clear_rows(BT1,bc_id)
-#         BT2 = la_utils.clear_rows(BT2,bc_id)
-#
-#     #left boundary
-#     bc_id = np.where(x_u < delta_x/10)
-#     A11_BDF1 = la_utils.set_diag(A11_BDF1,bc_id)
-#     A11_BDF2 = la_utils.set_diag(A11_BDF2,bc_id)
-#     A11_Theta = la_utils.set_diag(A11_Theta,bc_id)
-#     BT1 = la_utils.clear_rows(BT1,bc_id)
-#     if ph.mesh_prefix == 'cavity_' or ph.mesh_prefix == 'channel_':
-#         A22_BDF1 = la_utils.set_diag(A22_BDF1,bc_id)
-#         A22_BDF2 = la_utils.set_diag(A22_BDF2,bc_id)
-#         A22_Theta = la_utils.set_diag(A22_Theta,bc_id)
-#         BT2 = la_utils.clear_rows(BT2,bc_id)
-#
-#     return A11_BDF1, A22_BDF1, A11_BDF2, A22_BDF2, A11_Theta, A22_Theta, BT1, BT2
-
 def structure_m_apply_bc(KS11, KS22, MST11, MST22):
     bc_id = np.where(sy_n < delta_x/10)
     if ph.mesh_prefix == 'annulus_':
@@ -343,12 +293,6 @@ def coupling_apply_bc(GT11, GT22):
     return GT11, GT22
 
 def assemble_kinematic_coupling(sx_n, sy_n):
-    # if ph.time_integration == 'BDF2':
-    #     sx_asmbl = 2*sx_n - sx_n_old
-    #     sy_asmbl = 2*sy_n - sy_n_old
-    # else:
-    #     sx_asmbl = sx_n
-    #     sy_asmbl = sy_n
     (str_segments,fluid_id) = geom.fluid_intersect_mesh(topo_u,x_u,y_u,
                     topo_s,sx_n,sy_n)
     GT11 = assemble.u_s_p1_thick(x_u,y_u,topo_u,
@@ -567,19 +511,6 @@ def assemble_blockwise_matrix_Theta(S11, S12, S21, S22):
     mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
     mat = mat.tocsr()
     return mat
-
-# def unassemble_sol_blocks(sol):
-#     u_n = sol[0:2*ndofs_u]
-#     p_n1 = sol[2*ndofs_u:2*ndofs_u+ndofs_p]
-#
-#     sx_n1 = np.zeros( sx_n.shape )
-#     sy_n1 = np.zeros( sy_n.shape )
-#
-#     sx_n1 = sol[2*ndofs_u+ndofs_p:2*ndofs_u+ndofs_p+ndofs_s]
-#
-#     sy_n1 = sol[2*ndofs_u+ndofs_p+  ndofs_s:
-#                            2*ndofs_u+ndofs_p+2*ndofs_s]
-#     return u_n,p_n1,sx_n1,sy_n1
 
 def area_measure(xs,ys):
     area_mes = MS11 * sx_n + MS11 * sy_n
@@ -845,11 +776,13 @@ for cn_time in range(0,len(ph.stampa)):
 
 
     for k in range(0, max_iter):
+        ###Solve linear system
         sol_t0 = time.time()
         sol = sp_la.spsolve(mat,force)
         sol_t1 = time.time()
         sol_time += sol_t1 - sol_t0
 
+        ###Extract current iterates
         u_n1 = sol[0:2*ndofs_u]
         ux_n1 = sol[0:ndofs_u]
         uy_n1 = sol[ndofs_u:2*ndofs_u]
@@ -859,8 +792,6 @@ for cn_time in range(0,len(ph.stampa)):
         sx_n1 = sx_zero + dx_n1
         sy_n1 = sy_zero + dy_n1
         l_n1 = sol[2*ndofs_u+ndofs_p+2*ndofs_s:2*ndofs_u+ndofs_p+4*ndofs_s]
-
-        # mat_11 = mat[range(0,2*ndofs_u),:][:,range(0,2*ndofs_u)]
 
         ###Assemble the matrices again with the new computed coupling
         (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n1, sy_n1)
@@ -877,21 +808,6 @@ for cn_time in range(0,len(ph.stampa)):
             else:
                 mat = assemble_blockwise_matrix_BDF2()
 
-        # if ph.time_integration == 'Theta':
-        #     res_coupling = l2_norm(MS, 0.5*G.dot(u_n1) + 0.5*H.dot(u_n) - 1./ph.dt*MS.dot(np.append(sx_n1, sy_n1) - np.append(sx_n, sy_n)))
-        #     res_fluid =  l2_norm(MF, mat_11.dot(u_n1) - 0.5*BT.dot(p_n1) + 0.5*GT.dot(l_n1) - force[0:2*ndofs_u])
-        # elif ph.time_integration == 'BDF1':
-        #     res_coupling = l2_norm(MS, G.dot(u_n1) - 1./ph.dt*MS.dot(np.append(sx_n1, sy_n1) - np.append(sx_n, sy_n)))
-        #     res_fluid =  l2_norm(MF, mat_11.dot(u_n1) - BT.dot(p_n1) + GT.dot(l_n1) - force[0:2*ndofs_u])
-        # else:
-        #     res_coupling = l2_norm(MS, G.dot(u_n1) - 1./ph.dt*MS.dot(1.5*np.append(sx_n1, sy_n1) - 2*np.append(sx_n, sy_n) + 0.5*np.append(sx_n_old, sy_n_old)))
-        #     res_fluid =  l2_norm(MF, mat_11.dot(u_n1) - BT.dot(p_n1) + GT.dot(l_n1) - force[0:2*ndofs_u])
-        #
-        # print res_coupling
-        # print res_fluid
-        #
-        # res = res_coupling + res_fluid
-
         ### Calculate the residual
         res = np.linalg.norm(mat.dot(sol) - force)
         residuals[cn_time, k] = res
@@ -901,12 +817,6 @@ for cn_time in range(0,len(ph.stampa)):
             print 'Nonlinear solver converged after ' + str(k+1) + ' iterations.'
             print '-----'
             break
-        # elif k >= 1:
-        #     if (residuals[cn_time, k-1] / residuals[cn_time, k] < 1 + TOL):
-        #         residuals[cn_time, range(k+1,max_iter)] = float('nan')
-        #         print 'Nonlinear solver did not converge.'
-        #         print '-----'
-        #         break
 
     ###Update solution vector
     ux_n_old = ux_n
@@ -945,12 +855,12 @@ for cn_time in range(0,len(ph.stampa)):
     print 'pressure == 0? ' + str(p_all_zero)
     print 'exploded     ? ' + str(exploded)
 
-    #if diffusion > 2:
-    #    print 'The simulation was aborted, since it produced nonsense!'
-    #    break
-    #elif diffusion < .8:
-    #    print 'The simulation was aborted, since it produced nonsense!'
-    #    break
+    if diffusion > 2:
+       print 'The simulation was aborted, since it produced nonsense!'
+       break
+    elif diffusion < .8:
+       print 'The simulation was aborted, since it produced nonsense!'
+       break
 
     ###Write output
     if ph.stampa[cn_time] == True:
