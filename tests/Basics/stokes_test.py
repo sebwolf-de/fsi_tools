@@ -10,8 +10,8 @@ import la_utils
 import lin_tri_mesh as lin_t3
 
 def analytical_u(t):
-    analytical_x = np.sin(t) * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
-    analytical_y = -np.sin(t) * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2
+    analytical_x = 4*np.sin(t) * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
+    analytical_y = -4*np.sin(t) * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2
     analytical = np.reshape(np.append(analytical_x, analytical_y), (2*ndofs_u, 1))
     return analytical
 
@@ -23,8 +23,8 @@ def analytical(t):
 
 
 def f(t):
-    f_x = (2 - 12*x_u + 12*x_u**2) * (2*y_u - 6*y_u**2 + 4*y_u**3) + x_u**2 * (1-x_u)**2 * (-12 + 24*y_u) - 1
-    f_y = -(-12 + 24*x_u) * y_u**2 * (1-y_u)**2 - (2*x_u - 6*x_u**2 + 4*x_u**3) * (2 - 12*y_u + 12*y_u**2)
+    f_x = 4*(2 - 12*x_u + 12*x_u**2) * (2*y_u - 6*y_u**2 + 4*y_u**3) + 4*x_u**2 * (1-x_u)**2 * (-12 + 24*y_u) - 1
+    f_y = -4*(-12 + 24*x_u) * y_u**2 * (1-y_u)**2 - 4*(2*x_u - 6*x_u**2 + 4*x_u**3) * (2 - 12*y_u + 12*y_u**2)
     f_stacked = np.reshape(np.append(f_x, f_y), (2*ndofs_u, 1))
     return np.cos(t) * analytical_u(t) - np.sin(t) * f_stacked
 
@@ -51,7 +51,7 @@ def apply_bc(g):
 
     return g
 
-n = 80
+n = 32
 dx = 1./n
 
 t0 = time.time()
@@ -89,13 +89,13 @@ err_BDF1 = np.zeros((5))
 err_BDF2 = np.zeros((5))
 err_Theta = np.zeros((5))
 for t_ind in range(0, 5):
-    dt = 2**(2-t_ind)
+    dt = 2**(1-t_ind)
 
     u_0 = analytical(0)
     u_1 = analytical(dt)
 
     M_BDF1 = M + dt*K
-    M_BDF2 = 1.5*M + dt*K
+    M_BDF2 = 1.5*M/dt + K
     M_Theta = M + dt*Theta*K
 
     bc_id = np.where(y_u > 1-dx/10)
@@ -133,8 +133,8 @@ for t_ind in range(0, 5):
     ], "csr")
 
     M_BDF2 = sparse.vstack([
-        sparse.hstack([M_BDF2, sparse.csr_matrix(M_BDF2.shape), -dt*BT1]),
-        sparse.hstack([sparse.csr_matrix(M_BDF2.shape), M_BDF2, -dt*BT2]),
+        sparse.hstack([M_BDF2, sparse.csr_matrix(M_BDF2.shape), -BT1]),
+        sparse.hstack([sparse.csr_matrix(M_BDF2.shape), M_BDF2, -BT2]),
         sparse.hstack([B, sparse.csr_matrix((ndofs_p, ndofs_p))])
     ], "csr")
 
@@ -165,7 +165,7 @@ for t_ind in range(0, 5):
 
         t0_BDF2 = time.time()
         f_now = f(k*dt)
-        rhs_BDF2 = M_2D.dot(dt*f_now + 2*u_BDF2[0:2*ndofs_u] - 0.5*u_BDF2_old[0:2*ndofs_u])
+        rhs_BDF2 = M_2D.dot(f_now + 2./dt*u_BDF2[0:2*ndofs_u] - 0.5/dt*u_BDF2_old[0:2*ndofs_u])
         rhs_BDF2 = apply_bc(rhs_BDF2)
         sol = sp_la.spsolve(M_BDF2, np.append(rhs_BDF2, np.zeros((ndofs_p, 1))))
         u_BDF2_old = u_BDF2
