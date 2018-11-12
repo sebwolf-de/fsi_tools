@@ -302,62 +302,63 @@ def gradu_gradv_p1(topo,x,y):
     return A
 
 def u_gradv_w_p1(topo, x, y, u_x, u_y):
+    # Assembling the Nonlinear convective operator. The function name resambles the
+    # operator assuming P1 elements on trinangles
+    # As we have P1 elements, the gradient of v is piecewise constant, so we can factor
+    # grad v out of the integral and just consider the integral of u*w
 
-        ndofs = max(x.shape)
+    ndofs = max(x.shape)
 
-        A11 = sparse.csr_matrix((ndofs,ndofs))
-        A12 = sparse.csr_matrix((ndofs,ndofs))
-        A21 = sparse.csr_matrix((ndofs,ndofs))
-        A22 = sparse.csr_matrix((ndofs,ndofs))
+    A11 = sparse.csr_matrix((ndofs,ndofs))
+    A12 = sparse.csr_matrix((ndofs,ndofs))
+    A21 = sparse.csr_matrix((ndofs,ndofs))
+    A22 = sparse.csr_matrix((ndofs,ndofs))
 
-        for row in topo:
-            x_l = x[row]
-            y_l = y[row]
-            local_matrix = np.zeros((3,3))
-            local_mass_matrix = local_p1_p1_mass_tri(x_l,y_l)
+    for row in topo:
+        x_l = x[row]
+        y_l = y[row]
+        local_matrix = np.zeros((3,3))
+        local_mass_matrix = local_p1_p1_mass_tri(x_l,y_l)
 
-            eval_points = np.zeros( (3,2) )
-            eval_points[:,0] = x_l.transpose()
-            eval_points[:,1] = y_l.transpose()
+        eval_points = np.zeros( (3,2) )
+        eval_points[:,0] = x_l.transpose()
+        eval_points[:,1] = y_l.transpose()
 
-            (w_dx,w_dy,w_l,omega_w) = basis.tri_p1(x_l,y_l,eval_points)
-            (v_dx,v_dy,v_l,omega_v) = basis.tri_p1(x_l,y_l,eval_points)
+        (v_dx,v_dy,v_l,omega_v) = basis.tri_p1(x_l,y_l,eval_points)
+        # int_w_omega = np.zeros((1,3))
+        # for k in range(0,3):
+        #     int_w_omega[0,k] += omega_w/3 * sum(w_l[:,k])
 
+        # print "-----------"
+        # print local_mass_matrix
+        # print u_x[row]
+        # print v_dx
+        # print w_dx
 
-            # int_w_omega = np.zeros((1,3))
-            # for k in range(0,3):
-            #     int_w_omega[0,k] += omega_w/3 * sum(w_l[:,k])
+        local_matrix = np.reshape(np.dot(u_x[row].transpose(), local_mass_matrix), (1,3))
+        local_matrix = np.dot(v_dx.transpose(), local_matrix)
+        A11 = la_utils.add_local_to_global(A11,local_matrix,row,row)
 
-            # print "-----------"
-            # print local_mass_matrix
-            # print u_x[row]
-            # print v_dx
-            # print w_dx
+        local_matrix = np.reshape(np.dot(u_y[row].transpose(), local_mass_matrix), (1,3))
+        local_matrix = np.dot(v_dy.transpose(), local_matrix)
+        A12 = la_utils.add_local_to_global(A12,local_matrix,row,row)
 
-            local_matrix = np.reshape(np.dot(u_x[row].transpose(), local_mass_matrix), (1,3))
-            local_matrix = np.dot(v_dx.transpose(), local_matrix)
-            A11 = la_utils.add_local_to_global(A11,local_matrix,row,row)
+        local_matrix = np.reshape(np.dot(u_x[row].transpose(), local_mass_matrix), (1,3))
+        local_matrix = np.dot(v_dx.transpose(), local_matrix)
+        A21 = la_utils.add_local_to_global(A21,local_matrix,row,row)
 
-            local_matrix = np.reshape(np.dot(u_y[row].transpose(), local_mass_matrix), (1,3))
-            local_matrix = np.dot(v_dy.transpose(), local_matrix)
-            A12 = la_utils.add_local_to_global(A12,local_matrix,row,row)
+        local_matrix = np.reshape(np.dot(u_y[row].transpose(), local_mass_matrix), (1,3))
+        local_matrix = np.dot(v_dy.transpose(), local_matrix)
+        A22 = la_utils.add_local_to_global(A22,local_matrix,row,row)
 
-            local_matrix = np.reshape(np.dot(u_x[row].transpose(), local_mass_matrix), (1,3))
-            local_matrix = np.dot(v_dx.transpose(), local_matrix)
-            A21 = la_utils.add_local_to_global(A21,local_matrix,row,row)
+    #plt.spy(A11)
+    #plt.show()
+    A11 = 0.5*(A11-A11.transpose())
+    A12 = 0.5*(A12-A21.transpose())
+    A21 = 0.5*(A12-A21.transpose())
+    A22 = 0.5*(A22-A22.transpose())
 
-            local_matrix = np.reshape(np.dot(u_y[row].transpose(), local_mass_matrix), (1,3))
-            local_matrix = np.dot(v_dy.transpose(), local_matrix)
-            A22 = la_utils.add_local_to_global(A22,local_matrix,row,row)
-
-        #plt.spy(A11)
-        #plt.show()
-        A11 = 0.5*(A11-A11.transpose())
-        A12 = 0.5*(A12-A21.transpose())
-        A21 = 0.5*(A12-A21.transpose())
-        A22 = 0.5*(A22-A22.transpose())
-
-        return A11, A12, A21, A22
+    return A11, A12, A21, A22
 
 def divu_p_p1_iso_p2_p1(topo_p,x_p,y_p,
            topo_u,x_u,y_u,c2f):
