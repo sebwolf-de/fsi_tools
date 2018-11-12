@@ -1,8 +1,11 @@
 #! /usr/bin/env python
 
+import basis_func
+import matplotlib.pyplot as plt
 import os
 import sys
 import numpy as np
+import scipy.sparse as sparse
 
 from pyevtk.hl import unstructuredGridToVTK
 from pyevtk.vtk import VtkTriangle
@@ -35,6 +38,7 @@ s_lgr = np.load(f)
 t_lgr = np.load(f)
 f.close()
 
+topo_u_old = topo_u
 z_u = np.zeros(x_u.shape)
 n_triangles_u = topo_u.shape[0]
 offset_u = (np.ones(n_triangles_u)*3).cumsum().astype(int)
@@ -87,12 +91,32 @@ for cn_time in time_list:
     u_x = u[0:ndofs]
     u_y = u[ndofs:2*ndofs]
 
+    print np.max(np.abs(u_x))
+
     p_vertex = np.zeros(x_p.shape)
     k = 0
     for row in topo_p_old:
          p_vertex[3*k:3*k+3] = p[row[0:3]] + p[row[3]]
          k = k+1
 
+    # mat_dx = sparse.lil_matrix((n_triangles_u, ndofs))
+    # mat_dy = sparse.lil_matrix((n_triangles_u, ndofs))
+    # k = 0
+    # for row in topo_u_old:
+    #     x_l = x_p[row]
+    #     y_l = y_p[row]
+    #     eval_points = np.array([[np.sum(x_l)/3, np.sum(y_l)/3]])
+    #     (phi_dx,phi_dy,phi,omega) = basis_func.tri_p1(x_l,y_l,eval_points)
+    #     if omega > 1e-8:
+    #         mat_dx[k, row] = phi_dx
+    #         mat_dy[k, row] = phi_dy
+    #     k = k+1
+    # u_dx = mat_dx.dot(u_x)
+    # v_dx = mat_dx.dot(u_y)
+    # u_dy = mat_dy.dot(u_x)
+    # v_dy = mat_dy.dot(u_y)
+
     unstructuredGridToVTK(vtk_dir+'pressure_cn_time_'+str(cn_time).zfill(ph.time_index_digits), x_p, y_p, z_p, connectivity = topo_p, offsets = offset_p, cell_types = ctype_p, cellData = None, pointData = {"p": p_vertex})
+    # unstructuredGridToVTK(vtk_dir+'fluid_cn_time_'+str(cn_time).zfill(ph.time_index_digits), x_u, y_u, z_u, connectivity = topo_u, offsets = offset_u, cell_types = ctype_u, cellData = {"u_dx": u_dx, "v_dx": v_dx, "u_dy": u_dy, "v_dy": v_dy}, pointData = {"vel": (u_x, u_y, z_u)})
     unstructuredGridToVTK(vtk_dir+'fluid_cn_time_'+str(cn_time).zfill(ph.time_index_digits), x_u, y_u, z_u, connectivity = topo_u, offsets = offset_u, cell_types = ctype_u, cellData = None, pointData = {"vel": (u_x, u_y, z_u)})
     unstructuredGridToVTK(vtk_dir+'structure_cn_time_'+str(cn_time).zfill(ph.time_index_digits), s_lgr, t_lgr, z_s, connectivity = topo_s, offsets = offset_s, cell_types = ctype_s, cellData = None, pointData = {"ds": (s_x, s_y, z_s)})
