@@ -1,20 +1,22 @@
 {
-  "solver_type" : "ns_",
-  "mesh_prefix": "test_",
+    "solver_type": "ns_",
+    "mesh_prefix": "test_",
 
-  "time_integration" : "BDF2",
-  "delta_time_base": 3125,
-  "delta_time_negative_esponent": 4,
-  "fluid_triangulation_intervals" : 32,
-  "structure_triangulation_intervals" : 32,
+    "time_integration" : "BDF2",
+    "delta_time_base": 125,
+    "delta_time_negative_esponent": 6,
+    "fluid_triangulation_intervals" : 12,
 
-  "kappa": 10,
-  "rho_fluid" : 1,
-  "rho_structure" : 1,
-  "nu" : 1,
+    "rho_fluid" : 1,
+    "nu" : 1,
 
-  "time_intervals_to_be_simulated": 9,
-  "time_intervals_in_between_printed_results": 8,
-  "time_index_digits": 3,
-  "results_directory": "results"
+    "time_intervals_to_be_simulated": 16,
+    "time_intervals_in_between_printed_results": 1,
+    "time_index_digits": 4,
+    "results_directory": "results",
+
+    "kappa": 5,
+    "rho_structure" : 1,
+    "reynolds_number" : 1,
+    "structure_triangulation_intervals" : 2
 }
