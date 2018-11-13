@@ -353,10 +353,10 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
 
     #plt.spy(A11)
     #plt.show()
-    A11 = 0.5*(A11-A11.transpose())
-    A12 = 0.5*(A12-A21.transpose())
-    A21 = 0.5*(A12-A21.transpose())
-    A22 = 0.5*(A22-A22.transpose())
+    # A11 = 0.5*(A11-A11.transpose())
+    # A12 = 0.5*(A12-A21.transpose())
+    # A21 = 0.5*(A12-A21.transpose())
+    # A22 = 0.5*(A22-A22.transpose())
 
     return A11, A12, A21, A22
 
