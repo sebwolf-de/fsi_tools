@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import sparse
 from shapely.geometry import Point
+import multiprocessing
 
 # nicola modules
 import la_utils
@@ -307,6 +308,29 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
     # As we have P1 elements, the gradient of v is piecewise constant, so we can factor
     # grad v out of the integral and just consider the integral of u*w
 
+    p = multiprocessing.Pool()
+    # n_cpu = 4
+    n_cpu = multiprocessing.cpu_count()
+    numel = topo.shape[0]
+    workers = []
+    for k in range(n_cpu):
+        subtopo = topo[numel*k/n_cpu:numel*(k+1)/n_cpu,:]
+        w = p.apply_async(calc_u_grad_v_w_p1_partly, args = (subtopo, x, y, u_x, u_y))
+        workers.append(w)
+
+    (A11, A12, A21, A22) = workers[0].get(timeout=10)
+    for k in range(1,n_cpu):
+        (B11, B12, B21, B22) = workers[k].get(timeout=10)
+        A11 += B11
+        A12 += B12
+        A21 += B21
+        A22 += B22
+
+    p.close()
+
+    return A11, A12, A21, A22
+
+def calc_u_grad_v_w_p1_partly(topo, x, y, u_x, u_y):
     ndofs = max(x.shape)
 
     A11 = sparse.csr_matrix((ndofs,ndofs))
@@ -325,15 +349,6 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
         eval_points[:,1] = y_l.transpose()
 
         (v_dx,v_dy,v_l,omega_v) = basis.tri_p1(x_l,y_l,eval_points)
-        # int_w_omega = np.zeros((1,3))
-        # for k in range(0,3):
-        #     int_w_omega[0,k] += omega_w/3 * sum(w_l[:,k])
-
-        # print "-----------"
-        # print local_mass_matrix
-        # print u_x[row]
-        # print v_dx
-        # print w_dx
 
         local_matrix = np.reshape(np.dot(u_x[row].transpose(), local_mass_matrix), (1,3))
         local_matrix = np.dot(v_dx.transpose(), local_matrix)
@@ -350,13 +365,6 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
         local_matrix = np.reshape(np.dot(u_y[row].transpose(), local_mass_matrix), (1,3))
         local_matrix = np.dot(v_dy.transpose(), local_matrix)
         A22 = la_utils.add_local_to_global(A22,local_matrix,row,row)
-
-    #plt.spy(A11)
-    #plt.show()
-    # A11 = 0.5*(A11-A11.transpose())
-    # A12 = 0.5*(A12-A21.transpose())
-    # A21 = 0.5*(A12-A21.transpose())
-    # A22 = 0.5*(A22-A22.transpose())
 
     return A11, A12, A21, A22
 
