@@ -23,10 +23,13 @@ def analytical(t):
 
 
 def f(t):
-    f_x = 4*(2 - 12*x_u + 12*x_u**2) * (2*y_u - 6*y_u**2 + 4*y_u**3) + 4*x_u**2 * (1-x_u)**2 * (-12 + 24*y_u) - 1
-    f_y = -4*(-12 + 24*x_u) * y_u**2 * (1-y_u)**2 - 4*(2*x_u - 6*x_u**2 + 4*x_u**3) * (2 - 12*y_u + 12*y_u**2)
+    u_x = 4* x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
+    u_y = -4* (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2
+    f_x = 4* (2 - 12*x_u + 12*x_u**2) * (2*y_u - 6*y_u**2 + 4*y_u**3) + 4*x_u**2 * (1-x_u)**2 * (-12 + 24*y_u) - 1
+    f_y = -4* (-12 + 24*x_u) * y_u**2 * (1-y_u)**2 - 4*(2*x_u - 6*x_u**2 + 4*x_u**3) * (2 - 12*y_u + 12*y_u**2)
+    u_stacked = np.reshape(np.append(u_x, u_y), (2*ndofs_u, 1))
     f_stacked = np.reshape(np.append(f_x, f_y), (2*ndofs_u, 1))
-    return np.cos(t) * analytical_u(t) - np.sin(t) * f_stacked
+    return np.cos(t) * u_stacked - np.sin(t) * f_stacked
 
 def apply_bc(g):
     bc_id = np.where(y_u > 1-dx/10)
