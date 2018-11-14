@@ -327,6 +327,7 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
         A22 += B22
 
     p.close()
+    p.join()
 
     return A11, A12, A21, A22
 
