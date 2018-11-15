@@ -318,9 +318,9 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
         w = p.apply_async(calc_u_grad_v_w_p1_partly, args = (subtopo, x, y, u_x, u_y))
         workers.append(w)
 
-    (A11, A12, A21, A22) = workers[0].get(timeout=10)
+    (A11, A12, A21, A22) = workers[0].get()
     for k in range(1,n_cpu):
-        (B11, B12, B21, B22) = workers[k].get(timeout=10)
+        (B11, B12, B21, B22) = workers[k].get()
         A11 += B11
         A12 += B12
         A21 += B21
