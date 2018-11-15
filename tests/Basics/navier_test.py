@@ -5,6 +5,7 @@ import numpy as np
 import scipy.sparse.linalg as sp_la
 from scipy import sparse
 import time
+import sys
 
 import assemble
 import basis_func as shp
@@ -13,8 +14,8 @@ import lin_tri_mesh as lin_t3
 import viewers
 
 def analytical_u(t):
-    analytical_x = 4*np.sin(t) * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
-    analytical_y = -4*np.sin(t) * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2
+    analytical_x =  4 * t**2 * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
+    analytical_y = -4 * t**2 * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2
     analytical = np.reshape(np.append(analytical_x, analytical_y), (2*ndofs_u, 1))
     return analytical
 
@@ -27,16 +28,16 @@ def analytical(t):
 
 def f(t):
     ## time derivative
-    f_x =  4*np.cos(t) * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
-    f_y = -4*np.cos(t) * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2
+    f_x =  4 * 2*t * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
+    f_y = -4 * 2*t * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2
     ## convection term
-    f_x +=  16*np.sin(t)**2 * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)**2 * (2*x_u - 6*x_u**2 + 4*x_u**3)
-    f_y += -16*np.sin(t)**2 * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3) * (2 - 12*x_u + 12*x_u**2) * y_u**2 * (1-y_u)**2
-    f_x += -16*np.sin(t)**2 * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2 * x_u**2 * (1-x_u)**2 * (2 - 12*y_u + 12*y_u**2)
-    f_y +=  16*np.sin(t)**2 * (2*x_u - 6*x_u**2 + 4*x_u**3)**2 * y_u**2 * (1-y_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
+    f_x +=  (4*t**2)**2 * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)**2 * (2*x_u - 6*x_u**2 + 4*x_u**3)
+    f_y += -(4*t**2)**2 * t**4 * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3) * (2 - 12*x_u + 12*x_u**2) * y_u**2 * (1-y_u)**2
+    f_x += -(4*t**2)**2 * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2 * x_u**2 * (1-x_u)**2 * (2 - 12*y_u + 12*y_u**2)
+    f_y +=  (4*t**2)**2 * t**4 * (2*x_u - 6*x_u**2 + 4*x_u**3)**2 * y_u**2 * (1-y_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
     ## diffusion term
-    f_x += -4*np.sin(t) * ((2 - 12*x_u + 12*x_u**2) * (2*y_u - 6*y_u**2 + 4*y_u**3) + x_u**2 * (1-x_u)**2 * (-12 + 24*y_u))
-    f_y += -4*np.sin(t) * (-(-12 + 24*x_u) * y_u**2 * (1-y_u)**2 - (2*x_u - 6*x_u**2 + 4*x_u**3) * (2 - 12*y_u + 12*y_u**2))
+    f_x += -4 * t**2 * ((2 - 12*x_u + 12*x_u**2) * (2*y_u - 6*y_u**2 + 4*y_u**3) + x_u**2 * (1-x_u)**2 * (-12 + 24*y_u))
+    f_y += -4 * t**2 * (-(-12 + 24*x_u) * y_u**2 * (1-y_u)**2 - (2*x_u - 6*x_u**2 + 4*x_u**3) * (2 - 12*y_u + 12*y_u**2))
     ## pressure gradient
     f_x +=  -1
     f_y +=  0
@@ -80,6 +81,8 @@ def assemble_blockwise_matrix_BDF1():
     (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
     D11 = 1./dt*M + K + S11
     D22 = 1./dt*M + K + S22
+    # D11 = 1./dt*M + K
+    # D22 = 1./dt*M + K
     # S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
     # S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
@@ -158,6 +161,8 @@ def assemble_blockwise_matrix_BDF2():
     (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
     D11 = 1.5/dt*M + K + S11
     D22 = 1.5/dt*M + K + S22
+    # D11 = 1.5/dt*M + K
+    # D22 = 1.5/dt*M + K
     # S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
     # S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
@@ -244,6 +249,8 @@ def assemble_blockwise_matrix_Theta():
     (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
     D11 = 1./dt*M + 0.5*K + 0.5*S11
     D22 = 1./dt*M + 0.5*K + 0.5*S22
+    # D11 = 1./dt*M + 0.5*K
+    # D22 = 1./dt*M + 0.5*K
     # S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
     # S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
@@ -316,15 +323,19 @@ def apply_bc(g):
 
     return g
 
-n = 24
+if len(sys.argv) > 1:
+    n = int(sys.argv[1])
+else:
+    n = 10
+print n
 dx = 1./n
 
-T = 0.5*np.pi
+T = 1.
 Theta = 0.5
 TOL = 1e-8
 max_iter = 10
 
-n_runs = 5
+n_runs = 4
 
 t0 = time.time()
 (topo_p,x_p,y_p,topo_u,x_u,y_u,c2f) = lin_t3.mesh_t3_iso_t6(n,n,dx,dx)
