@@ -1,5 +1,6 @@
 #! /bin/env python
 
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.sparse.linalg as sp_la
 from scipy import sparse
@@ -9,6 +10,7 @@ import assemble
 import basis_func as shp
 import la_utils
 import lin_tri_mesh as lin_t3
+import viewers
 
 def analytical_u(t):
     analytical_x = 4*np.sin(t) * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
@@ -17,7 +19,7 @@ def analytical_u(t):
     return analytical
 
 def analytical_p(t):
-    return np.reshape(np.sin(t) * (x_p-0.5), (ndofs_p, 1))
+    return np.reshape((x_p-0.5), (ndofs_p, 1))
 
 def analytical(t):
     return sparse.vstack([analytical_u(t), analytical_p(t)])
@@ -34,9 +36,9 @@ def f(t):
     f_y +=  16*np.sin(t)**2 * (2*x_u - 6*x_u**2 + 4*x_u**3)**2 * y_u**2 * (1-y_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
     ## diffusion term
     f_x += -4*np.sin(t) * ((2 - 12*x_u + 12*x_u**2) * (2*y_u - 6*y_u**2 + 4*y_u**3) + x_u**2 * (1-x_u)**2 * (-12 + 24*y_u))
-    f_y +=  4*np.sin(t) * ((-12 + 24*x_u) * y_u**2 * (1-y_u)**2 + (2*x_u - 6*x_u**2 + 4*x_u**3) * (2 - 12*y_u + 12*y_u**2))
+    f_y += -4*np.sin(t) * (-(-12 + 24*x_u) * y_u**2 * (1-y_u)**2 - (2*x_u - 6*x_u**2 + 4*x_u**3) * (2 - 12*y_u + 12*y_u**2))
     ## pressure gradient
-    f_x +=  4*np.sin(t) * 1
+    f_x +=  -1
     f_y +=  0
     f_stacked = np.reshape(np.append(f_x, f_y), (2*ndofs_u, 1))
     return f_stacked
@@ -78,6 +80,8 @@ def assemble_blockwise_matrix_BDF1():
     (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
     D11 = 1./dt*M + K + S11
     D22 = 1./dt*M + K + S22
+    # S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    # S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
     #lower boundary
     bc_id = np.where(y_u < dx/10)
@@ -154,6 +158,8 @@ def assemble_blockwise_matrix_BDF2():
     (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
     D11 = 1.5/dt*M + K + S11
     D22 = 1.5/dt*M + K + S22
+    # S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    # S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
     #lower boundary
     bc_id = np.where(y_u < dx/10)
@@ -199,14 +205,15 @@ def assemble_blockwise_force_Theta(t):
 
     g_now = f(t)
     g_prev = f(t-dt)
-    f_rhs_x = 1./dt*M.dot(u_Theta[0:ndofs_u]) - 0.5*K.dot(u_Theta[0:ndofs_u]) \
-        - 0.5*S11.dot(u_Theta[0:ndofs_u]) - 0.5*S12.dot(u_Theta[ndofs_u:2*ndofs_u])\
-        + 0.5*BT1.dot(u_Theta[2*ndofs_u:2*ndofs_u+ndofs_p]) \
-        + 0.5*M.dot(g_now[0:ndofs_u] + g_prev[0:ndofs_u])
-    f_rhs_y = 1./dt*M.dot(u_Theta[ndofs_u:2*ndofs_u]) - 0.5*K.dot(u_Theta[ndofs_u:2*ndofs_u]) \
-        - 0.5*S21.dot(u_Theta[0:ndofs_u]) - 0.5*S22.dot(u_Theta[ndofs_u:2*ndofs_u]) \
-        + 0.5*BT2.dot(u_Theta[2*ndofs_u:2*ndofs_u+ndofs_p]) \
-        + 0.5*M.dot(g_now[ndofs_u:2*ndofs_u] + g_prev[ndofs_u:2*ndofs_u])
+    f_rhs_x = 1./dt*M.dot(u_Theta[0:ndofs_u]) - 0.5*K.dot(u_Theta[0:ndofs_u])
+    f_rhs_x += - 0.5*S11.dot(u_Theta[0:ndofs_u]) - 0.5*S12.dot(u_Theta[ndofs_u:2*ndofs_u])
+    f_rhs_x +=  0.5*BT1.dot(u_Theta[2*ndofs_u:2*ndofs_u+ndofs_p])
+    f_rhs_x += 0.5*M.dot(g_now[0:ndofs_u] + g_prev[0:ndofs_u])
+
+    f_rhs_y = 1./dt*M.dot(u_Theta[ndofs_u:2*ndofs_u]) - 0.5*K.dot(u_Theta[ndofs_u:2*ndofs_u])
+    f_rhs_y += - 0.5*S21.dot(u_Theta[0:ndofs_u]) - 0.5*S22.dot(u_Theta[ndofs_u:2*ndofs_u])
+    f_rhs_y += 0.5*BT2.dot(u_Theta[2*ndofs_u:2*ndofs_u+ndofs_p])
+    f_rhs_y += 0.5*M.dot(g_now[ndofs_u:2*ndofs_u] + g_prev[ndofs_u:2*ndofs_u])
 
     #upper boundary
     bc_id = np.where(y_u > 1-dx/10)
@@ -237,6 +244,8 @@ def assemble_blockwise_matrix_Theta():
     (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
     D11 = 1./dt*M + 0.5*K + 0.5*S11
     D22 = 1./dt*M + 0.5*K + 0.5*S22
+    # S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    # S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
     #lower boundary
     bc_id = np.where(y_u < dx/10)
@@ -307,10 +316,10 @@ def apply_bc(g):
 
     return g
 
-n = 32
+n = 24
 dx = 1./n
 
-T = 8
+T = 0.5*np.pi
 Theta = 0.5
 TOL = 1e-8
 max_iter = 10
@@ -377,7 +386,7 @@ err_BDF2 = np.zeros((n_runs))
 err_Theta = np.zeros((n_runs))
 ### start loop over different time steps
 for t_ind in range(0, n_runs):
-    dt = 2**(2-t_ind)
+    dt = 0.5*T*2**(-t_ind)
 
     u_0 = analytical(0)
     u_1 = analytical(dt)
@@ -426,6 +435,7 @@ for t_ind in range(0, n_runs):
             print 'BDF2, res = ' + str(res)
             if res < TOL:
                 break
+        u_BDF2_old = u_BDF2
         u_BDF2 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
         # print 'error of BDF2 solution for t = ' + str(k*dt) + ': ' + str(np.linalg.norm(u_BDF2[0:2*ndofs_u]-analytical_u(k*dt)))
         t1_BDF2 = time.time()
