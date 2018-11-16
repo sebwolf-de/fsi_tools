@@ -316,15 +316,15 @@ def apply_bc(g):
 
     return g
 
-n = 24
+n = 100
 dx = 1./n
 
-T = np.pi
+T = 0.5*np.pi
 Theta = 0.5
 TOL = 1e-8
 max_iter = 10
 
-n_runs = 6
+n_runs = 4
 
 t0 = time.time()
 (topo_p,x_p,y_p,topo_u,x_u,y_u,c2f) = lin_t3.mesh_t3_iso_t6(n,n,dx,dx)
@@ -386,7 +386,7 @@ err_BDF2 = np.zeros((n_runs))
 err_Theta = np.zeros((n_runs))
 ### start loop over different time steps
 for t_ind in range(0, n_runs):
-    dt = np.pi*2**(-t_ind-1)
+    dt = 0.5*T*2**(-t_ind)
 
     u_0 = analytical(0)
     u_1 = analytical(dt)
@@ -402,61 +402,26 @@ for t_ind in range(0, n_runs):
     for k in range(2,N):
         print 't = ' + str(k*dt)
         t0_BDF1 = time.time()
-        ux_n1 = np.reshape(u_BDF1[0:ndofs_u], (ndofs_u, 1))
-        uy_n1 = np.reshape(u_BDF1[ndofs_u:2*ndofs_u], (ndofs_u, 1))
         rhs_BDF1 = assemble_blockwise_force_BDF1(k*dt)
         M_BDF1 = assemble_blockwise_matrix_BDF1()
-        ### start nonlinear solver for BDF1
-        for nonlin_ind in range(max_iter):
-            sol = sp_la.spsolve(M_BDF1, rhs_BDF1)
-            ux_n1 = np.reshape(sol[0:ndofs_u], (ndofs_u, 1))
-            uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
-            M_BDF1 = assemble_blockwise_matrix_BDF1()
-            res = np.linalg.norm(M_BDF1.dot(sol) - rhs_BDF1)
-            print 'BDF1, res = ' + str(res)
-            if res < TOL:
-                break
+        sol = sp_la.spsolve(M_BDF1, rhs_BDF1)
         u_BDF1 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
         # print 'error of BDF1 solution for t = ' + str(k*dt) + ': ' + str(np.linalg.norm(u_BDF1[0:2*ndofs_u]-analytical_u(k*dt)))
         t1_BDF1 = time.time()
 
-        print np.linalg.norm(u_BDF1[0:2*ndofs_u] - analytical_u(k*dt))
-
         t0_BDF2 = time.time()
-        ux_n1 = np.reshape(u_BDF2[0:ndofs_u], (ndofs_u, 1))
-        uy_n1 = np.reshape(u_BDF2[ndofs_u:2*ndofs_u], (ndofs_u, 1))
         rhs_BDF2 = assemble_blockwise_force_BDF2(k*dt)
         M_BDF2 = assemble_blockwise_matrix_BDF2()
-        ### start nonlinear solver for BDF2
-        for nonlin_ind in range(max_iter):
-            sol = sp_la.spsolve(M_BDF2, rhs_BDF2)
-            ux_n1 = np.reshape(sol[0:ndofs_u], (ndofs_u, 1))
-            uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
-            M_BDF2 = assemble_blockwise_matrix_BDF2()
-            res = np.linalg.norm(M_BDF2.dot(sol) - rhs_BDF2)
-            print 'BDF2, res = ' + str(res)
-            if res < TOL:
-                break
+        sol = sp_la.spsolve(M_BDF2, rhs_BDF2)
         u_BDF2_old = u_BDF2
         u_BDF2 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
         # print 'error of BDF2 solution for t = ' + str(k*dt) + ': ' + str(np.linalg.norm(u_BDF2[0:2*ndofs_u]-analytical_u(k*dt)))
         t1_BDF2 = time.time()
 
         t0_Theta = time.time()
-        ux_n1 = np.reshape(u_Theta[0:ndofs_u], (ndofs_u, 1))
-        uy_n1 = np.reshape(u_Theta[ndofs_u:2*ndofs_u], (ndofs_u, 1))
         rhs_Theta = assemble_blockwise_force_Theta(k*dt)
         M_Theta = assemble_blockwise_matrix_Theta()
-        ### Start nonlinear solver for Theta
-        for nonlin_ind in range(max_iter):
-            sol = sp_la.spsolve(M_Theta, rhs_Theta)
-            ux_n1 = np.reshape(sol[0:ndofs_u], (ndofs_u, 1))
-            uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
-            M_Theta = assemble_blockwise_matrix_Theta()
-            res = np.linalg.norm(M_Theta.dot(sol) - rhs_Theta)
-            print 'Theta, res = ' + str(res)
-            if res < TOL:
-                break
+        sol = sp_la.spsolve(M_Theta, rhs_Theta)
         u_Theta = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
         # print 'error of Theta solution for t = ' + str(k*dt) + ': ' + str(np.linalg.norm(u_Theta[0:2*ndofs_u]-analytical_u(k*dt)))
         t1_Theta = time.time()
@@ -469,9 +434,9 @@ for t_ind in range(0, n_runs):
     err_BDF1[t_ind] = np.linalg.norm(u_BDF1[0:2*ndofs_u]-analytical_u(T))
     err_BDF2[t_ind] = np.linalg.norm(u_BDF2[0:2*ndofs_u]-analytical_u(T))
     err_Theta[t_ind] = np.linalg.norm(u_Theta[0:2*ndofs_u]-analytical_u(T))
-    print 't BDF1 per step  = ' + str(t1_BDF1-t0_BDF1)
-    print 't BDF2 per step  = ' + str(t1_BDF2-t0_BDF2)
-    print 't Theta per step = ' + str(t1_Theta-t0_Theta)
+    # print 't BDF1 per step  = ' + str(t1_BDF1-t0_BDF1)
+    # print 't BDF2 per step  = ' + str(t1_BDF2-t0_BDF2)
+    # print 't Theta per step = ' + str(t1_Theta-t0_Theta)
     print 'error BDF1:  ' + str(err_BDF1[t_ind])
     print 'error BDF2:  ' + str(err_BDF2[t_ind])
     print 'error Theta: ' + str(err_Theta[t_ind])
