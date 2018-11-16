@@ -129,8 +129,8 @@ def assemble_blockwise_force_BDF2(t):
     rhs = np.zeros((size,1))
 
     g = f(t)
-    f_rhs_x = 1./dt*M.dot(2*u_BDF2[0:ndofs_u] - 0.5*u_BDF2_old[0:ndofs_u]) + M.dot(g[0:ndofs_u])
-    f_rhs_y = 1./dt*M.dot(2*u_BDF2[ndofs_u:2*ndofs_u] - 0.5*u_BDF2_old[ndofs_u:2*ndofs_u]) + M.dot(g[ndofs_u:2*ndofs_u])
+    f_rhs_x = M.dot(2*u_BDF2[0:ndofs_u] - 0.5*u_BDF2_old[0:ndofs_u]) + dt*M.dot(g[0:ndofs_u])
+    f_rhs_y = M.dot(2*u_BDF2[ndofs_u:2*ndofs_u] - 0.5*u_BDF2_old[ndofs_u:2*ndofs_u]) + dt*M.dot(g[ndofs_u:2*ndofs_u])
 
     #upper boundary
     bc_id = np.where(y_u > 1-dx/10)
@@ -159,8 +159,10 @@ def assemble_blockwise_force_BDF2(t):
 
 def assemble_blockwise_matrix_BDF2():
     (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
-    D11 = 1.5/dt*M + K + S11
-    D22 = 1.5/dt*M + K + S22
+    D11 = 1.5*M + dt*K + dt*S11
+    D22 = 1.5*M + dt*K + dt*S22
+    S12 = dt*S12
+    S21 = dt*S21
     # D11 = 1.5/dt*M + K
     # D22 = 1.5/dt*M + K
     # S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
@@ -332,7 +334,7 @@ dx = 1./n
 
 T = 1.
 Theta = 0.5
-TOL = 1e-8
+TOL = 1e-5
 max_iter = 10
 
 n_runs = 4
@@ -428,7 +430,7 @@ for t_ind in range(0, n_runs):
             if res < TOL:
                 break
         u_BDF1 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
-        # print 'error of BDF1 solution for t = ' + str(k*dt) + ': ' + str(np.linalg.norm(u_BDF1[0:2*ndofs_u]-analytical_u(k*dt)))
+        print 'error of BDF1 solution for t = ' + str(k*dt) + ': ' + str(np.linalg.norm(u_BDF1[0:2*ndofs_u]-analytical_u(k*dt)))
         t1_BDF1 = time.time()
 
         t0_BDF2 = time.time()
@@ -448,7 +450,7 @@ for t_ind in range(0, n_runs):
                 break
         u_BDF2_old = u_BDF2
         u_BDF2 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
-        # print 'error of BDF2 solution for t = ' + str(k*dt) + ': ' + str(np.linalg.norm(u_BDF2[0:2*ndofs_u]-analytical_u(k*dt)))
+        print 'error of BDF2 solution for t = ' + str(k*dt) + ': ' + str(np.linalg.norm(u_BDF2[0:2*ndofs_u]-analytical_u(k*dt)))
         t1_BDF2 = time.time()
 
         t0_Theta = time.time()
@@ -467,7 +469,7 @@ for t_ind in range(0, n_runs):
             if res < TOL:
                 break
         u_Theta = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
-        # print 'error of Theta solution for t = ' + str(k*dt) + ': ' + str(np.linalg.norm(u_Theta[0:2*ndofs_u]-analytical_u(k*dt)))
+        print 'error of Theta solution for t = ' + str(k*dt) + ': ' + str(np.linalg.norm(u_Theta[0:2*ndofs_u]-analytical_u(k*dt)))
         t1_Theta = time.time()
 
         ### End of time loop
