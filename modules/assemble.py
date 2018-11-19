@@ -318,26 +318,20 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
         w = p.apply_async(calc_u_grad_v_w_p1_partly, args = (subtopo, x, y, u_x, u_y))
         workers.append(w)
 
-    (A11, A12, A21, A22) = workers[0].get()
+    A11 = workers[0].get()
     for k in range(1,n_cpu):
-        (B11, B12, B21, B22) = workers[k].get()
+        B11 = workers[k].get()
         A11 += B11
-        A12 += B12
-        A21 += B21
-        A22 += B22
 
     p.close()
     p.join()
 
-    return A11, A12, A21, A22
+    return A11
 
 def calc_u_grad_v_w_p1_partly(topo, x, y, u_x, u_y):
     ndofs = max(x.shape)
 
     A11 = sparse.csr_matrix((ndofs,ndofs))
-    A12 = sparse.csr_matrix((ndofs,ndofs))
-    A21 = sparse.csr_matrix((ndofs,ndofs))
-    A22 = sparse.csr_matrix((ndofs,ndofs))
 
     for row in topo:
         x_l = x[row]
@@ -359,15 +353,15 @@ def calc_u_grad_v_w_p1_partly(topo, x, y, u_x, u_y):
         local_matrix = np.dot(v_dy.transpose(), local_matrix)
         A11 = la_utils.add_local_to_global(A11,local_matrix,row,row)
 
-        local_matrix = np.reshape(np.dot(u_x[row].transpose(), local_mass_matrix), (1,3))
-        local_matrix = np.dot(v_dx.transpose(), local_matrix)
-        A22 = la_utils.add_local_to_global(A22,local_matrix,row,row)
+        # local_matrix = np.reshape(np.dot(u_x[row].transpose(), local_mass_matrix), (1,3))
+        # local_matrix = np.dot(v_dx.transpose(), local_matrix)
+        # A22 = la_utils.add_local_to_global(A22,local_matrix,row,row)
+        #
+        # local_matrix = np.reshape(np.dot(u_y[row].transpose(), local_mass_matrix), (1,3))
+        # local_matrix = np.dot(v_dy.transpose(), local_matrix)
+        # A22 = la_utils.add_local_to_global(A22,local_matrix,row,row)
 
-        local_matrix = np.reshape(np.dot(u_y[row].transpose(), local_mass_matrix), (1,3))
-        local_matrix = np.dot(v_dy.transpose(), local_matrix)
-        A22 = la_utils.add_local_to_global(A22,local_matrix,row,row)
-
-    return A11, A12, A21, A22
+    return A11
 
 def divu_p_p1_iso_p2_p1(topo_p,x_p,y_p,
            topo_u,x_u,y_u,c2f):
