@@ -331,6 +331,9 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
 def calc_u_grad_v_w_p1_partly(topo, x, y, u_x, u_y):
     ndofs = max(x.shape)
 
+    u_x = np.reshape(u_x, (ndofs, 1))
+    u_y = np.reshape(u_y, (ndofs, 1))
+
     A11 = sparse.csr_matrix((ndofs,ndofs))
 
     for row in topo:
@@ -345,12 +348,20 @@ def calc_u_grad_v_w_p1_partly(topo, x, y, u_x, u_y):
 
         (v_dx,v_dy,v_l,omega_v) = basis.tri_p1(x_l,y_l,eval_points)
 
-        local_matrix = np.reshape(np.dot(u_x[row].transpose(), local_mass_matrix), (1,3))
-        local_matrix = np.dot(v_dx.transpose(), local_matrix)
+        # local_matrix = np.reshape(np.dot(u_x[row].transpose(), local_mass_matrix), (1,3))
+        # local_matrix = np.dot(v_dx.transpose(), local_matrix)
+        # A11 = la_utils.add_local_to_global(A11,local_matrix,row,row)
+        #
+        # local_matrix = np.reshape(np.dot(u_y[row].transpose(), local_mass_matrix), (1,3))
+        # local_matrix = np.dot(v_dy.transpose(), local_matrix)
+        # A11 = la_utils.add_local_to_global(A11,local_matrix,row,row)
+
+        local_matrix = np.dot(local_mass_matrix, u_x[row])
+        local_matrix = np.dot(local_matrix, v_dx)
         A11 = la_utils.add_local_to_global(A11,local_matrix,row,row)
 
-        local_matrix = np.reshape(np.dot(u_y[row].transpose(), local_mass_matrix), (1,3))
-        local_matrix = np.dot(v_dy.transpose(), local_matrix)
+        local_matrix = np.dot(local_mass_matrix, u_y[row])
+        local_matrix = np.dot(local_matrix, v_dy)
         A11 = la_utils.add_local_to_global(A11,local_matrix,row,row)
 
         # local_matrix = np.reshape(np.dot(u_x[row].transpose(), local_mass_matrix), (1,3))
