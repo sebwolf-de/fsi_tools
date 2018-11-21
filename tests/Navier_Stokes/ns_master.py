@@ -360,9 +360,9 @@ for cn_time in range(0,len(ph.stampa)):
         force = assemble_blockwise_force_BDF1()
         mat = assemble_blockwise_matrix_BDF1()
     elif ph.time_integration == 'Theta'  or cn_time == 0:
-        (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
-        force = assemble_blockwise_force_Theta(S11, S12, S21, S22)
-        mat = assemble_blockwise_matrix_Theta(S11, S12, S21, S22)
+        S11 = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+        force = assemble_blockwise_force_Theta(S11)
+        mat = assemble_blockwise_matrix_Theta(S11)
     else:
         force = assemble_blockwise_force_BDF2()
         mat = assemble_blockwise_matrix_BDF2()
@@ -380,8 +380,8 @@ for cn_time in range(0,len(ph.stampa)):
         if ph.time_integration == 'BDF1':
             mat = assemble_blockwise_matrix_BDF1()
         elif ph.time_integration == 'Theta' or cn_time == 0:
-            (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
-            mat = assemble_blockwise_matrix_Theta(S11, S12, S21, S22)
+            S11 = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+            mat = assemble_blockwise_matrix_Theta(S11)
         else:
             mat = assemble_blockwise_matrix_BDF2()
         #print m - mat
