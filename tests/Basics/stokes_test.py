@@ -428,12 +428,12 @@ for t_ind in range(0, n_runs):
 
         ### End of time loop
 
-    # err_BDF1[t_ind] = l2_norm(M_2D, u_BDF1[0:2*ndofs_u]-analytical_u(T))
-    # err_BDF2[t_ind] = l2_norm(M_2D, u_BDF2[0:2*ndofs_u]-analytical_u(T))
-    # err_Theta[t_ind] = l2_norm(M_2D, u_Theta[0:2*ndofs_u]-analytical_u(T))
-    err_BDF1[t_ind] = np.linalg.norm(u_BDF1[0:2*ndofs_u]-analytical_u(T))
-    err_BDF2[t_ind] = np.linalg.norm(u_BDF2[0:2*ndofs_u]-analytical_u(T))
-    err_Theta[t_ind] = np.linalg.norm(u_Theta[0:2*ndofs_u]-analytical_u(T))
+    err_BDF1[t_ind] = l2_norm(M_2D, u_BDF1[0:2*ndofs_u]-analytical_u(T))
+    err_BDF2[t_ind] = l2_norm(M_2D, u_BDF2[0:2*ndofs_u]-analytical_u(T))
+    err_Theta[t_ind] = l2_norm(M_2D, u_Theta[0:2*ndofs_u]-analytical_u(T))
+    # err_BDF1[t_ind] = np.linalg.norm(u_BDF1[0:2*ndofs_u]-analytical_u(T))
+    # err_BDF2[t_ind] = np.linalg.norm(u_BDF2[0:2*ndofs_u]-analytical_u(T))
+    # err_Theta[t_ind] = np.linalg.norm(u_Theta[0:2*ndofs_u]-analytical_u(T))
     # print 't BDF1 per step  = ' + str(t1_BDF1-t0_BDF1)
     # print 't BDF2 per step  = ' + str(t1_BDF2-t0_BDF2)
     # print 't Theta per step = ' + str(t1_Theta-t0_Theta)
