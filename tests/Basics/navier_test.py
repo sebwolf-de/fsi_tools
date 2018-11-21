@@ -14,8 +14,8 @@ import lin_tri_mesh as lin_t3
 import viewers
 
 def analytical_u(t):
-    analytical_x =  (4*np.sin(t)) * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
-    analytical_y = -(4*np.sin(t)) * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2
+    analytical_x =  (4*np.sin(t)+5) * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
+    analytical_y = -(4*np.sin(t)+5) * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2
     analytical = np.reshape(np.append(analytical_x, analytical_y), (2*ndofs_u, 1))
     return analytical
 
@@ -31,13 +31,13 @@ def f(t):
     f_x =  (4*np.cos(t)) * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
     f_y = -(4*np.cos(t)) * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2
     ## convection term
-    f_x +=  (4*np.sin(t))**2 * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)**2 * (2*x_u - 6*x_u**2 + 4*x_u**3)
-    f_y += -(4*np.sin(t))**2 * t**4 * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3) * (2 - 12*x_u + 12*x_u**2) * y_u**2 * (1-y_u)**2
-    f_x += -(4*np.sin(t))**2 * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2 * x_u**2 * (1-x_u)**2 * (2 - 12*y_u + 12*y_u**2)
-    f_y +=  (4*np.sin(t))**2 * t**4 * (2*x_u - 6*x_u**2 + 4*x_u**3)**2 * y_u**2 * (1-y_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
+    f_x +=  (4*np.sin(t)+5)**2 * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)**2 * (2*x_u - 6*x_u**2 + 4*x_u**3)
+    f_y += -(4*np.sin(t)+5)**2 * t**4 * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3) * (2 - 12*x_u + 12*x_u**2) * y_u**2 * (1-y_u)**2
+    f_x += -(4*np.sin(t)+5)**2 * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2 * x_u**2 * (1-x_u)**2 * (2 - 12*y_u + 12*y_u**2)
+    f_y +=  (4*np.sin(t)+5)**2 * t**4 * (2*x_u - 6*x_u**2 + 4*x_u**3)**2 * y_u**2 * (1-y_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
     ## diffusion term
-    f_x += -(4*np.sin(t)) * ((2 - 12*x_u + 12*x_u**2) * (2*y_u - 6*y_u**2 + 4*y_u**3) + x_u**2 * (1-x_u)**2 * (-12 + 24*y_u))
-    f_y += -(4*np.sin(t)) * (-(-12 + 24*x_u) * y_u**2 * (1-y_u)**2 - (2*x_u - 6*x_u**2 + 4*x_u**3) * (2 - 12*y_u + 12*y_u**2))
+    f_x += -(4*np.sin(t)+5) * ((2 - 12*x_u + 12*x_u**2) * (2*y_u - 6*y_u**2 + 4*y_u**3) + x_u**2 * (1-x_u)**2 * (-12 + 24*y_u))
+    f_y += -(4*np.sin(t)+5) * (-(-12 + 24*x_u) * y_u**2 * (1-y_u)**2 - (2*x_u - 6*x_u**2 + 4*x_u**3) * (2 - 12*y_u + 12*y_u**2))
     ## pressure gradient
     f_x +=  -1
     f_y +=  0
@@ -330,7 +330,7 @@ else:
 print n
 dx = 1./n
 
-T = np.pi*0.5
+T = 5
 Theta = 0.5
 TOL = 1e-7
 max_iter = 10
@@ -470,9 +470,12 @@ for t_ind in range(0, n_runs):
         print 'error of Theta solution for t = ' + str(k*dt) + ': ' + str(l2_norm(M_2D, u_Theta[0:2*ndofs_u] - analytical_u(k*dt)))
         t1_Theta = time.time()
 
-        # print l2_norm(M_2D, u_BDF1[0:2*ndofs_u] - analytical_u(k*dt))
+        # print l2_norm(M_2D, analytical_u(k*dt))
+        # print l2_norm(M_2D, u_BDF1[0:2*ndofs_u])
         #
-        # viewers.quiver_vel(x_u,y_u,u_BDF1[0:2*ndofs_u] - analytical_u(k*dt),2*n,2*n,'asdf')
+        # viewers.quiver_vel(x_u,y_u,u_BDF1[0:2*ndofs_u],2*n,2*n,'asdf')
+        # plt.show()
+        # viewers.quiver_vel(x_u,y_u,analytical_u(k*dt),2*n,2*n,'asdf')
         # plt.show()
 
         ### End of time loop
