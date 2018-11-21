@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from scipy import sparse
 from shapely.geometry import Point
 import multiprocessing
+import os
 
 # nicola modules
 import la_utils
@@ -310,7 +311,11 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
 
     p = multiprocessing.Pool()
     # n_cpu = 4
-    n_cpu = multiprocessing.cpu_count()
+    if os.environ.get('FSI_NUM_THREADS') == None:
+        n_cpu = multiprocessing.cpu_count()
+    else:
+        n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
+    print n_cpu
     numel = topo.shape[0]
     workers = []
     for k in range(n_cpu):
