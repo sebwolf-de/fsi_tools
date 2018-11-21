@@ -335,7 +335,7 @@ Theta = 0.5
 TOL = 1e-7
 max_iter = 10
 
-n_runs = 3
+n_runs = 5
 
 t0 = time.time()
 (topo_p,x_p,y_p,topo_u,x_u,y_u,c2f) = lin_t3.mesh_t3_iso_t6(n,n,dx,dx)
