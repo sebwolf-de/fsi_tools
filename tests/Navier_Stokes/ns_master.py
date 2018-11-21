@@ -68,40 +68,31 @@ def assemble_blockwise_force_BDF1():
     return np.reshape(rhs, (size))
 
 def assemble_blockwise_matrix_BDF1():
-    (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+    S11 = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
     D11 = ph.rho_fluid/ph.dt*M11 + ph.nu*A11 + ph.rho_fluid*S11
-    D22 = ph.rho_fluid/ph.dt*M11 + ph.nu*A11 + ph.rho_fluid*S22
-
-    S12 = ph.rho_fluid*S12
-    S21 = ph.rho_fluid*S21
+    D22 = ph.rho_fluid/ph.dt*M11 + ph.nu*A11 + ph.rho_fluid*S11
+    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
     #lower boundary
     bc_id = np.where(y_u < delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
     #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
     #left boundary
     bc_id = np.where(x_u < delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
     #right boundary
     bc_id = np.where(x_u > 1-delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
 
     #### assembly of Navier-Stokes system
@@ -146,40 +137,31 @@ def assemble_blockwise_force_BDF2():
     return np.reshape(rhs, (size))
 
 def assemble_blockwise_matrix_BDF2():
-    (S11, S12, S21, S22) = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+    S11 = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
     D11 = 1.5*ph.rho_fluid/ph.dt*M11 + ph.nu*A11 + ph.rho_fluid*S11
-    D22 = 1.5*ph.rho_fluid/ph.dt*M11 + ph.nu*A11 + ph.rho_fluid*S22
+    D22 = 1.5*ph.rho_fluid/ph.dt*M11 + ph.nu*A11 + ph.rho_fluid*S11
+    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
     #lower boundary
     bc_id = np.where(y_u < delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
     #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
     #left boundary
     bc_id = np.where(x_u < delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
     #right boundary
     bc_id = np.where(x_u > 1-delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
-
-    S12 = ph.rho_fluid*S12
-    S21 = ph.rho_fluid*S21
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
@@ -190,14 +172,14 @@ def assemble_blockwise_matrix_BDF2():
     ], "csr")
     return mat
 
-def assemble_blockwise_force_Theta(S11, S12, S21, S22):
+def assemble_blockwise_force_Theta(S11):
     size = 2*ndofs_u+ndofs_p+1
     rhs = np.zeros((size,1))
 
     f_rhs_x = ph.rho_fluid/ph.dt*M11.dot(ux_n) - ph.nu*0.5*A11.dot(ux_n) \
-        - 0.5*ph.rho_fluid*S11.dot(ux_n) - 0.5*ph.rho_fluid*S12.dot(uy_n) + 0.5*BT1.dot(p_n)
+        - 0.5*ph.rho_fluid*S11.dot(ux_n) + 0.5*BT1.dot(p_n)
     f_rhs_y = ph.rho_fluid/ph.dt*M11.dot(uy_n) - ph.nu*0.5*A11.dot(uy_n) \
-        - 0.5*ph.rho_fluid*S21.dot(ux_n) - 0.5*ph.rho_fluid*S22.dot(uy_n) + 0.5*BT2.dot(p_n)
+        - 0.5*ph.rho_fluid*S11.dot(uy_n) + 0.5*BT2.dot(p_n)
 
     #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
@@ -224,40 +206,31 @@ def assemble_blockwise_force_Theta(S11, S12, S21, S22):
 
     return np.reshape(rhs, (size))
 
-def assemble_blockwise_matrix_Theta(S11, S12, S21, S22):
+def assemble_blockwise_matrix_Theta(S11):
     D11 = ph.rho_fluid/ph.dt*M11 + 0.5*ph.nu*A11 + 0.5*ph.rho_fluid*S11
-    D22 = ph.rho_fluid/ph.dt*M11 + 0.5*ph.nu*A11 + 0.5*ph.rho_fluid*S22
+    D22 = ph.rho_fluid/ph.dt*M11 + 0.5*ph.nu*A11 + 0.5*ph.rho_fluid*S11
+    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
     #lower boundary
     bc_id = np.where(y_u < delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
     #upper boundary
     bc_id = np.where(y_u > 1-delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
     #left boundary
     bc_id = np.where(x_u < delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
     #right boundary
     bc_id = np.where(x_u > 1-delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
-
-    S12 = 0.5*ph.rho_fluid*S12
-    S21 = 0.5*ph.rho_fluid*S21
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
