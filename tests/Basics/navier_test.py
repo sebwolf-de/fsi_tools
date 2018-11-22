@@ -20,7 +20,9 @@ def analytical_u(t):
     return analytical
 
 def analytical_p(t):
-    return np.reshape((x_p-0.5), (ndofs_p, 1))
+    p_1 = x_p - 0.5
+    p_0 = np.zeros(topo_p.shape[0])
+    return np.reshape(np.append(p_1, p_0), (ndofs_p, 1))
 
 def analytical(t):
     return sparse.vstack([analytical_u(t), analytical_p(t)])
@@ -337,16 +339,9 @@ max_iter = 10
 
 n_runs = 5
 
-t0 = time.time()
 (topo_p,x_p,y_p,topo_u,x_u,y_u,c2f) = lin_t3.mesh_t3_iso_t6(n,n,dx,dx)
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(n,n,dx,dx)
-t1 = time.time()
 print 'Mesh generation finished'
-print 'dofs u = ' + str(2*x_u.shape[0])
-print 'dofs p = ' + str(x_p.shape[0])
-print 't mesh = ' + str(t1-t0)
-ndofs_u = x_u.shape[0]
-ndofs_p = x_p.shape[0]
 
 t0 = time.time()
 K = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
@@ -354,6 +349,11 @@ M = assemble.u_v_p1(topo_u,x_u,y_u)
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,topo_u,x_u,y_u,c2f)
 BT = sparse.vstack([BT1,BT2])
 B = BT.transpose()
+
+ndofs_u = BT1.shape[0]
+ndofs_p = BT1.shape[1]
+print 'dofs u = ' + str(2*ndofs_u)
+print 'dofs p = ' + str(ndofs_p)
 
 bc_id = np.where(y_u > 1-dx/10)
 BT1 = la_utils.clear_rows(BT1,bc_id)
@@ -387,7 +387,7 @@ eval_p = np.zeros((0,2))
 (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_p)
 
 for row in topo_p:
-    mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.])
+    mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3., 1.])
 
 t1 = time.time()
 print 'Assembled mass, stiffness and pressure matrix'
