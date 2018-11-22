@@ -339,6 +339,7 @@ n_runs = 5
 
 t0 = time.time()
 (topo_p,x_p,y_p,topo_u,x_u,y_u,c2f) = lin_t3.mesh_t3_iso_t6(n,n,dx,dx)
+(topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(n,n,dx,dx)
 t1 = time.time()
 print 'Mesh generation finished'
 print 'dofs u = ' + str(2*x_u.shape[0])
@@ -350,7 +351,7 @@ ndofs_p = x_p.shape[0]
 t0 = time.time()
 K = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
 M = assemble.u_v_p1(topo_u,x_u,y_u)
-(BT1,BT2) = assemble.divu_p_p1_iso_p2_p1(topo_p,x_p,y_p,topo_u,x_u,y_u,c2f)
+(BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,topo_u,x_u,y_u,c2f)
 BT = sparse.vstack([BT1,BT2])
 B = BT.transpose()
 
