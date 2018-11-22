@@ -121,9 +121,9 @@ def arnoldi_iteration(A,n_iter,P=None):
             v = v - hjn*qj
         H[n+1,n] = la.norm(v,2)
         Q[:,n+1] = v/la.norm(v,2)
-        print('arnoldi iter: ' + str(n) + ', of: ' + str(n_iter))
+        ##print('arnoldi iter: ' + str(n) + ', of: ' + str(n_iter))
 
-    #print '----------------------'
+    ##print '----------------------'
     return H[:-1,:],Q[:,:-1]
 
 def multiply_inverse(A,Bt,log=False):
@@ -131,9 +131,9 @@ def multiply_inverse(A,Bt,log=False):
     v = np.zeros((A.shape[0],0))
     Bt = Bt.tolil()
 
-    if log == True:
-        line = 'multiply inverse, 0 % done.'
-        print((line), end=' ')
+    # if log == True:
+    #     line = 'multiply inverse, 0 % done.'
+    #     ##print((line), end=' ')
 
 
     for i in range(0,Bt.shape[1]):
@@ -141,17 +141,17 @@ def multiply_inverse(A,Bt,log=False):
         s = sp_la.spsolve(A.tocsr(),f)
         s = np.reshape(s,(Bt.shape[0],1))
         v = np.hstack([v,s])
-        if log == True:
-            r = float(i)/float(Bt.shape[1])
-            r = int(100*r)
-            print(('\r' * len(line)), end=' ')
-            line = 'multiply inverse, ' + str(r)
-            #print output
-            line += ' % done.'
-            print((line), end=' ')
-
-    if log == True:
-        print()
+    #     if log == True:
+    #         r = float(i)/float(Bt.shape[1])
+    #         r = int(100*r)
+    #         #print(('\r' * len(line)), end=' ')
+    #         line = 'multiply inverse, ' + str(r)
+    #         ##print output
+    #         line += ' % done.'
+    #         #print((line), end=' ')
+    #
+    # #if log == True:
+    #     #print()
 
     return v
 
@@ -210,8 +210,8 @@ def ismember(a, b):
 def get_connectivity_matrix(topo):
     dof_per_el = topo.shape[1]
     nels = topo.shape[0]
-    #print dof_per_el
-    #print nels
+    ##print dof_per_el
+    ##print nels
     rows = np.reshape(topo,(dof_per_el*nels))
     n_dofs = max(rows)+1
     cols = np.arange(0,nels)
@@ -227,13 +227,13 @@ def get_connectivity_matrix(topo):
 def get_connectivity_matrix_ieq(topo,ieq):
     dof_per_el = topo.shape[1]
     nels = topo.shape[0]
-    #print dof_per_el
-    #print nels
+    ##print dof_per_el
+    ##print nels
     rows = np.reshape(topo,(dof_per_el*nels))
-    #print 'rows = '
-    #print rows
+    ##print 'rows = '
+    ##print rows
     rows = ieq[rows]
-    #print rows
+    ##print rows
     n_dofs = max(rows)+1
     cols = np.arange(0,nels)
     cols = np.reshape(cols,(cols.shape[0],1))
@@ -260,10 +260,10 @@ def fluid_str_sparsity_pattern(topo_u,topo_s,ie_s,fluid_id):
             rows = np.hstack([rows,row])
         str_id += 1
     values = np.ones(rows.shape)
-    #print nel_f
-    #print ndofs_s
-    #print max(cols[0])
-    #print max(rows[0])
+    ##print nel_f
+    ##print ndofs_s
+    ##print max(cols[0])
+    ##print max(rows[0])
     ETS = sparse.coo_matrix((values[0],(rows[0],cols[0])),shape=(nel_f,ndofs_s))
     EU = get_connectivity_matrix(topo_u)
     A = EU.dot(ETS)
@@ -274,14 +274,14 @@ def fluid_str_sparsity_pattern(topo_u,topo_s,ie_s,fluid_id):
 ##    for chunks in fluid_id:
 ##        ies_l = ie_s[topo_s[str_id,:]]
 ##        c = np.reshape(ies_l,(1,3))
-##        #print 'str eq ='
-##        #print ies_l
+##        ##print 'str eq ='
+##        ##print ies_l
 ##        for fel in chunks:
 ##            r = np.reshape(topo_u[fel,:],(1,3))
 ##            rows = np.hstack([rows,r])
 ##            cols = np.hstack([cols,c])
-##            #print 'fluid eq ='
-##            #print topo_u[fel,:]
+##            ##print 'fluid eq ='
+##            ##print topo_u[fel,:]
 ##        str_id += 1
 ##
 ##    entries = np.zeros(rows.shape,dtype = [('row',int),('cln',int)])
@@ -359,12 +359,12 @@ def add_local_to_global_coo(rows,cols,values,
     # of matlab "ismember" to get the mapping form the
     # contruction order to the allocation order.
     (tf,index) = ismember(entry,gentry)
-    #print '----------'
-    #print vid
-    #print index
-    #print entry
-    #print gentry
-    #print '----------'
+    ##print '----------'
+    ##print vid
+    ##print index
+    ##print entry
+    ##print gentry
+    ##print '----------'
     # I finally permute the local matrix
     permuted_local_matrix = np.zeros(local_matrix.shape)
     permuted_local_matrix[index] = local_matrix

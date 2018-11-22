@@ -228,7 +228,8 @@ def load_msh(filename):
                 #print row
             #
             #print len(l)
-    topo = np.reshape(topo,(len(topo)/3,3))
+    num = int(len(topo)/3)
+    topo = np.reshape(topo,(num,3))
     #print topo
     topo = topo-1
     r_id = 0
