@@ -580,13 +580,41 @@ def u_s_p1_thick(x_u,y_u,topo_u,
                 s_lgr,t_lgr,
                 x_str,y_str,topo_s,ie_s,
                 str_segments,fluid_id):
+    p = multiprocessing.Pool()
+    # n_cpu = 4
+    if os.environ.get('FSI_NUM_THREADS') == None:
+        n_cpu = multiprocessing.cpu_count()
+    else:
+        n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
+    # print n_cpu
+    numseg = len(str_segments)
+    workers = []
+    for k in range(n_cpu):
+        subsegs = str_segments[numseg*k/n_cpu:numseg*(k+1)/n_cpu]
+        w = p.apply_async(calc_u_s_p1_thick_partly,
+            args = (x_u,y_u,topo_u,s_lgr,t_lgr,x_str,y_str,topo_s,ie_s,subsegs,fluid_id,numseg*k/n_cpu))
+        workers.append(w)
+
+    GT = workers[0].get()
+    for k in range(1,n_cpu):
+        HT = workers[k].get()
+        GT += HT
+
+    p.close()
+    p.join()
+
+    return GT
+
+def calc_u_s_p1_thick_partly(x_u,y_u,topo_u,
+                s_lgr,t_lgr,
+                x_str,y_str,topo_s,ie_s,
+                str_segments,fluid_id,str_id):
 
    #(rows,cols) = la_utils.fluid_str_sparsity_pattern(
    #topo_u,topo_s,ie_s,fluid_id)
 
    #print rows
    #print cols
-
    righe = x_u.shape[0]
    colonne = max(ie_s)+1
 
@@ -594,59 +622,31 @@ def u_s_p1_thick(x_u,y_u,topo_u,
 
    #values = np.zeros(rows.shape)
 
-   str_id = 0
    for chunks in str_segments:
-       #print '======================'
-       #print 'els = ' + str(str_id)
        nds = topo_s[str_id,:]
        xs_l = x_str[nds]
        ys_l = y_str[nds]
        s_l = s_lgr[nds]
        t_l = t_lgr[nds]
        tri_map = geom.tri_lin_map(xs_l,ys_l,s_l,t_l)
-       #print s_l
-       #print t_l
        ies_l = ie_s[nds]
        chunk_id = 0
        for poly in chunks:
            if poly.area>1e-10:
                elf = fluid_id[str_id][chunk_id]
-               #print 'elf = ' + str(elf)
                ndf = topo_u[elf,:]
                xu_l = x_u[ndf]
                yu_l = y_u[ndf]
-               #print xu_l
-               #print yu_l
                triangles = geom.triangulate(poly)
                local_matrix = np.zeros((3,3))
                for tri in triangles:
-                   #print '----------------------'
                    tmp = np.array(list(tri.exterior.coords)[0:3])
-                   #print tmp
                    lm = local_fluid_str_coupling(tmp,xu_l,yu_l,s_l,t_l,tri_map)
-                   #lm = local_mass_matrix_tri(tmp,xu_l,yu_l,xs_l,ys_l)
                    local_matrix += lm
-               #print local_matrix*24*6*6
                GT = la_utils.add_local_to_global(GT,local_matrix,ndf,ies_l)
-               #values = la_utils.add_local_to_global_coo(rows,cols,values,
-               #                ndf,ies_l,local_matrix)
-                   #break
-                   #print eval_p
-                   #values = la_utils.add_local_to_global_coo(rows,cols,values,
-                   #            ndf,ies_l,lm)
-                   #print 'triangle'
-               #for tri in triangles:
-               #    print len(tri.exterior.coords)
-               #print chunk_id
            chunk_id+=1
-           #break
-           #break
        str_id += 1
-       #break
-   #MT = sparse.coo_matrix((values,(rows,cols)),shape=(righe,colonne))
    GT.tocsr()
-   #print GT
-   #print MT
    return GT
 
 def u_v_lin_p1(topo_s,s_lgr,ieq_s):
