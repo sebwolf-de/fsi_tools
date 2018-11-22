@@ -1,3 +1,4 @@
 tests/DLM/results
 tests/Navier_Stokes/results
 *.pyc
+*.bak
