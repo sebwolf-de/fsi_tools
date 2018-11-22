@@ -590,7 +590,7 @@ def u_s_p1_thick(x_u,y_u,topo_u,
     numseg = len(str_segments)
     workers = []
     for k in range(n_cpu):
-        subsegs = str_segments[int(numseg*k/n_cpu():int(numseg*(k+1)/n_cpu)]
+        subsegs = str_segments[int(numseg*k/n_cpu):int(numseg*(k+1)/n_cpu)]
         w = p.apply_async(calc_u_s_p1_thick_partly,
             args = (x_u,y_u,topo_u,s_lgr,t_lgr,x_str,y_str,topo_s,ie_s,subsegs,fluid_id,numseg*k/n_cpu))
         workers.append(w)
