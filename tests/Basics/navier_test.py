@@ -213,12 +213,12 @@ def assemble_blockwise_force_Theta(t):
     g_now = f(t)
     g_prev = f(t-dt)
     f_rhs_x = 1./dt*M.dot(u_Theta[0:ndofs_u]) - 0.5*K.dot(u_Theta[0:ndofs_u])
-    f_rhs_x += - 0.5*S11.dot(u_Theta[0:ndofs_u]) - 0.5*S11.dot(u_Theta[ndofs_u:2*ndofs_u])
+    f_rhs_x += - 0.5*S11.dot(u_Theta[0:ndofs_u])
     f_rhs_x +=  0.5*BT1.dot(u_Theta[2*ndofs_u:2*ndofs_u+ndofs_p])
     f_rhs_x += 0.5*M.dot(g_now[0:ndofs_u] + g_prev[0:ndofs_u])
 
     f_rhs_y = 1./dt*M.dot(u_Theta[ndofs_u:2*ndofs_u]) - 0.5*K.dot(u_Theta[ndofs_u:2*ndofs_u])
-    f_rhs_y += - 0.5*S11.dot(u_Theta[0:ndofs_u]) - 0.5*S11.dot(u_Theta[ndofs_u:2*ndofs_u])
+    f_rhs_y += - 0.5*S11.dot(u_Theta[ndofs_u:2*ndofs_u])
     f_rhs_y += 0.5*BT2.dot(u_Theta[2*ndofs_u:2*ndofs_u+ndofs_p])
     f_rhs_y += 0.5*M.dot(g_now[ndofs_u:2*ndofs_u] + g_prev[ndofs_u:2*ndofs_u])
 
@@ -332,12 +332,12 @@ else:
 print(n)
 dx = 1./n
 
-T = 5
+T = 2
 Theta = 0.5
 TOL = 1e-7
 max_iter = 10
 
-n_runs = 5
+n_runs = 3
 
 (topo_p,x_p,y_p,topo_u,x_u,y_u,c2f) = lin_t3.mesh_t3_iso_t6(n,n,dx,dx)
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(n,n,dx,dx)
