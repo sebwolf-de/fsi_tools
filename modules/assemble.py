@@ -71,7 +71,34 @@ def local_mass_matrix_tri(tri,xu_l,yu_l,xs_l,ys_l):
         lm += omega/3*np.dot(col,row)
     return lm
 
+
+
 def u_v_p1_periodic(topo,x,y,ie):
+    print('assemble u_v_p1_periodic')
+    p = multiprocessing.Pool()
+    if os.environ.get('FSI_NUM_THREADS') == None:
+        n_cpu = multiprocessing.cpu_count()
+    else:
+        n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
+    print(n_cpu)
+    numel = topo.shape[0]
+    workers = []
+    for k in range(n_cpu):
+        subtopo = topo[int(numel*k/n_cpu):int(numel*(k+1)/n_cpu),:]
+        w = p.apply_async(calc_u_v_p1_periodic_partly, args = (subtopo, x, y, ie))
+        workers.append(w)
+
+    A = workers[0].get()
+    for k in range(1,n_cpu):
+        B = workers[k].get()
+        A += B
+
+    p.close()
+    p.join()
+
+    return A
+
+def calc_u_v_p1_periodic_partly(topo,x,y,ie):
 
     ndofs = max(ie)+1
 
@@ -96,6 +123,32 @@ def u_v_p1_periodic(topo,x,y,ie):
     return A
 
 def u_v_p1(topo,x,y):
+    print('assemble u_v_p1')
+    p = multiprocessing.Pool()
+    # n_cpu = 4
+    if os.environ.get('FSI_NUM_THREADS') == None:
+        n_cpu = multiprocessing.cpu_count()
+    else:
+        n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
+    print(n_cpu)
+    numel = topo.shape[0]
+    workers = []
+    for k in range(n_cpu):
+        subtopo = topo[int(numel*k/n_cpu):int(numel*(k+1)/n_cpu),:]
+        w = p.apply_async(calc_u_v_p1_partly, args = (subtopo, x, y))
+        workers.append(w)
+
+    A = workers[0].get()
+    for k in range(1,n_cpu):
+        B = workers[k].get()
+        A += B
+
+    p.close()
+    p.join()
+
+    return A
+
+def calc_u_v_p1_partly(topo,x,y):
 
     ndofs = max(x.shape)
 
@@ -186,32 +239,33 @@ def u_v_p1_1d_inv_diag(topo,x):
     A = sparse.coo_matrix((vals, (rows,cols)), shape=(ndofs,ndofs))
     return A
 
-
-##def gradu_gradv_p1(topo,x,y):
-##
-##    ndofs = max(x.shape)
-##
-##    A = sparse.csr_matrix((ndofs,ndofs))
-##
-##    for row in topo:
-##        x_l = x[row]
-##        y_l = y[row]
-##        eval_points = np.zeros((0,2))
-##        (phi_dx,phi_dy,phi,omega) = basis.tri_p1(x_l,y_l,eval_points)
-##        dx_j = phi_dx
-##        dx_i = phi_dx.transpose()
-##        dy_j = phi_dy
-##        dy_i = phi_dy.transpose()
-##        local_matrix = omega*(np.dot(dx_i,dx_j)+np.dot(dy_i,dy_j))
-##        [r,c] = np.meshgrid(row,row)
-##        r = np.concatenate(r)
-##        c = np.concatenate(c)
-##        vals = np.concatenate(local_matrix)
-##        tmp = sparse.coo_matrix((vals, (r,c)), shape=(ndofs,ndofs))
-##        A = A+tmp
-##    return A
-
 def gradu_gradv_p1_ieq(topo,x,y,ieq):
+    print('assemble gradu_gradv_p1_ieq')
+    p = multiprocessing.Pool()
+    # n_cpu = 4
+    if os.environ.get('FSI_NUM_THREADS') == None:
+        n_cpu = multiprocessing.cpu_count()
+    else:
+        n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
+    print(n_cpu)
+    numel = topo.shape[0]
+    workers = []
+    for k in range(n_cpu):
+        subtopo = topo[int(numel*k/n_cpu):int(numel*(k+1)/n_cpu),:]
+        w = p.apply_async(calc_gradu_gradv_p1_ieq_partly, args = (subtopo, x, y, ieq))
+        workers.append(w)
+
+    A = workers[0].get()
+    for k in range(1,n_cpu):
+        B = workers[k].get()
+        A += B
+
+    p.close()
+    p.join()
+
+    return A
+
+def calc_gradu_gradv_p1_ieq_partly(topo,x,y,ieq):
 
     ndofs = max(ieq)+1
 
@@ -243,6 +297,32 @@ def gradu_gradv_p1_ieq(topo,x,y,ieq):
     return A
 
 def gradu_gradv_p1(topo,x,y):
+    print('assemble gradu_gradv_p1')
+    p = multiprocessing.Pool()
+    # n_cpu = 4
+    if os.environ.get('FSI_NUM_THREADS') == None:
+        n_cpu = multiprocessing.cpu_count()
+    else:
+        n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
+    print(n_cpu)
+    numel = topo.shape[0]
+    workers = []
+    for k in range(n_cpu):
+        subtopo = topo[int(numel*k/n_cpu):int(numel*(k+1)/n_cpu),:]
+        w = p.apply_async(calc_gradu_gradv_p1_partly, args = (subtopo, x, y))
+        workers.append(w)
+
+    A = workers[0].get()
+    for k in range(1,n_cpu):
+        B = workers[k].get()
+        A += B
+
+    p.close()
+    p.join()
+
+    return A
+
+def calc_gradu_gradv_p1_partly(topo,x,y):
     """
     Assembling the Laplace operator. The function name resambles the
     operator gradtient of the trial functionctions, multiplied the gradient of
@@ -320,7 +400,7 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
     workers = []
     for k in range(n_cpu):
         subtopo = topo[int(numel*k/n_cpu):int(numel*(k+1)/n_cpu),:]
-        w = p.apply_async(calc_u_grad_v_w_p1_partly, args = (subtopo, x, y, u_x, u_y))
+        w = p.apply_async(calc_u_gradv_w_p1_partly, args = (subtopo, x, y, u_x, u_y))
         workers.append(w)
 
     A11 = workers[0].get()
@@ -333,7 +413,7 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
 
     return A11
 
-def calc_u_grad_v_w_p1_partly(topo, x, y, u_x, u_y):
+def calc_u_gradv_w_p1_partly(topo, x, y, u_x, u_y):
     ndofs = max(x.shape)
 
     u_x = np.reshape(u_x, (ndofs, 1))
@@ -592,7 +672,7 @@ def u_s_p1_thick(x_u,y_u,topo_u,
     for k in range(n_cpu):
         subsegs = str_segments[int(numseg*k/n_cpu):int(numseg*(k+1)/n_cpu)]
         w = p.apply_async(calc_u_s_p1_thick_partly,
-            args = (x_u,y_u,topo_u,s_lgr,t_lgr,x_str,y_str,topo_s,ie_s,subsegs,fluid_id,numseg*k/n_cpu))
+            args = (x_u,y_u,topo_u,s_lgr,t_lgr,x_str,y_str,topo_s,ie_s,subsegs,fluid_id,int(numseg*k/n_cpu)))
         workers.append(w)
 
     GT = workers[0].get()
