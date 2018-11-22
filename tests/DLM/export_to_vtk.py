@@ -23,7 +23,7 @@ time_list = np.where(ph.stampa)[0]
 results_dir = ph.results_directory+'/'+ph.sim_prefix+'/binary_data/'
 
 filename = results_dir+'mesh'
-f = file(filename,"rb")
+f = open(filename,"rb")
 topo_p = np.load(f)
 x_p = np.load(f)
 y_p = np.load(f)
@@ -106,14 +106,14 @@ if not os.path.exists(vtk_dir):
 for cn_time in time_list:
     input_name = results_dir+'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
     print(input_name)
-    f = file(input_name,"rb")
+    f = open(input_name,"rb")
     u = np.load(f)
     p = np.load(f)
     s_x = np.load(f) - s_lgr
     s_y = np.load(f) - t_lgr
     f.close()
 
-    ndofs = u.shape[0]/2
+    ndofs = int(u.shape[0]/2)
     u_x = u[0:ndofs]
     u_y = u[ndofs:2*ndofs]
 
