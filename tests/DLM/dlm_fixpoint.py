@@ -737,7 +737,6 @@ step_time = np.array([])
 
 energy = []
 
-TOL = 1e-8
 max_iter = 50
 residuals = np.zeros((len(ph.stampa), max_iter))
 
@@ -813,7 +812,7 @@ for cn_time in range(0,len(ph.stampa)):
         residuals[cn_time, k] = res
         print 'Nonlinear solver: ' + str(k+1) + 'th iteration, res = ' + '{:.2e}'.format(res)
         ### Decide whether to stop the nonlinear solver
-        if(res < TOL):
+        if(res < ph.tolerance):
             print 'Nonlinear solver converged after ' + str(k+1) + ' iterations.'
             print '-----'
             break
