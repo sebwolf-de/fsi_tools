@@ -546,6 +546,7 @@ def write_time():
 
 def eval_str_area():
     area = 0
+    invertible = True
     for row in topo_s:
         x_l = sx_n[row]
         y_l = sy_n[row]
@@ -553,8 +554,9 @@ def eval_str_area():
         eval_p[:,0] = x_l
         eval_p[:,1] = y_l
         poly = Polygon(tuple(eval_p.tolist()))
+        invetible = invertible and poly.exterior.is_ccw
         area+= poly.area
-    return area
+    return (area, invertible)
 
 def get_diffusion():
     return diffusion
@@ -728,7 +730,7 @@ for row in topo_p:
 
 ###Simulation loop
 
-str_area_zero = eval_str_area()
+str_area_zero, _ = eval_str_area()
 
 sol_time = np.array([])
 step_time = np.array([])
@@ -838,20 +840,26 @@ for cn_time in range(0,len(ph.stampa)):
     l_n = l_n1
 
     ###Do some nice physics related stuff
-    str_area = eval_str_area()
+    (str_area, invertible) = eval_str_area()
     diffusion = str_area/str_area_zero
     p_all_zero = bool(np.all(p_n==0))
     exploded = bool(np.amax(p_n) > 1e+10)
+    indices_out_of_domain = np.where(sx_n > 1.)[0]
+    indices_out_of_domain = np.append(indices_out_of_domain, np.where(sx_n < 0.))
+    indices_out_of_domain = np.append(indices_out_of_domain, np.where(sy_n > 1.))
+    indices_out_of_domain = np.append(indices_out_of_domain, np.where(sy_n < 0.))
 
     nrg =(l2_norm(KS,np.append(dx_n, dy_n)))**2 + (l2_norm(MF,np.append(ux_n, uy_n)))**2
     energy.append(nrg)
 
     if (exploded==True or p_all_zero == True):
         diffusion = 999
-    print 'diffusion = ' + str(diffusion)
-    print 'energy    = ' + str(nrg)
-    print 'pressure == 0? ' + str(p_all_zero)
-    print 'exploded     ? ' + str(exploded)
+    print 'diffusion            = ' + str(diffusion)
+    print 'energy               = ' + str(nrg)
+    print 'pressure == 0        ? ' + str(p_all_zero)
+    print 'exploded             ? ' + str(exploded)
+    print 'solid invertible     ? ' + str(invertible)
+    print 'nodes outside domain = ' + str(len(indices_out_of_domain))
 
     if diffusion > 2:
        print 'The simulation was aborted, since it produced nonsense!'
@@ -859,6 +867,10 @@ for cn_time in range(0,len(ph.stampa)):
     elif diffusion < .8:
        print 'The simulation was aborted, since it produced nonsense!'
        break
+
+    if not invertible:
+        print 'The simulation was aborted, since it produced nonsense!'
+        break
 
     ###Write output
     if ph.stampa[cn_time] == True:
