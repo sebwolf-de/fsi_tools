@@ -20,9 +20,9 @@ dx = 1./n
 t0 = time.time()
 (topo,x,y) = lin_t3.mesh_t3(n,n,dx,dx)
 t1 = time.time()
-print 'Mesh generation finished'
-print 'dofs   = ' + str(x.shape[0])
-print 't mesh = ' + str(t1-t0)
+print('Mesh generation finished')
+print('dofs   = ' + str(x.shape[0]))
+print('t mesh = ' + str(t1-t0))
 
 T = 8
 Theta = 0.5
@@ -31,8 +31,8 @@ t0 = time.time()
 K = assemble.gradu_gradv_p1(topo,x,y)
 M = assemble.u_v_p1(topo,x,y)
 t1 = time.time()
-print 'Assembled mass and stiffness matrix'
-print 't = ' + str(t1-t0)
+print('Assembled mass and stiffness matrix')
+print('t = ' + str(t1-t0))
 
 
 err_BDF1 = np.zeros((5))
@@ -145,15 +145,15 @@ for t_ind in range(0, 5):
             err_BDF1[t_ind] = np.linalg.norm(u_BDF1-analytical(k*dt))
             err_BDF2[t_ind] = np.linalg.norm(u_BDF2-analytical(k*dt))
             err_Theta[t_ind] = np.linalg.norm(u_Theta-analytical(k*dt))
-            print 'dt = ' + str(dt)
-            print 't BDF1  = ' + str(t1_BDF1-t0_BDF1)
-            print 't BDF2  = ' + str(t1_BDF2-t0_BDF2)
-            print 't Theta = ' + str(t1_Theta-t0_Theta)
+            print('dt = ' + str(dt))
+            print('t BDF1  = ' + str(t1_BDF1-t0_BDF1))
+            print('t BDF2  = ' + str(t1_BDF2-t0_BDF2))
+            print('t Theta = ' + str(t1_Theta-t0_Theta))
         # print 'error Theta = '+str(np.linalg.norm(u_Theta-analytical(k*dt)))
 
-print 'error BDF1:  ' + str(err_BDF1)
-print 'error BDF2:  ' + str(err_BDF2)
-print 'error Theta: ' + str(err_Theta)
-print 'Error decay BDF1:  '+str(np.divide(err_BDF1[0:4], err_BDF1[1:5]))
-print 'Error decay BDF2:  '+str(np.divide(err_BDF2[0:4], err_BDF2[1:5]))
-print 'Error decay Theta: '+str(np.divide(err_Theta[0:4], err_Theta[1:5]))
+print('error BDF1:  ' + str(err_BDF1))
+print('error BDF2:  ' + str(err_BDF2))
+print('error Theta: ' + str(err_Theta))
+print('Error decay BDF1:  '+str(np.divide(err_BDF1[0:4], err_BDF1[1:5])))
+print('Error decay BDF2:  '+str(np.divide(err_BDF2[0:4], err_BDF2[1:5])))
+print('Error decay Theta: '+str(np.divide(err_Theta[0:4], err_Theta[1:5])))

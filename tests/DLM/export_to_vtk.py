@@ -105,7 +105,7 @@ if not os.path.exists(vtk_dir):
 
 for cn_time in time_list:
     input_name = results_dir+'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
-    print input_name
+    print(input_name)
     f = file(input_name,"rb")
     u = np.load(f)
     p = np.load(f)

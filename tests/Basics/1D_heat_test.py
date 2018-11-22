@@ -27,7 +27,7 @@ err_Theta = np.zeros((5))
 for t_ind in range(0, 5):
 
     dt = 2**(-t_ind)
-    print 'dt = ' + str(dt)
+    print('dt = ' + str(dt))
 
     u_0 = analytical(0)
     u_1 = analytical(dt)
@@ -77,9 +77,9 @@ for t_ind in range(0, 5):
             err_Theta[t_ind] = np.linalg.norm(u_Theta-analytical(k*dt))
         # print 'error Theta = '+str(np.linalg.norm(u_Theta-analytical(k*dt)))
 
-    print 'error BDF1:  ' + str(err_BDF1)
-    print 'error BDF2:  ' + str(err_BDF2)
-    print 'error Theta: ' + str(err_Theta)
-    print 'Error decay BDF1:  '+str(np.divide(err_BDF1[0:4], err_BDF1[1:5]))
-    print 'Error decay BDF2:  '+str(np.divide(err_BDF2[0:4], err_BDF2[1:5]))
-    print 'Error decay Theta: '+str(np.divide(err_Theta[0:4], err_Theta[1:5]))
+    print('error BDF1:  ' + str(err_BDF1))
+    print('error BDF2:  ' + str(err_BDF2))
+    print('error Theta: ' + str(err_Theta))
+    print('Error decay BDF1:  '+str(np.divide(err_BDF1[0:4], err_BDF1[1:5])))
+    print('Error decay BDF2:  '+str(np.divide(err_BDF2[0:4], err_BDF2[1:5])))
+    print('Error decay Theta: '+str(np.divide(err_Theta[0:4], err_Theta[1:5])))

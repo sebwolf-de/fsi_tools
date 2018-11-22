@@ -54,17 +54,17 @@ class ParametersHandler:
         self.results_directory = self.params.get("results_directory")
 
     def simulation_info(self):
-        print '-----------------------------------'
-        print 'started simulation: '
-        print self.sim_prefix
-        print 'dt = '+ str(self.dt)
-        print 'hx = '+ str(int(self.n_delta_x))
+        print('-----------------------------------')
+        print('started simulation: ')
+        print(self.sim_prefix)
+        print('dt = '+ str(self.dt))
+        print('hx = '+ str(int(self.n_delta_x)))
         if self.solver_type == 'dlm_':
-            print 'hs = '+str(int(self.n_delta_s))
-            print 'k  = '+str(self.kappa)
-        print 'nu = '+str(self.nu)
-        print 'tol = ' + str(self.tolerance)
-        print '-----------------------------------'
+            print('hs = '+str(int(self.n_delta_s)))
+            print('k  = '+str(self.kappa))
+        print('nu = '+str(self.nu))
+        print('tol = ' + str(self.tolerance))
+        print('-----------------------------------')
         return
 
     def dump_to_json(self,filename):

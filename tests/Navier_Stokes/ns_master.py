@@ -247,10 +247,10 @@ def write_output():
     np.save(f,u_n)
     np.save(f,p_n)
     f.close()
-    print '--------------------------------------'
-    print 'results saved to:'
-    print filename
-    print '--------------------------------------'
+    print('--------------------------------------')
+    print('results saved to:')
+    print(filename)
+    print('--------------------------------------')
     return
 
 def l2_norm(M, g):
@@ -288,8 +288,8 @@ if sum(ph.stampa) !=0:
 ndofs_u = max(x_u.shape)
 ndofs_p = max(x_p.shape) + topo_p.shape[0]
 
-print 'ndofs u = ' + str(2*ndofs_u)
-print 'ndofs p = ' + str(ndofs_p)
+print('ndofs u = ' + str(2*ndofs_u))
+print('ndofs p = ' + str(ndofs_p))
 
 u_n = np.zeros((2*ndofs_u,1))
 p_n = np.zeros((ndofs_p,1))
@@ -387,9 +387,9 @@ for cn_time in range(0,len(ph.stampa)):
         #print m - mat
         res = np.linalg.norm(mat.dot(sol) - force)
         residuals[cn_time,k] = res
-        print 'Nonlinear solver, k = ' + str(k+1).zfill(2) + ', residual = ' + str(res)
+        print('Nonlinear solver, k = ' + str(k+1).zfill(2) + ', residual = ' + str(res))
         if res < TOL:
-            print 'Nonlinear solver converged after ' + str(k+1) + ' steps'
+            print('Nonlinear solver converged after ' + str(k+1) + ' steps')
             break
     # for k in range(0, max_iter):
     #     sol_t0 = time.time()
@@ -426,12 +426,12 @@ for cn_time in range(0,len(ph.stampa)):
         write_output()
     step_t1 = time.time()
 
-    print '--------------------------------------'
-    print 'cn_time   = ' + str(cn_time)
-    print 't         = ' + str(cn_time*ph.dt)
-    print 'l2 norm u = ' + str(l2_norm(M, u_n))
-    print 'step time = ' + str((step_t1-step_t0))
-    print 'sol  time = ' + str(t_sol)
-    print '--------------------------------------'
+    print('--------------------------------------')
+    print('cn_time   = ' + str(cn_time))
+    print('t         = ' + str(cn_time*ph.dt))
+    print('l2 norm u = ' + str(l2_norm(M, u_n)))
+    print('step time = ' + str((step_t1-step_t0)))
+    print('sol  time = ' + str(t_sol))
+    print('--------------------------------------')
 
-print np.log10(residuals)
+print(np.log10(residuals))

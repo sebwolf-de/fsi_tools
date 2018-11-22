@@ -75,7 +75,7 @@ set the correct blocks." % (self.shape[0],size)
 
         self.n_iter +=1
         res = self.evaluate_residual(v)
-        print 'iter = '+str(self.n_iter)+', residual = '+str(res)
+        print('iter = '+str(self.n_iter)+', residual = '+str(res))
         return v
     def __init__(self,shape,n_blk):
         self.n_iter = 0
@@ -106,8 +106,8 @@ set the correct blocks." % (self.shape[0],size)
         self.pc[i][j] = matrix
         return
     def print_info(self):
-        print self.pc
-        print self.size_blk
+        print(self.pc)
+        print(self.size_blk)
         return
     def set_operators(self,mat,f):
         self.mat_g = mat
@@ -123,15 +123,15 @@ set the correct blocks." % (self.shape[0],size)
 
 class Preconditioner(LinearOperator):
     def print_report(self,flag):
-        print '----------------------------------------'
-        print 'solution flag  = '+str(flag)
-        print 'iterations number = '+str(self.n_iter)
-        print '----------------------------------------'
+        print('----------------------------------------')
+        print('solution flag  = '+str(flag))
+        print('iterations number = '+str(self.n_iter))
+        print('----------------------------------------')
         return
     def mv(self,v):
         # a do nothing preconditioner
         self.n_iter +=1
-        print 'iter = ' +str(self.n_iter)
+        print('iter = ' +str(self.n_iter))
         return v
     def set_block_00(self,A):
         self.A = A.tocsr()
@@ -148,7 +148,7 @@ class Ideal(Preconditioner):
     def full(self,v):
         v = sp_la.spsolve(self.A,v)
         self.n_iter +=1
-        print 'iter #' +str(self.n_iter)
+        print('iter #' +str(self.n_iter))
         return v
     def __init__(self,shape):
         LinearOperator.__init__(self,shape,self.full)
@@ -166,7 +166,7 @@ class StkPreconditioner(Preconditioner):
         v[n_vel:] = s_prex
         self.n_iter +=1
         res = self.evaluate_residual(v)
-        print 'iter = '+str(self.n_iter)+', residual = '+str(res)
+        print('iter = '+str(self.n_iter)+', residual = '+str(res))
         return v
     def __init__(self,shape):
         LinearOperator.__init__(self,shape,self.block_diagonal)
@@ -190,17 +190,17 @@ class NavierPreconditioner(Preconditioner):
         f_prex = v[n_vel:]
         f_prex = np.reshape(f_prex,(self.Mp.shape[0],1))
         s_prex = sp_la.spsolve(self.Mp,f_prex)
-        print 'pressione risolta'
-        print s_prex.shape
+        print('pressione risolta')
+        print(s_prex.shape)
         s_prex = np.reshape(s_prex,(self.Mp.shape[0],1))
         f_vel = f_vel - self.Bt.dot(s_prex)
-        print f_vel.shape
+        print(f_vel.shape)
         s_vel = sp_la.spsolve(self.A,f_vel)
         s_vel = np.reshape(s_vel,(self.A.shape[0],1))
         #
         v[0:n_vel] = s_vel
         v[n_vel:] = s_prex
-        print 'iter = ' +str(self.n_iter)
+        print('iter = ' +str(self.n_iter))
         self.n_iter +=1
         return v
     def __init__(self,shape):

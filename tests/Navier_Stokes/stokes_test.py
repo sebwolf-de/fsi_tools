@@ -94,8 +94,8 @@ if sum(ph.stampa) !=0:
 ndofs_u = max(x_u.shape)
 ndofs_p = max(x_p.shape)# + topo_p.shape[0]
 
-print ndofs_u
-print ndofs_p
+print(ndofs_u)
+print(ndofs_p)
 
 M11 = assemble.u_v_p1(topo_u,x_u,y_u)
 K11 = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
@@ -263,6 +263,6 @@ for cn_time in range(0,len(ph.stampa)):
     write_output()
 
     err[cn_time] = l2_norm(M, u_n - (1-mth.sin(-cn_time*ph.dt))*analytical)
-    print err[cn_time]
-print err[len(err)-1]
-print np.mean(err)
+    print(err[cn_time])
+print(err[len(err)-1])
+print(np.mean(err))

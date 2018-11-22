@@ -329,10 +329,10 @@ n_runs = 4
 t0 = time.time()
 (topo_p,x_p,y_p,topo_u,x_u,y_u,c2f) = lin_t3.mesh_t3_iso_t6(n,n,dx,dx)
 t1 = time.time()
-print 'Mesh generation finished'
-print 'dofs u = ' + str(2*x_u.shape[0])
-print 'dofs p = ' + str(x_p.shape[0])
-print 't mesh = ' + str(t1-t0)
+print('Mesh generation finished')
+print('dofs u = ' + str(2*x_u.shape[0]))
+print('dofs p = ' + str(x_p.shape[0]))
+print('t mesh = ' + str(t1-t0))
 ndofs_u = x_u.shape[0]
 ndofs_p = x_p.shape[0]
 
@@ -378,8 +378,8 @@ for row in topo_p:
     mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.])
 
 t1 = time.time()
-print 'Assembled mass, stiffness and pressure matrix'
-print 't = ' + str(t1-t0)
+print('Assembled mass, stiffness and pressure matrix')
+print('t = ' + str(t1-t0))
 
 err_BDF1 = np.zeros((n_runs))
 err_BDF2 = np.zeros((n_runs))
@@ -397,10 +397,10 @@ for t_ind in range(0, n_runs):
     u_Theta = u_1.toarray()
 
     N = int(np.round(T/dt+1))
-    print 'dt = ' + str(dt) + ', ' + str(N) + ' time steps to solve'
+    print('dt = ' + str(dt) + ', ' + str(N) + ' time steps to solve')
     ### start time loop for dt
     for k in range(2,N):
-        print 't = ' + str(k*dt)
+        print('t = ' + str(k*dt))
         t0_BDF1 = time.time()
         rhs_BDF1 = assemble_blockwise_force_BDF1(k*dt)
         M_BDF1 = assemble_blockwise_matrix_BDF1()
@@ -437,23 +437,23 @@ for t_ind in range(0, n_runs):
     # print 't BDF1 per step  = ' + str(t1_BDF1-t0_BDF1)
     # print 't BDF2 per step  = ' + str(t1_BDF2-t0_BDF2)
     # print 't Theta per step = ' + str(t1_Theta-t0_Theta)
-    print 'error BDF1:  ' + str(err_BDF1[t_ind])
-    print 'error BDF2:  ' + str(err_BDF2[t_ind])
-    print 'error Theta: ' + str(err_Theta[t_ind])
+    print('error BDF1:  ' + str(err_BDF1[t_ind]))
+    print('error BDF2:  ' + str(err_BDF2[t_ind]))
+    print('error Theta: ' + str(err_Theta[t_ind]))
     if t_ind > 0:
-        print 'Error decay BDF1:  '+str(err_BDF1[t_ind-1] / err_BDF1[t_ind])
-        print 'Error decay BDF2:  '+str(err_BDF2[t_ind-1] / err_BDF2[t_ind])
-        print 'Error decay Theta: '+str(err_Theta[t_ind-1] / err_Theta[t_ind])
+        print('Error decay BDF1:  '+str(err_BDF1[t_ind-1] / err_BDF1[t_ind]))
+        print('Error decay BDF2:  '+str(err_BDF2[t_ind-1] / err_BDF2[t_ind]))
+        print('Error decay Theta: '+str(err_Theta[t_ind-1] / err_Theta[t_ind]))
 
     ### End of loop over timesteps
-print
-print '------'
-print 'dx = ' + str(dx)
-print '------'
+print()
+print('------')
+print('dx = ' + str(dx))
+print('------')
 
-print 'error BDF1:  ' + str(err_BDF1)
-print 'error BDF2:  ' + str(err_BDF2)
-print 'error Theta: ' + str(err_Theta)
-print 'Error decay BDF1:  '+str(np.divide(err_BDF1[0:n_runs-1], err_BDF1[1:n_runs]))
-print 'Error decay BDF2:  '+str(np.divide(err_BDF2[0:n_runs-1], err_BDF2[1:n_runs]))
-print 'Error decay Theta: '+str(np.divide(err_Theta[0:n_runs-1], err_Theta[1:n_runs]))
+print('error BDF1:  ' + str(err_BDF1))
+print('error BDF2:  ' + str(err_BDF2))
+print('error Theta: ' + str(err_Theta))
+print('Error decay BDF1:  '+str(np.divide(err_BDF1[0:n_runs-1], err_BDF1[1:n_runs])))
+print('Error decay BDF2:  '+str(np.divide(err_BDF2[0:n_runs-1], err_BDF2[1:n_runs])))
+print('Error decay Theta: '+str(np.divide(err_Theta[0:n_runs-1], err_Theta[1:n_runs])))

@@ -329,7 +329,7 @@ if len(sys.argv) > 1:
     n = int(sys.argv[1])
 else:
     n = 10
-print n
+print(n)
 dx = 1./n
 
 T = 5
@@ -341,7 +341,7 @@ n_runs = 5
 
 (topo_p,x_p,y_p,topo_u,x_u,y_u,c2f) = lin_t3.mesh_t3_iso_t6(n,n,dx,dx)
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(n,n,dx,dx)
-print 'Mesh generation finished'
+print('Mesh generation finished')
 
 t0 = time.time()
 K = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
@@ -352,8 +352,8 @@ B = BT.transpose()
 
 ndofs_u = BT1.shape[0]
 ndofs_p = BT1.shape[1]
-print 'dofs u = ' + str(2*ndofs_u)
-print 'dofs p = ' + str(ndofs_p)
+print('dofs u = ' + str(2*ndofs_u))
+print('dofs p = ' + str(ndofs_p))
 
 bc_id = np.where(y_u > 1-dx/10)
 BT1 = la_utils.clear_rows(BT1,bc_id)
@@ -390,8 +390,8 @@ for row in topo_p:
     mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3., 1.])
 
 t1 = time.time()
-print 'Assembled mass, stiffness and pressure matrix'
-print 't = ' + str(t1-t0)
+print('Assembled mass, stiffness and pressure matrix')
+print('t = ' + str(t1-t0))
 
 err_BDF1 = np.zeros((n_runs))
 err_BDF2 = np.zeros((n_runs))
@@ -409,10 +409,10 @@ for t_ind in range(0, n_runs):
     u_Theta = u_1.toarray()
 
     N = int(np.round(T/dt+1))
-    print 'dt = ' + str(dt) + ', ' + str(N) + ' time steps to solve'
+    print('dt = ' + str(dt) + ', ' + str(N) + ' time steps to solve')
     ### start time loop for dt
     for k in range(2,N):
-        print 't = ' + str(k*dt)
+        print('t = ' + str(k*dt))
         t0_BDF1 = time.time()
         ux_n1 = np.reshape(u_BDF1[0:ndofs_u], (ndofs_u, 1))
         uy_n1 = np.reshape(u_BDF1[ndofs_u:2*ndofs_u], (ndofs_u, 1))
@@ -425,11 +425,11 @@ for t_ind in range(0, n_runs):
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
             M_BDF1 = assemble_blockwise_matrix_BDF1()
             res = np.linalg.norm(M_BDF1.dot(sol) - rhs_BDF1)
-            print 'BDF1, res = ' + str(res)
+            print('BDF1, res = ' + str(res))
             if res < TOL:
                 break
         u_BDF1 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
-        print 'error of BDF1 solution for t = ' + str(k*dt) + ': ' + str(l2_norm(M_2D, u_BDF1[0:2*ndofs_u] - analytical_u(k*dt)))
+        print('error of BDF1 solution for t = ' + str(k*dt) + ': ' + str(l2_norm(M_2D, u_BDF1[0:2*ndofs_u] - analytical_u(k*dt))))
         t1_BDF1 = time.time()
 
         t0_BDF2 = time.time()
@@ -444,12 +444,12 @@ for t_ind in range(0, n_runs):
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
             M_BDF2 = assemble_blockwise_matrix_BDF2()
             res = np.linalg.norm(M_BDF2.dot(sol) - rhs_BDF2)
-            print 'BDF2, res = ' + str(res)
+            print('BDF2, res = ' + str(res))
             if res < TOL:
                 break
         u_BDF2_old = u_BDF2
         u_BDF2 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
-        print 'error of BDF2 solution for t = ' + str(k*dt) + ': ' + str(l2_norm(M_2D, u_BDF2[0:2*ndofs_u] - analytical_u(k*dt)))
+        print('error of BDF2 solution for t = ' + str(k*dt) + ': ' + str(l2_norm(M_2D, u_BDF2[0:2*ndofs_u] - analytical_u(k*dt))))
         t1_BDF2 = time.time()
 
         t0_Theta = time.time()
@@ -464,11 +464,11 @@ for t_ind in range(0, n_runs):
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
             M_Theta = assemble_blockwise_matrix_Theta()
             res = np.linalg.norm(M_Theta.dot(sol) - rhs_Theta)
-            print 'Theta, res = ' + str(res)
+            print('Theta, res = ' + str(res))
             if res < TOL:
                 break
         u_Theta = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
-        print 'error of Theta solution for t = ' + str(k*dt) + ': ' + str(l2_norm(M_2D, u_Theta[0:2*ndofs_u] - analytical_u(k*dt)))
+        print('error of Theta solution for t = ' + str(k*dt) + ': ' + str(l2_norm(M_2D, u_Theta[0:2*ndofs_u] - analytical_u(k*dt))))
         t1_Theta = time.time()
 
         # print l2_norm(M_2D, analytical_u(k*dt))
@@ -487,26 +487,26 @@ for t_ind in range(0, n_runs):
     # err_BDF1[t_ind] = np.linalg.norm(u_BDF1[0:2*ndofs_u]-analytical_u(T))
     # err_BDF2[t_ind] = np.linalg.norm(u_BDF2[0:2*ndofs_u]-analytical_u(T))
     # err_Theta[t_ind] = np.linalg.norm(u_Theta[0:2*ndofs_u]-analytical_u(T))
-    print 't BDF1 per step  = ' + str(t1_BDF1-t0_BDF1)
-    print 't BDF2 per step  = ' + str(t1_BDF2-t0_BDF2)
-    print 't Theta per step = ' + str(t1_Theta-t0_Theta)
-    print 'error BDF1:  ' + str(err_BDF1[t_ind])
-    print 'error BDF2:  ' + str(err_BDF2[t_ind])
-    print 'error Theta: ' + str(err_Theta[t_ind])
+    print('t BDF1 per step  = ' + str(t1_BDF1-t0_BDF1))
+    print('t BDF2 per step  = ' + str(t1_BDF2-t0_BDF2))
+    print('t Theta per step = ' + str(t1_Theta-t0_Theta))
+    print('error BDF1:  ' + str(err_BDF1[t_ind]))
+    print('error BDF2:  ' + str(err_BDF2[t_ind]))
+    print('error Theta: ' + str(err_Theta[t_ind]))
     if t_ind > 0:
-        print 'Error decay BDF1:  '+str(err_BDF1[t_ind-1] / err_BDF1[t_ind])
-        print 'Error decay BDF2:  '+str(err_BDF2[t_ind-1] / err_BDF2[t_ind])
-        print 'Error decay Theta: '+str(err_Theta[t_ind-1] / err_Theta[t_ind])
+        print('Error decay BDF1:  '+str(err_BDF1[t_ind-1] / err_BDF1[t_ind]))
+        print('Error decay BDF2:  '+str(err_BDF2[t_ind-1] / err_BDF2[t_ind]))
+        print('Error decay Theta: '+str(err_Theta[t_ind-1] / err_Theta[t_ind]))
 
     ### End of loop over timesteps
-print
-print '------'
-print 'dx = ' + str(dx)
-print '------'
+print()
+print('------')
+print('dx = ' + str(dx))
+print('------')
 
-print 'error BDF1:  ' + str(err_BDF1)
-print 'error BDF2:  ' + str(err_BDF2)
-print 'error Theta: ' + str(err_Theta)
-print 'Error decay BDF1:  '+str(np.divide(err_BDF1[0:n_runs-1], err_BDF1[1:n_runs]))
-print 'Error decay BDF2:  '+str(np.divide(err_BDF2[0:n_runs-1], err_BDF2[1:n_runs]))
-print 'Error decay Theta: '+str(np.divide(err_Theta[0:n_runs-1], err_Theta[1:n_runs]))
+print('error BDF1:  ' + str(err_BDF1))
+print('error BDF2:  ' + str(err_BDF2))
+print('error Theta: ' + str(err_Theta))
+print('Error decay BDF1:  '+str(np.divide(err_BDF1[0:n_runs-1], err_BDF1[1:n_runs])))
+print('Error decay BDF2:  '+str(np.divide(err_BDF2[0:n_runs-1], err_BDF2[1:n_runs])))
+print('Error decay Theta: '+str(np.divide(err_Theta[0:n_runs-1], err_Theta[1:n_runs])))

@@ -14,7 +14,7 @@ results_dir = 'results/Convergence_Analysis_'+sys.argv[1]+'/'
 
 #Get mass matrix, all time integrations were being executed on the same mesh
 filename = results_dir+'mesh'
-print filename
+print(filename)
 f = file(filename,"rb")
 topo_p = np.load(f)
 x_p = np.load(f)
@@ -50,16 +50,22 @@ err_BDF1 = np.zeros(N)
 err_BDF2 = np.zeros(N)
 err_Theta = np.zeros(N)
 
+u_BDF1 = np.zeros((u_reference.shape[0], N))
+
 for k in range(1,N+1):
     input_name = results_dir+'BDF1_'+str(k)
     f = file(input_name,"rb")
-    u_BDF1 = np.load(f)
+    u_BDF1[:,k-1] = np.load(f)
     p_BDF1 = np.load(f)
     f.close()
 
     #err_BDF1[k-1] = mth.sqrt(l2_norm(mass_matrix, u_BDF1 - u_reference)**2
     #                        + l2_norm(stiffness_matrix, u_BDF1 - u_reference)**2)
-    err_BDF1[k-1] = l2_norm(mass_matrix, u_BDF1 - u_reference)
+
+    print(u_BDF1.shape)
+    print(u_reference.shape)
+    print(mass_matrix.shape)
+    err_BDF1[k-1] = l2_norm(mass_matrix, u_BDF1[:,k-1] - u_reference)
 
     input_name = results_dir+'BDF2_'+str(k)
     f = file(input_name,"rb")
@@ -81,9 +87,12 @@ for k in range(1,N+1):
     #                       + l2_norm(stiffness_matrix, u_Theta - u_reference)**2)
     err_Theta[k-1] = l2_norm(mass_matrix, u_Theta - u_reference)
 
-print 'BDF1 Error:  '+str(err_BDF1)
-print 'BDF2 Error:  '+str(err_BDF2)
-print 'Theta Error: '+str(err_Theta)
-print 'Error decay BDF1:  '+str(np.divide(err_BDF1[0:5], err_BDF1[1:6]))
-print 'Error decay BDF2:  '+str(np.divide(err_BDF2[0:5], err_BDF2[1:6]))
-print 'Error decay Theta: '+str(np.divide(err_Theta[0:5], err_Theta[1:6]))
+print('BDF1 Error:  '+str(err_BDF1))
+print('BDF2 Error:  '+str(err_BDF2))
+print('Theta Error: '+str(err_Theta))
+print('Error decay BDF1:  '+str(np.divide(err_BDF1[0:N-1], err_BDF1[1:N])))
+print('Error decay BDF2:  '+str(np.divide(err_BDF2[0:N-1], err_BDF2[1:N])))
+print('Error decay Theta: '+str(np.divide(err_Theta[0:N-1], err_Theta[1:N])))
+
+print(np.log2(l2_norm(mass_matrix, u_BDF1[:,1] - u_BDF1[:,0]) / l2_norm(mass_matrix, u_BDF1[:,2] - u_BDF1[:,1])))
+print(np.log2(l2_norm(mass_matrix, u_BDF1[:,2] - u_BDF1[:,1]) / l2_norm(mass_matrix, u_BDF1[:,3] - u_BDF1[:,2])))

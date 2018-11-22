@@ -584,10 +584,10 @@ def write_output():
     np.save(f,sy_n)
     np.save(f,l_n)
     f.close()
-    print '--------------------------------------'
-    print 'results saved to:'
-    print filename
-    print '--------------------------------------'
+    print('--------------------------------------')
+    print('results saved to:')
+    print(filename)
+    print('--------------------------------------')
     return
 
 def write_time():
@@ -694,9 +694,9 @@ ndofs_u = max(x_u.shape)
 ndofs_p = max(x_p.shape) + topo_p.shape[0]
 ndofs_s = max(ie_s)+1
 
-print 'DOFs velocity:  ' + str(2*ndofs_u)
-print 'DOFs pressure:  ' + str(ndofs_p)
-print 'DOFs structure: ' + str(2*ndofs_s)
+print('DOFs velocity:  ' + str(2*ndofs_u))
+print('DOFs pressure:  ' + str(ndofs_p))
+print('DOFs structure: ' + str(2*ndofs_s))
 
 ux_n = np.zeros((ndofs_u))
 uy_n = np.zeros((ndofs_u))
@@ -840,15 +840,15 @@ for cn_time in range(0,len(ph.stampa)):
 
     if (exploded==True or p_all_zero == True):
         diffusion = 999
-    print '--------------------------------------'
-    print 'cn_time   = ' + str(cn_time)
-    print 't         = ' + str(cn_time*ph.dt)
-    print 'diffusion = ' + str(diffusion)
-    print 'energy    = ' + str(nrg)
-    print 'residual  = ' + str(res)
-    print 'pressure == 0? ' + str(p_all_zero)
-    print 'exploded     ? ' + str(exploded)
-    print '--------------------------------------'
+    print('--------------------------------------')
+    print('cn_time   = ' + str(cn_time))
+    print('t         = ' + str(cn_time*ph.dt))
+    print('diffusion = ' + str(diffusion))
+    print('energy    = ' + str(nrg))
+    print('residual  = ' + str(res))
+    print('pressure == 0? ' + str(p_all_zero))
+    print('exploded     ? ' + str(exploded))
+    print('--------------------------------------')
 
     #if diffusion > 2:
     #    print 'The simulation was aborted, since it produced nonsense!'
@@ -861,8 +861,8 @@ for cn_time in range(0,len(ph.stampa)):
     if ph.stampa[cn_time] == True:
         write_output()
     step_t1 = time.time()
-    print 'step time = ' + str((step_t1-step_t0))
-    print 'sol  time = ' + str((sol_t1-sol_t0))
+    print('step time = ' + str((step_t1-step_t0)))
+    print('sol  time = ' + str((sol_t1-sol_t0)))
 
     step_time = np.append(step_time, step_t1-step_t0)
     sol_time = np.append(sol_time, sol_t1-sol_t0)

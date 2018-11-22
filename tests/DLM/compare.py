@@ -13,7 +13,7 @@ def l2_norm(M,g):
 
 results_dir = 'results/Convergence_Analysis_'+sys.argv[1]+'/'
 #results_dir = 'results/BDF_Convergence_Analysis_Cavity/'
-print results_dir
+print(results_dir)
 
 #Get mass matrix, all time integrations were being executed on the same mesh
 filename = results_dir+'mesh'
@@ -140,21 +140,21 @@ for k in range(1,N+1):
 
     time_Theta[k-1] = step_time
 
-print 'BDF1 Error u:        '+str(err_u_BDF1)
-print 'Error decay BDF1 u:  '+str(np.divide(err_u_BDF1[0:N-1], err_u_BDF1[1:N]))
-print 'BDF2 Error u:        '+str(err_u_BDF2)
-print 'Error decay BDF2 u:  '+str(np.divide(err_u_BDF2[0:N-1], err_u_BDF2[1:N]))
-print 'Theta Error u:       '+str(err_u_Theta)
-print 'Error decay Theta u: '+str(np.divide(err_u_Theta[0:N-1], err_u_Theta[1:N]))
+print('BDF1 Error u:        '+str(err_u_BDF1))
+print('Error decay BDF1 u:  '+str(np.divide(err_u_BDF1[0:N-1], err_u_BDF1[1:N])))
+print('BDF2 Error u:        '+str(err_u_BDF2))
+print('Error decay BDF2 u:  '+str(np.divide(err_u_BDF2[0:N-1], err_u_BDF2[1:N])))
+print('Theta Error u:       '+str(err_u_Theta))
+print('Error decay Theta u: '+str(np.divide(err_u_Theta[0:N-1], err_u_Theta[1:N])))
 
 
-print 'BDF1 Error s:        '+str(err_s_BDF1)
-print 'Error decay BDF1 s:  '+str(np.divide(err_s_BDF1[0:N-1], err_s_BDF1[1:N]))
-print 'BDF2 Error s:        '+str(err_s_BDF2)
-print 'Error decay BDF2 s:  '+str(np.divide(err_s_BDF2[0:N-1], err_s_BDF2[1:N]))
-print 'Theta Error s:       '+str(err_s_Theta)
-print 'Error decay Theta s: '+str(np.divide(err_s_Theta[0:N-1], err_s_Theta[1:N]))
+print('BDF1 Error s:        '+str(err_s_BDF1))
+print('Error decay BDF1 s:  '+str(np.divide(err_s_BDF1[0:N-1], err_s_BDF1[1:N])))
+print('BDF2 Error s:        '+str(err_s_BDF2))
+print('Error decay BDF2 s:  '+str(np.divide(err_s_BDF2[0:N-1], err_s_BDF2[1:N])))
+print('Theta Error s:       '+str(err_s_Theta))
+print('Error decay Theta s: '+str(np.divide(err_s_Theta[0:N-1], err_s_Theta[1:N])))
 
-print 'Time BDF1:  '+str(time_BDF1)
-print 'Time BDF2:  '+str(time_BDF2)
-print 'Time Theta: '+str(time_Theta)
+print('Time BDF1:  '+str(time_BDF1))
+print('Time BDF2:  '+str(time_BDF2))
+print('Time Theta: '+str(time_Theta))

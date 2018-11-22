@@ -25,10 +25,10 @@ def load_msh(filename):
     for line in f:
         
         if line[0]=='$':
-            print 'non fare un cippa'
+            print('non fare un cippa')
         else:
-            l = map(float,line.split())
-            print l
+            l = list(map(float,line.split()))
+            print(l)
             if len(l) == 4:
                 x = np.append(x,l[1])
                 y = np.append(y,l[2])
@@ -70,7 +70,7 @@ def load_msh(filename):
         if ck < 0:
             topo[r_id,:] = np.array([[row[0],row[2],row[1]]])
         r_id+=1        
-    print r_id    
+    print(r_id)    
     
     return topo, x, y, b_nodes, b_nodes_1, b_nodes_2, int_nodes   
     

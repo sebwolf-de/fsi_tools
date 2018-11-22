@@ -65,21 +65,21 @@ for cn_time in time_list:
     xs = np.load(f)
     ys = np.load(f)
     f.close()
-    print '------------------------------'
-    print input_name
+    print('------------------------------')
+    print(input_name)
     #print ' -> ' + output_name
     output_name = str_dir + 'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
     if ph.mesh_prefix == 'thin_':
         viewers.plot_thin_str(xs,ys,output_name)
     else:
         viewers.tri_plot_tex(xs,ys,topo_s,'-b',output_name)
-    print ' -> ' + output_name
+    print(' -> ' + output_name)
     plt.close("all")
     output_name = vel_dir + 'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
     viewers.quiver_vel(x_u,y_u,u,2*ph.n_delta_x,2*ph.n_delta_x,output_name)
-    print ' -> ' + output_name
+    print(' -> ' + output_name)
     plt.close("all")
     output_name = prex_dir + 'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
     viewers.plot_sol_p1p0_tex(x_p,y_p,p,topo_p,output_name)
-    print ' -> ' + output_name
+    print(' -> ' + output_name)
     plt.close("all")

@@ -531,10 +531,10 @@ def write_output():
     np.save(f,sy_n)
     np.save(f,l_n)
     f.close()
-    print '-----'
-    print 'results saved to:'
-    print filename
-    print '-----'
+    print('-----')
+    print('results saved to:')
+    print(filename)
+    print('-----')
     return
 
 def write_time():
@@ -643,10 +643,10 @@ ndofs_u = max(x_u.shape)
 ndofs_p = max(x_p.shape) + topo_p.shape[0]
 ndofs_s = max(ie_s)+1
 
-print 'DOFs velocity:   ' + str(2*ndofs_u)
-print 'DOFs pressure:   ' + str(ndofs_p)
-print 'DOFs structure:  ' + str(2*ndofs_s)
-print 'DOFs lagrangian: ' + str(2*ndofs_s)
+print('DOFs velocity:   ' + str(2*ndofs_u))
+print('DOFs pressure:   ' + str(ndofs_p))
+print('DOFs structure:  ' + str(2*ndofs_s))
+print('DOFs lagrangian: ' + str(2*ndofs_s))
 
 ux_n = np.zeros((ndofs_u))
 uy_n = np.zeros((ndofs_u))
@@ -743,10 +743,10 @@ residuals = np.zeros((len(ph.stampa), max_iter))
 for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
     sol_time = 0
-    print '-----------------------------------'
-    print 'cn_time   = ' + str(cn_time)
-    print 't         = ' + str(cn_time*ph.dt)
-    print '-----'
+    print('-----------------------------------')
+    print('cn_time   = ' + str(cn_time))
+    print('t         = ' + str(cn_time*ph.dt))
+    print('-----')
 
     ###Assemble kinematic coupling
     (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n, sy_n)
@@ -810,11 +810,11 @@ for cn_time in range(0,len(ph.stampa)):
         ### Calculate the residual
         res = np.linalg.norm(mat.dot(sol) - force)
         residuals[cn_time, k] = res
-        print 'Nonlinear solver: ' + str(k+1) + 'th iteration, res = ' + '{:.2e}'.format(res)
+        print('Nonlinear solver: ' + str(k+1) + 'th iteration, res = ' + '{:.2e}'.format(res))
         ### Decide whether to stop the nonlinear solver
         if(res < ph.tolerance):
-            print 'Nonlinear solver converged after ' + str(k+1) + ' iterations.'
-            print '-----'
+            print('Nonlinear solver converged after ' + str(k+1) + ' iterations.')
+            print('-----')
             break
 
     ###Update solution vector
@@ -853,34 +853,34 @@ for cn_time in range(0,len(ph.stampa)):
 
     if (exploded==True or p_all_zero == True):
         diffusion = 999
-    print 'diffusion            = ' + str(diffusion)
-    print 'energy               = ' + str(nrg)
-    print 'pressure == 0        ? ' + str(p_all_zero)
-    print 'exploded             ? ' + str(exploded)
-    print 'solid invertible     ? ' + str(invertible)
-    print 'nodes outside domain = ' + str(len(indices_out_of_domain))
+    print('diffusion            = ' + str(diffusion))
+    print('energy               = ' + str(nrg))
+    print('pressure == 0        ? ' + str(p_all_zero))
+    print('exploded             ? ' + str(exploded))
+    print('solid invertible     ? ' + str(invertible))
+    print('nodes outside domain = ' + str(len(indices_out_of_domain)))
 
     if diffusion > 2:
-       print 'The simulation was aborted, since it produced nonsense!'
+       print('The simulation was aborted, since it produced nonsense!')
        break
     elif diffusion < .8:
-       print 'The simulation was aborted, since it produced nonsense!'
+       print('The simulation was aborted, since it produced nonsense!')
        break
 
     if not invertible:
-        print 'The simulation was aborted, since it produced nonsense!'
+        print('The simulation was aborted, since it produced nonsense!')
         break
 
     ###Write output
     if ph.stampa[cn_time] == True:
         write_output()
     step_t1 = time.time()
-    print 'step time = ' + str((step_t1-step_t0))
-    print 'sol  time = ' + str(sol_time)
-    print '-----------------------------------'
+    print('step time = ' + str((step_t1-step_t0)))
+    print('sol  time = ' + str(sol_time))
+    print('-----------------------------------')
 
     step_time = np.append(step_time, step_t1-step_t0)
     sol_time = np.append(sol_time, sol_time)
 
 write_time()
-print np.log10(residuals)
+print(np.log10(residuals))

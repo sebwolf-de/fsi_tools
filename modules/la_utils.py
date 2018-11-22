@@ -121,7 +121,7 @@ def arnoldi_iteration(A,n_iter,P=None):
             v = v - hjn*qj
         H[n+1,n] = la.norm(v,2)
         Q[:,n+1] = v/la.norm(v,2)
-        print 'arnoldi iter: ' + str(n) + ', of: ' + str(n_iter)
+        print('arnoldi iter: ' + str(n) + ', of: ' + str(n_iter))
 
     #print '----------------------'
     return H[:-1,:],Q[:,:-1]
@@ -133,7 +133,7 @@ def multiply_inverse(A,Bt,log=False):
 
     if log == True:
         line = 'multiply inverse, 0 % done.'
-        print(line),
+        print((line), end=' ')
 
 
     for i in range(0,Bt.shape[1]):
@@ -144,14 +144,14 @@ def multiply_inverse(A,Bt,log=False):
         if log == True:
             r = float(i)/float(Bt.shape[1])
             r = int(100*r)
-            print('\r' * len(line)),
+            print(('\r' * len(line)), end=' ')
             line = 'multiply inverse, ' + str(r)
             #print output
             line += ' % done.'
-            print(line),
+            print((line), end=' ')
 
     if log == True:
-        print
+        print()
 
     return v
 

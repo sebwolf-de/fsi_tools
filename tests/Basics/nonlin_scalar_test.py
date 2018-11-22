@@ -77,11 +77,11 @@ for k in range(2,K):
 
     u_BDF2_lin[k] = (4./3.*u_BDF2_lin[k-1] - 1./3.*u_BDF2_lin[k-2]) / (1 + 2.*dt/3.*(2*u_BDF2_lin[k-1]-u_BDF2_lin[k-2]))
 
-print 'error BDF1:  ' + str(np.abs(u_BDF1[K-1] - analytical(T)))
-print 'error BDF2:  ' + str(np.abs(u_BDF2[K-1] - analytical(T)))
-print 'error Theta: ' + str(np.abs(u_Theta[K-1] - analytical(T)))
-print 'error BDF2 lin:  ' + str(np.abs(u_BDF2_lin[K-1] - analytical(T)))
-print 'error Theta lin: ' + str(np.abs(u_Theta_lin[K-1] - analytical(T)))
+print('error BDF1:  ' + str(np.abs(u_BDF1[K-1] - analytical(T))))
+print('error BDF2:  ' + str(np.abs(u_BDF2[K-1] - analytical(T))))
+print('error Theta: ' + str(np.abs(u_Theta[K-1] - analytical(T))))
+print('error BDF2 lin:  ' + str(np.abs(u_BDF2_lin[K-1] - analytical(T))))
+print('error Theta lin: ' + str(np.abs(u_Theta_lin[K-1] - analytical(T))))
 
 #plot.plot(np.arange(0,K)*dt, u_BDF1, 'r')
 #plot.plot(np.arange(0,K)*dt, u_lin, 'b')

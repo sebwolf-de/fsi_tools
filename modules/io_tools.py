@@ -65,7 +65,7 @@ def read_dealii_vector(filename):
             header += byte
             byte = f.read(1)
         #header = header[:-1]
-        print header
+        print(header)
         max_len = int(header)
         #brakets = f.read(1)
         val = np.fromfile(f, dtype=np.float64, count=max_len)

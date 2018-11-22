@@ -10,7 +10,7 @@
     "rho_fluid" : 1,
     "nu" : 1,
 
-    "time_intervals_to_be_simulated": 8,
+    "time_intervals_to_be_simulated": 9,
     "time_intervals_in_between_printed_results": 1,
     "time_index_digits": 4,
     "results_directory": "results",

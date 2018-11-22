@@ -30,7 +30,7 @@ class Mesh:
             if line[0]!='$':
 #                print 'non fare un cippa'
 #            else:
-                l = map(float,line.split())
+                l = list(map(float,line.split()))
 
                 if len(l) == 4:
                     self.x = np.append(self.x,l[1])

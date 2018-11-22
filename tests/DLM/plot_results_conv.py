@@ -56,19 +56,19 @@ for k in range(1,7):
     xs = np.load(f)
     ys = np.load(f)
     f.close()
-    print '------------------------------'
-    print input_name
+    print('------------------------------')
+    print(input_name)
     output_name = str_dir+'BDF1_dt=1_'+str(2**k)+'_result'
     viewers.tri_plot_tex(xs,ys,topo_s,'-b',output_name)
-    print ' -> ' + output_name
+    print(' -> ' + output_name)
     plt.close("all")
     output_name = vel_dir+'BDF1_dt=1_'+str(2**k)+'_result'
     viewers.quiver_vel(x_u,y_u,u,N,N,output_name)
-    print ' -> ' + output_name
+    print(' -> ' + output_name)
     plt.close("all")
     output_name = prex_dir+'BDF1_dt=1_'+str(2**k)+'_result'
     viewers.plot_sol_p1p0_tex(x_p,y_p,p,topo_p,output_name)
-    print ' -> ' + output_name
+    print(' -> ' + output_name)
     plt.close("all")
 
     input_name = results_dir+'BDF2_dt=1_'+str(2**k)+'_result'
@@ -78,19 +78,19 @@ for k in range(1,7):
     xs = np.load(f)
     ys = np.load(f)
     f.close()
-    print '------------------------------'
-    print input_name
+    print('------------------------------')
+    print(input_name)
     output_name = str_dir+'BDF2_dt=1_'+str(2**k)+'_result'
     viewers.tri_plot_tex(xs,ys,topo_s,'-b',output_name)
-    print ' -> ' + output_name
+    print(' -> ' + output_name)
     plt.close("all")
     output_name = vel_dir+'BDF2_dt=1_'+str(2**k)+'_result'
     viewers.quiver_vel(x_u,y_u,u,N,N,output_name)
-    print ' -> ' + output_name
+    print(' -> ' + output_name)
     plt.close("all")
     output_name = prex_dir+'BDF2_dt=1_'+str(2**k)+'_result'
     viewers.plot_sol_p1p0_tex(x_p,y_p,p,topo_p,output_name)
-    print ' -> ' + output_name
+    print(' -> ' + output_name)
     plt.close("all")
 
     input_name = results_dir+'Theta_dt=1_'+str(2**k)+'_result'
@@ -100,19 +100,19 @@ for k in range(1,7):
     xs = np.load(f)
     ys = np.load(f)
     f.close()
-    print '------------------------------'
-    print input_name
+    print('------------------------------')
+    print(input_name)
     output_name = str_dir+'Theta_dt=1_'+str(2**k)+'_result'
     viewers.tri_plot_tex(xs,ys,topo_s,'-b',output_name)
-    print ' -> ' + output_name
+    print(' -> ' + output_name)
     plt.close("all")
     output_name = vel_dir+'Theta_dt=1_'+str(2**k)+'_result'
     viewers.quiver_vel(x_u,y_u,u,N,N,output_name)
-    print ' -> ' + output_name
+    print(' -> ' + output_name)
     plt.close("all")
     output_name = prex_dir+'Theta_dt=1_'+str(2**k)+'_result'
     viewers.plot_sol_p1p0_tex(x_p,y_p,p,topo_p,output_name)
-    print ' -> ' + output_name
+    print(' -> ' + output_name)
     plt.close("all")
 
 input_name = results_dir+'reference'
@@ -122,17 +122,17 @@ p = np.load(f)
 xs = np.load(f)
 ys = np.load(f)
 f.close()
-print '------------------------------'
-print input_name
+print('------------------------------')
+print(input_name)
 output_name = str_dir+'reference'
 viewers.tri_plot_tex(xs,ys,topo_s,'-b',output_name)
-print ' -> ' + output_name
+print(' -> ' + output_name)
 plt.close("all")
 output_name = vel_dir+'reference'
 viewers.quiver_vel(x_u,y_u,u,N,N,output_name)
-print ' -> ' + output_name
+print(' -> ' + output_name)
 plt.close("all")
 output_name = prex_dir+'reference'
 viewers.plot_sol_p1p0_tex(x_p,y_p,p,topo_p,output_name)
-print ' -> ' + output_name
+print(' -> ' + output_name)
 plt.close("all")

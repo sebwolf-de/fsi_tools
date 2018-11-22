@@ -199,7 +199,7 @@ def load_t3_iso_t6_file(filename_t3, filename_t6):
     topo_c = np.zeros((num_el_coarse, 4),dtype=int)
     topo_c [:,0:3] = tc
     a = x_c.shape[0]
-    topo_c[:,3] = range(a, a+num_el_coarse)
+    topo_c[:,3] = list(range(a, a+num_el_coarse))
 
     return topo_c, x_c, y_c, topo_f, x_f, y_f, coarse_to_fine
 
@@ -216,7 +216,7 @@ def load_msh(filename):
         #     print 'non fare un cippa'
         # else:
         if line[0] != '$':
-            l = map(float,line.split())
+            l = list(map(float,line.split()))
             if len(l) == 4:
                 x = np.append(x,l[1])
                 y = np.append(y,l[2])
@@ -254,9 +254,9 @@ def load_msh_1(filename):
     for line in f:
 
         if line[0]=='$':
-            print 'non fare un cippa'
+            print('non fare un cippa')
         else:
-            l = map(float,line.split())
+            l = list(map(float,line.split()))
             if len(l) == 4:
                 x = np.append(x,l[1])
                 y = np.append(y,l[2])
@@ -288,5 +288,5 @@ def load_msh_1(filename):
             topo[r_id,:] = np.array([[row[0],row[2],row[1]]])
         r_id+=1
 
-    print r_id
+    print(r_id)
     return topo , x , y , nodes , b_nodes , int_nodes
