@@ -1,15 +1,15 @@
 #! /usr/bin/env python
 
-import basis_func
 import matplotlib.pyplot as plt
-import os
-import sys
 import numpy as np
-import scipy.sparse as sparse
-
+import os
 from pyevtk.hl import unstructuredGridToVTK
 from pyevtk.vtk import VtkTriangle
+import scipy.sparse as sparse
+import sys
 
+sys.path.append('../../modules')
+import basis_func
 from parameters_handler import ParametersHandler
 
 if len(sys.argv) > 1:

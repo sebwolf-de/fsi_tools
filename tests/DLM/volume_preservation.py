@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 
-import assemble
 import math
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,6 +8,9 @@ from scipy import sparse
 from shapely.geometry import Polygon
 import sys
 from vtk import *
+
+import sys
+import assemble
 
 def read_area(k):
     reader = vtk.vtkXMLUnstructuredGridReader()

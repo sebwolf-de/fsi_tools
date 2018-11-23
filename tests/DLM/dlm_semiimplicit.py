@@ -1,26 +1,25 @@
 #! /usr/bin/env python
 
-import time
-import os
-import sys
-import numpy as np
-from scipy import sparse
-import scipy.sparse.linalg as sp_la
+import json
 import matplotlib.pyplot as plt
 import math as mth
-import json
+import numpy as np
+import os
+from scipy import sparse
+import scipy.sparse.linalg as sp_la
+import sys
+import time
 
-# nicola modules
-import lin_tri_mesh as lin_t3
-import basis_func as shp
+sys.path.append('../../modules')
 import assemble
-import la_utils
-import viewers
+import basis_func as shp
 import geom_utils as geom
-from shapely.geometry import Polygon
-
-from preconditioner import BlockPreconditioner
+import la_utils
+import lin_tri_mesh as lin_t3
 from parameters_handler import ParametersHandler
+from preconditioner import BlockPreconditioner
+from shapely.geometry import Polygon
+import viewers
 
 def start_later(cn_time):
     #load mesh file
@@ -328,7 +327,7 @@ def coupling_apply_bc(GT11, GT22):
 
     return GT11, GT22
 
-def assemble_kinematic_coupling(sx_n, sy_n, sx_n_old, sy_n_old):
+def assemble_kinematic_coupling():
     if ph.time_integration != 'BDF1':
         sx_asmbl = 2*sx_n - sx_n_old
         sy_asmbl = 2*sy_n - sy_n_old
@@ -356,7 +355,7 @@ def assemble_kinematic_coupling(sx_n, sy_n, sx_n_old, sy_n_old):
             sparse.hstack([sparse.csr_matrix((ndofs_u,ndofs_s)),GT22]) ])
     return G, GT, GT11, GT22
 
-def assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n):
+def assemble_blockwise_force_BDF1():
     f_rhs_x = 1/ph.dt*MF11.dot(ux_n)
     f_rhs_y = 1/ph.dt*MF11.dot(uy_n)
 
@@ -367,12 +366,11 @@ def assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n):
                      np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
 
 def assemble_blockwise_matrix_BDF1():
-    D11 = 1/ph.dt*MF11 + KF11
-    D22 = 1/ph.dt*MF11 + KF11
-    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
-    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n, uy_n)
+    D11 = 1/ph.dt*MF11 + KF11 + S11
+    D22 = 1/ph.dt*MF11 + KF11 + S11
 
-    (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
+    (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22)
 
     A = sparse.hstack([
         sparse.vstack([D11, S12]),
@@ -418,7 +416,7 @@ def assemble_blockwise_matrix_BDF1():
     mat = mat.tocsr()
     return mat
 
-def assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx_n_old, dy_n_old):
+def assemble_blockwise_force_BDF2():
     f_rhs_x = 1/ph.dt*(MF11.dot(2*ux_n - 0.5*ux_n_old))
     f_rhs_y = 1/ph.dt*(MF11.dot(2*uy_n - 0.5*uy_n_old))
 
@@ -429,12 +427,11 @@ def assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx
                      np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
 
 def assemble_blockwise_matrix_BDF2():
-    D11 = 1.5/ph.dt*MF11 + KF11
-    D22 = 1.5/ph.dt*MF11 + KF11
-    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
-    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, 2*ux_n-ux_n_old, 2*uy_n-uy_n_old)
+    D11 = 1.5/ph.dt*MF11 + KF11 + S11
+    D22 = 1.5/ph.dt*MF11 + KF11 + S11
 
-    (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22, S12, S21)
+    (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22)
 
     A = sparse.hstack([
         sparse.vstack([D11, S12]),
@@ -483,9 +480,12 @@ def assemble_blockwise_matrix_BDF2():
 def assemble_convective_Theta():
     return
 
-def assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n):
-    f_rhs_x = 1/ph.dt*MF11.dot(ux_n) - 0.5*KF11.dot(ux_n) + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
-    f_rhs_y = 1/ph.dt*MF11.dot(uy_n) - 0.5*KF11.dot(uy_n) + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
+def assemble_blockwise_force_Theta():
+    S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, 2*ux_n-ux_n_old, 2*uy_n-uy_n_old)
+    f_rhs_x = 1/ph.dt*MF11.dot(ux_n) - 0.5*KF11.dot(ux_n) - 0.5*S11.dot(ux_n) \
+        + 0.5*BT1.dot(p_n) - 0.5*GT11.dot(l_n[0:ndofs_s])
+    f_rhs_y = 1/ph.dt*MF11.dot(uy_n) - 0.5*KF11.dot(uy_n) - 0.5*S11.dot(uy_n) \
+        + 0.5*BT2.dot(p_n) - 0.5*GT22.dot(l_n[ndofs_s:2*ndofs_s])
 
     p_rhs = np.zeros((ndofs_p, 1))#-0.5*B.dot(u_n)
 
@@ -501,8 +501,9 @@ def assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n):
 
 
 def assemble_blockwise_matrix_Theta():
-    D11 = 1/ph.dt*MF11 + 0.5*KF11
-    D22 = 1/ph.dt*MF11 + 0.5*KF11
+    S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, 2*ux_n-ux_n_old, 2*uy_n-uy_n_old)
+    D11 = 1/ph.dt*MF11 + 0.5*KF11 + 0.5*S11
+    D22 = 1/ph.dt*MF11 + 0.5*KF11 + 0.5*S11
 
     (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22)
 
@@ -549,19 +550,6 @@ def assemble_blockwise_matrix_Theta():
     mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
     mat = mat.tocsr()
     return mat
-
-# def unassemble_sol_blocks(sol):
-#     u_n = sol[0:2*ndofs_u]
-#     p_n1 = sol[2*ndofs_u:2*ndofs_u+ndofs_p]
-#
-#     sx_n1 = np.zeros( sx_n.shape )
-#     sy_n1 = np.zeros( sy_n.shape )
-#
-#     sx_n1 = sol[2*ndofs_u+ndofs_p:2*ndofs_u+ndofs_p+ndofs_s]
-#
-#     sy_n1 = sol[2*ndofs_u+ndofs_p+  ndofs_s:
-#                            2*ndofs_u+ndofs_p+2*ndofs_s]
-#     return u_n,p_n1,sx_n1,sy_n1
 
 def area_measure(xs,ys):
     area_mes = MS11 * sx_n + MS11 * sy_n
@@ -785,22 +773,22 @@ for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
 
     ###Assemble kinematic coupling
-    (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n, sy_n, sx_n_old, sy_n_old)
+    (G, GT, GT11, GT22) = assemble_kinematic_coupling()
 
     ###Assemble linear system and solve
     if ph.time_integration == 'BDF1':
         mat = assemble_blockwise_matrix_BDF1()
-        force = assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n)
+        force = assemble_blockwise_force_BDF1()
     elif ph.time_integration == 'Theta':
         mat = assemble_blockwise_matrix_Theta()
-        force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n)
+        force = assemble_blockwise_force_Theta()
     elif ph.time_integration == 'BDF2':
         if cn_time == 0:
             mat = assemble_blockwise_matrix_Theta()
-            force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n)
+            force = assemble_blockwise_force_Theta()
         else:
             mat = assemble_blockwise_matrix_BDF2()
-            force = assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx_n_old, dy_n_old)
+            force = assemble_blockwise_force_BDF2()
 
     sol_t0 = time.time()
     sol = sp_la.spsolve(mat,force)

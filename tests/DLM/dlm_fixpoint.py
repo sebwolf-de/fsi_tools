@@ -1,31 +1,31 @@
 #! /usr/bin/env python
 
-import time
-import os
-import sys
-import numpy as np
-from scipy import sparse
-import scipy.sparse.linalg as sp_la
+import json
 import matplotlib.pyplot as plt
 import math as mth
-import json
+import numpy as np
+import os
+from scipy import sparse
+import scipy.sparse.linalg as sp_la
+import sys
+import time
 
-# nicola modules
-import lin_tri_mesh as lin_t3
-import basis_func as shp
+sys.path.append('../../modules')
 import assemble
-import la_utils
-import viewers
+import basis_func as shp
 import geom_utils as geom
-from shapely.geometry import Polygon
-
-from preconditioner import BlockPreconditioner
+import la_utils
+import lin_tri_mesh as lin_t3
 from parameters_handler import ParametersHandler
+from preconditioner import BlockPreconditioner
+from shapely.geometry import Polygon
+import viewers
+
 
 # def start_later(cn_time):
 #     #load mesh file
 #     filename = results_dir+'/mesh'
-#     f = file(filename,"rb")
+#     f = open(filename,"rb")
 #     topo_p = np.load(f)
 #     x_p = np.load(f)
 #     y_p = np.load(f)
@@ -50,7 +50,7 @@ from parameters_handler import ParametersHandler
 #     #load previous timestep
 #     filename = "./"+results_dir+"/"
 #     filename += 'cn_time_'+str(cn_time-1).zfill(ph.time_index_digits)
-#     f = file(filename,"rb")
+#     f = open(filename,"rb")
 #     u_n_old = np.load(f)
 #     p_n_old = np.load(f)
 #     sx_n_old = np.load(f)
@@ -70,7 +70,7 @@ from parameters_handler import ParametersHandler
 #     #load current timestep
 #     filename = "./"+results_dir+"/"
 #     filename += 'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
-#     f = file(filename,"rb")
+#     f = open(filename,"rb")
 #     u_n = np.load(f)
 #     p_n = np.load(f)
 #     sx_n = np.load(f)
@@ -85,7 +85,7 @@ from parameters_handler import ParametersHandler
 
 def write_mesh():
     filename = results_dir+'mesh'#'./mesh/'+sim_prefix
-    f = file(filename,"wb")
+    f = open(filename,"wb")
     np.save(f,topo_p)
     np.save(f,x_p)
     np.save(f,y_p)
@@ -524,7 +524,7 @@ def l2_norm(M,g):
 
 def write_output():
     filename = results_dir +'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
-    f = file(filename,"wb")
+    f = open(filename,"wb")
     np.save(f,u_n)
     np.save(f,p_n)
     np.save(f,sx_n)
@@ -539,7 +539,7 @@ def write_output():
 
 def write_time():
     filename = results_dir +'time'
-    f = file(filename,"wb")
+    f = open(filename,"wb")
     np.save(f,np.average(step_time))
     np.save(f,np.average(sol_time))
     f.close()

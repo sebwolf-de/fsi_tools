@@ -2,8 +2,10 @@
 
 import numpy as np
 import scipy.sparse.linalg as sp_la
+import sys
 import time
 
+sys.path.append('../../modules')
 import assemble
 import la_utils
 import lin_tri_mesh as lin_t3

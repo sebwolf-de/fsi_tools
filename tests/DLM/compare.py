@@ -1,7 +1,9 @@
-import sys
+import math as mth
 import numpy as np
 from scipy import sparse
-import math as mth
+import sys
+
+sys.path.append('../../modules')
 import assemble
 
 def l2_norm(M,g):

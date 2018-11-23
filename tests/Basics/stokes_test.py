@@ -5,7 +5,9 @@ import numpy as np
 import scipy.sparse.linalg as sp_la
 from scipy import sparse
 import time
+import sys
 
+sys.path.append('../../modules')
 import assemble
 import basis_func as shp
 import la_utils
