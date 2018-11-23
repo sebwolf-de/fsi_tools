@@ -14,8 +14,7 @@ This pieces of code requires the following libraries.
 5. Shapely X.X.X
 6. Rtree X.X.X
 
-Nicola: At the current stage, the standard packages coming with and Ubuntu distribution should be ok.
-Sebastian: I run Fedora 28 and have installed the needed packages via dnf. Everything works fine. 
+You can either install the packages via your distribution's packaging tool or via pip.
 
 ## How do I get set up? ##
 
@@ -34,23 +33,32 @@ echo %PATH%
 
 Once the configuration is done, it is time to get some work done. There are several working files right now:
 
+# Basics
+
+In the folder
+
+```
+test/Basics
+```
+
+there are several scripts, that test the numerical methods against analytical solutions.
+
 # Navier Stokes Solver
 
 By invoking 
 ```
-python ns_lid_cavity.py
+python ns_master.py
 ```
-you run a simple solver for Navier-Stokes equation in the well known lid driven cavity example. The script reads `simulation_parameters_ns.json`. The `plot_results_ns.py` creates some nice outputs for the velocity and pressure solution. 
+you run a simple solver for Navier-Stokes equation in the well known lid driven cavity example. The script reads `simulation_parameters_ns.json`. The `plot_results_ns.py` creates some nice outputs for the velocity and pressure solution. With `export_to_vtk.py` you can export the results to view them in an external program e.g. paraview. 
 
 # Distributed Lagrangian Multiplier Scripts
 
+Right now, there are two examples implementes: A initially deformed annulus, that moves back to its undeformed position, a small disk floating in a lid driven cavity.
+
 There are two scripts to solve fluid structure interaction problems with the method of Distributed Lagrangian Multipliers.
 
-For `dlm_annulus.py` there is an anulus in a box with homogeneous Dirichlet boundaries. At the beginning the annulus is centered and then moves according to its initial deformation, the elastic forces of the structure and the response of the fluid.
+`dlm_semiimplicit.py` uses a semiimplicit time stepping method, `dlm_fixpoint.py` is a fully implicit method, which uses a fixpoint method to solve the nonlinear equations.
 
-The `dlm_cavity.py` scripts simulates a square initially at rest in a lid driven cavity.
+The solver reads the simulation parameters in the `simulation_parameters_fsi.json` file, where you can define material parameters and solver parameters.
 
-The solver reads the simulation parameters in the `simulation_parameters_fsi.json` file runs the simulation.
-The same `simulation_parameters.json` is read by the `plot_results_fsi.py` script. `plot_result_fsis.py` reads the slution parameters and, collects the binary data, and writes plots of the solution
-
-.
+`plot_results.py` creates plots, `export_to_vtk.py` exports the results for an external viewer.
