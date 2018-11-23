@@ -6,6 +6,7 @@ from pyevtk.hl import unstructuredGridToVTK
 from pyevtk.vtk import VtkTriangle
 import scipy.sparse.linalg as sp_la
 
+sys.path.append('../../modules')
 import assemble
 import la_utils
 import lin_tri_mesh
