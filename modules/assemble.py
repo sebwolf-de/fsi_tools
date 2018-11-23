@@ -507,14 +507,41 @@ def divu_p_p1_iso_p2_p1(topo_p,x_p,y_p,
 
 def divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,
            topo_u,x_u,y_u,c2f):
+    print('assemble divu_p_p1_iso_p2_p1p0')
+    p = multiprocessing.Pool()
+    # n_cpu = 4
+    if os.environ.get('FSI_NUM_THREADS') == None:
+        n_cpu = multiprocessing.cpu_count()
+    else:
+        n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
+    print(n_cpu)
+    numel = topo_p.shape[0]
+    workers = []
+    ndofs_p = max(x_p.shape) + topo_p.shape[0]
+    for k in range(n_cpu):
+        subtopo = topo_p[int(numel*k/n_cpu):int(numel*(k+1)/n_cpu)]
+        w = p.apply_async(calc_divu_p_p1_iso_p2_p1po_partly,
+            args = (subtopo,x_p,y_p,topo_u,x_u,y_u,c2f,int(numel*k/n_cpu),ndofs_p))
+        workers.append(w)
+
+    (B1, B2) = workers[0].get()
+    for k in range(1,n_cpu):
+        (C1, C2) = workers[k].get()
+        B1 += C1
+        B2 += C2
+
+    p.close()
+    p.join()
+
+    return B1, B2
+
+def calc_divu_p_p1_iso_p2_p1po_partly(topo_p, x_p,y_p,topo_u,x_u,y_u,c2f,el_id,ndofs_p):
 
     ndofs_u = max(x_u.shape)
-    ndofs_p = max(x_p.shape) + topo_p.shape[0]
 
     B1 = sparse.csr_matrix((ndofs_u,ndofs_p))
     B2 = sparse.csr_matrix((ndofs_u,ndofs_p))
 
-    el_id = 0
     for nd_p in topo_p:
         #print("====================")
         #print nd_p
