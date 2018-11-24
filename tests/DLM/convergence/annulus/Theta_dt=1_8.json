@@ -5,8 +5,8 @@
   "time_integration" : "Theta",
   "delta_time_base": 25,
   "delta_time_negative_esponent": 3,
-  "fluid_triangulation_intervals" : 8,
-  "structure_triangulation_intervals" : 8,
+  "fluid_triangulation_intervals" : 32,
+  "structure_triangulation_intervals" : 32,
 
   "kappa": 10,
   "reynolds_number" : 10,
