@@ -74,13 +74,13 @@ def local_mass_matrix_tri(tri,xu_l,yu_l,xs_l,ys_l):
 
 
 def u_v_p1_periodic(topo,x,y,ie):
-    print('assemble u_v_p1_periodic')
+    # print('assemble u_v_p1_periodic')
     p = multiprocessing.Pool()
     if os.environ.get('FSI_NUM_THREADS') == None:
         n_cpu = multiprocessing.cpu_count()
     else:
         n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
-    print(n_cpu)
+    # print(n_cpu)
     numel = topo.shape[0]
     workers = []
     for k in range(n_cpu):
@@ -123,14 +123,14 @@ def calc_u_v_p1_periodic_partly(topo,x,y,ie):
     return A
 
 def u_v_p1(topo,x,y):
-    print('assemble u_v_p1')
+    # print('assemble u_v_p1')
     p = multiprocessing.Pool()
     # n_cpu = 4
     if os.environ.get('FSI_NUM_THREADS') == None:
         n_cpu = multiprocessing.cpu_count()
     else:
         n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
-    print(n_cpu)
+    # print(n_cpu)
     numel = topo.shape[0]
     workers = []
     for k in range(n_cpu):
@@ -240,14 +240,14 @@ def u_v_p1_1d_inv_diag(topo,x):
     return A
 
 def gradu_gradv_p1_ieq(topo,x,y,ieq):
-    print('assemble gradu_gradv_p1_ieq')
+    # print('assemble gradu_gradv_p1_ieq')
     p = multiprocessing.Pool()
     # n_cpu = 4
     if os.environ.get('FSI_NUM_THREADS') == None:
         n_cpu = multiprocessing.cpu_count()
     else:
         n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
-    print(n_cpu)
+    # print(n_cpu)
     numel = topo.shape[0]
     workers = []
     for k in range(n_cpu):
@@ -297,14 +297,14 @@ def calc_gradu_gradv_p1_ieq_partly(topo,x,y,ieq):
     return A
 
 def gradu_gradv_p1(topo,x,y):
-    print('assemble gradu_gradv_p1')
+    # print('assemble gradu_gradv_p1')
     p = multiprocessing.Pool()
     # n_cpu = 4
     if os.environ.get('FSI_NUM_THREADS') == None:
         n_cpu = multiprocessing.cpu_count()
     else:
         n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
-    print(n_cpu)
+    # print(n_cpu)
     numel = topo.shape[0]
     workers = []
     for k in range(n_cpu):
@@ -388,14 +388,14 @@ def u_gradv_w_p1(topo, x, y, u_x, u_y):
     # operator assuming P1 elements on trinangles
     # As we have P1 elements, the gradient of v is piecewise constant, so we can factor
     # grad v out of the integral and just consider the integral of u*w
-
+    # print('assemble u_gradv_w_p1')
     p = multiprocessing.Pool()
     # n_cpu = 4
     if os.environ.get('FSI_NUM_THREADS') == None:
         n_cpu = multiprocessing.cpu_count()
     else:
         n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
-    # print n_cpu
+    # print(n_cpu)
     numel = topo.shape[0]
     workers = []
     for k in range(n_cpu):
@@ -507,14 +507,14 @@ def divu_p_p1_iso_p2_p1(topo_p,x_p,y_p,
 
 def divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,
            topo_u,x_u,y_u,c2f):
-    print('assemble divu_p_p1_iso_p2_p1p0')
+    # print('assemble divu_p_p1_iso_p2_p1p0')
     p = multiprocessing.Pool()
     # n_cpu = 4
     if os.environ.get('FSI_NUM_THREADS') == None:
         n_cpu = multiprocessing.cpu_count()
     else:
         n_cpu = int(os.environ.get('FSI_NUM_THREADS'))
-    print(n_cpu)
+    # print(n_cpu)
     numel = topo_p.shape[0]
     workers = []
     ndofs_p = max(x_p.shape) + topo_p.shape[0]
