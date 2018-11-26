@@ -12,6 +12,7 @@ import assemble
 import basis_func as shp
 import la_utils
 import lin_tri_mesh as lin_t3
+from preconditioner import BlockPreconditioner
 import viewers
 
 def analytical_u(t):
@@ -26,7 +27,7 @@ def analytical_p(t):
     return np.reshape(np.append(p_1, p_0), (ndofs_p, 1))
 
 def analytical(t):
-    return sparse.vstack([analytical_u(t), analytical_p(t)])
+    return sparse.vstack([analytical_u(t), analytical_p(t),0])
 
 
 def f(t):
@@ -86,8 +87,8 @@ def assemble_blockwise_matrix_BDF1():
     D22 = 1./dt*M + K + S11
     # D11 = 1./dt*M + K
     # D22 = 1./dt*M + K
-    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
-    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    S12 = sparse.csc_matrix((ndofs_u, ndofs_u))
+    S21 = sparse.csc_matrix((ndofs_u, ndofs_u))
 
     #lower boundary
     bc_id = np.where(y_u < dx/10)
@@ -120,11 +121,11 @@ def assemble_blockwise_matrix_BDF1():
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
-        sparse.hstack([D11, S12, -BT1, sparse.csr_matrix((ndofs_u, 1))]),
-        sparse.hstack([S21, D22, -BT2, sparse.csr_matrix((ndofs_u, 1))]),
-        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
-        sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
-    ], "csr")
+        sparse.hstack([D11, S12, -BT1, sparse.csc_matrix((ndofs_u, 1))]),
+        sparse.hstack([S21, D22, -BT2, sparse.csc_matrix((ndofs_u, 1))]),
+        sparse.hstack([-B, sparse.csc_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
+        sparse.hstack([sparse.csc_matrix((1, 2*ndofs_u)), mean_p, sparse.csc_matrix((1,1))])
+    ], "csc")
     return mat
 
 def assemble_blockwise_force_BDF2(t):
@@ -166,8 +167,8 @@ def assemble_blockwise_matrix_BDF2():
     D22 = 1.5*M + dt*K + dt*S11
     # D11 = 1.5/dt*M + K
     # D22 = 1.5/dt*M + K
-    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
-    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    S12 = sparse.csc_matrix((ndofs_u, ndofs_u))
+    S21 = sparse.csc_matrix((ndofs_u, ndofs_u))
 
     #lower boundary
     bc_id = np.where(y_u < dx/10)
@@ -199,11 +200,11 @@ def assemble_blockwise_matrix_BDF2():
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
-        sparse.hstack([D11, S12, -BT1, sparse.csr_matrix((ndofs_u, 1))]),
-        sparse.hstack([S21, D22, -BT2, sparse.csr_matrix((ndofs_u, 1))]),
-        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
-        sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
-    ], "csr")
+        sparse.hstack([D11, S12, -BT1, sparse.csc_matrix((ndofs_u, 1))]),
+        sparse.hstack([S21, D22, -BT2, sparse.csc_matrix((ndofs_u, 1))]),
+        sparse.hstack([-B, sparse.csc_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
+        sparse.hstack([sparse.csc_matrix((1, 2*ndofs_u)), mean_p, sparse.csc_matrix((1,1))])
+    ], "csc")
     return mat
 
 def assemble_blockwise_force_Theta(t):
@@ -254,8 +255,8 @@ def assemble_blockwise_matrix_Theta():
     D22 = 1./dt*M + 0.5*K + 0.5*S11
     # D11 = 1./dt*M + 0.5*K
     # D22 = 1./dt*M + 0.5*K
-    S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
-    S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    S12 = sparse.csc_matrix((ndofs_u, ndofs_u))
+    S21 = sparse.csc_matrix((ndofs_u, ndofs_u))
 
     #lower boundary
     bc_id = np.where(y_u < dx/10)
@@ -290,11 +291,11 @@ def assemble_blockwise_matrix_Theta():
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
-        sparse.hstack([D11, S12, -0.5*BT1, sparse.csr_matrix((ndofs_u, 1))]),
-        sparse.hstack([S21, D22, -0.5*BT2, sparse.csr_matrix((ndofs_u, 1))]),
-        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
-        sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
-    ], "csr")
+        sparse.hstack([D11, S12, -0.5*BT1, sparse.csc_matrix((ndofs_u, 1))]),
+        sparse.hstack([S21, D22, -0.5*BT2, sparse.csc_matrix((ndofs_u, 1))]),
+        sparse.hstack([-B, sparse.csc_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
+        sparse.hstack([sparse.csc_matrix((1, 2*ndofs_u)), mean_p, sparse.csc_matrix((1,1))])
+    ], "csc")
     return mat
 
 def l2_norm(M, g):
@@ -333,9 +334,9 @@ else:
 print(n)
 dx = 1./n
 
-T = 2
+T = 3
 Theta = 0.5
-TOL = 1e-7
+TOL = 1e-5
 max_iter = 10
 
 n_runs = 3
@@ -373,13 +374,13 @@ BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 M_2D = sparse.vstack([
-    sparse.hstack([M, sparse.csr_matrix(M.shape)]),
-    sparse.hstack([sparse.csr_matrix(M.shape), M])
-], "csr")
+    sparse.hstack([M, sparse.csc_matrix(M.shape)]),
+    sparse.hstack([sparse.csc_matrix(M.shape), M])
+], "csc")
 K_2D = sparse.vstack([
-    sparse.hstack([K, sparse.csr_matrix(M.shape)]),
-    sparse.hstack([sparse.csr_matrix(M.shape), K])
-], "csr")
+    sparse.hstack([K, sparse.csc_matrix(M.shape)]),
+    sparse.hstack([sparse.csc_matrix(M.shape), K])
+], "csc")
 
 mean_p = np.zeros((1,ndofs_p))
 x_l = x_p[topo_p[0,0:3]]
@@ -417,15 +418,30 @@ for t_ind in range(0, n_runs):
         t0_BDF1 = time.time()
         ux_n1 = np.reshape(u_BDF1[0:ndofs_u], (ndofs_u, 1))
         uy_n1 = np.reshape(u_BDF1[ndofs_u:2*ndofs_u], (ndofs_u, 1))
+        assemble_t0 = time.time()
         rhs_BDF1 = assemble_blockwise_force_BDF1(k*dt)
-        M_BDF1 = assemble_blockwise_matrix_BDF1()
+        M_BDF1 = assemble_blockwise_matrix_BDF1().tocsc()
+        assemble_t1 = time.time()
+        print('assembled linear system, t = ' + str(assemble_t1-assemble_t0))
         ### start nonlinear solver for BDF1
         for nonlin_ind in range(max_iter):
-            sol = sp_la.spsolve(M_BDF1, rhs_BDF1)
+            precond_t0 = time.time()
+            spilu = sp_la.spilu(M_BDF1, fill_factor=100, drop_tol=1e-6)
+            M_x = lambda x: spilu.solve(x)
+            precond = sp_la.LinearOperator((2*ndofs_u+ndofs_p+1, 2*ndofs_u+ndofs_p+1), M_x)
+            precond_t1 = time.time()
+            print('calculated preconditioner, t = ' + str(precond_t1-precond_t0))
+            solve_t0 = time.time()
+            sol = sp_la.bicgstab(M_BDF1, rhs_BDF1, M=precond, tol=1e-8)[0]
             ux_n1 = np.reshape(sol[0:ndofs_u], (ndofs_u, 1))
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
+            solve_t1 = time.time()
+            print('solved linear system, t = ' + str(solve_t1 - solve_t0))
+            res_t0 = time.time()
             M_BDF1 = assemble_blockwise_matrix_BDF1()
             res = np.linalg.norm(M_BDF1.dot(sol) - rhs_BDF1)
+            res_t1 = time.time()
+            print('calculated residual, t = ' + str(res_t1 - res_t0))
             print('BDF1, res = ' + str(res))
             if res < TOL:
                 break
@@ -440,7 +456,10 @@ for t_ind in range(0, n_runs):
         M_BDF2 = assemble_blockwise_matrix_BDF2()
         ### start nonlinear solver for BDF2
         for nonlin_ind in range(max_iter):
-            sol = sp_la.spsolve(M_BDF2, rhs_BDF2)
+            spilu = sp_la.spilu(M_BDF2, fill_factor=100, drop_tol=1e-6)
+            M_x = lambda x: spilu.solve(x)
+            precond = sp_la.LinearOperator((2*ndofs_u+ndofs_p+1, 2*ndofs_u+ndofs_p+1), M_x)
+            sol = sp_la.bicgstab(M_BDF2, rhs_BDF2, M=precond, tol=1e-8)[0]
             ux_n1 = np.reshape(sol[0:ndofs_u], (ndofs_u, 1))
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
             M_BDF2 = assemble_blockwise_matrix_BDF2()
@@ -460,7 +479,10 @@ for t_ind in range(0, n_runs):
         M_Theta = assemble_blockwise_matrix_Theta()
         ### Start nonlinear solver for Theta
         for nonlin_ind in range(max_iter):
-            sol = sp_la.spsolve(M_Theta, rhs_Theta)
+            spilu = sp_la.spilu(M_Theta, fill_factor=100, drop_tol=1e-6)
+            M_x = lambda x: spilu.solve(x)
+            precond = sp_la.LinearOperator((2*ndofs_u+ndofs_p+1, 2*ndofs_u+ndofs_p+1), M_x)
+            sol = sp_la.bicgstab(M_Theta, rhs_Theta, M=precond, tol=1e-8)[0]
             ux_n1 = np.reshape(sol[0:ndofs_u], (ndofs_u, 1))
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
             M_Theta = assemble_blockwise_matrix_Theta()
