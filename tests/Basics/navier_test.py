@@ -334,7 +334,7 @@ else:
 print(n)
 dx = 1./n
 
-T = 3
+T = 5
 Theta = 0.5
 TOL = 1e-5
 max_iter = 10
