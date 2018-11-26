@@ -262,32 +262,21 @@ def assemble_blockwise_matrix_Theta():
     bc_id = np.where(y_u < dx/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
     #upper boundary
     bc_id = np.where(y_u > 1-dx/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
     #left boundary
     bc_id = np.where(x_u < dx/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
 
     #right boundary
     bc_id = np.where(x_u > 1-dx/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
-    S12 = la_utils.clear_rows(S12, bc_id)
-    S21 = la_utils.clear_rows(S21, bc_id)
-
-    S12 = 0.5*S12
-    S21 = 0.5*S21
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
@@ -452,18 +441,30 @@ for t_ind in range(0, n_runs):
         t0_BDF2 = time.time()
         ux_n1 = np.reshape(u_BDF2[0:ndofs_u], (ndofs_u, 1))
         uy_n1 = np.reshape(u_BDF2[ndofs_u:2*ndofs_u], (ndofs_u, 1))
+        assemble_t0 = time.time()
         rhs_BDF2 = assemble_blockwise_force_BDF2(k*dt)
         M_BDF2 = assemble_blockwise_matrix_BDF2()
+        assemble_t1 = time.time()
+        print('assembled linear system, t = ' + str(assemble_t1 - assemble_t0))
         ### start nonlinear solver for BDF2
         for nonlin_ind in range(max_iter):
+            precond_t0 = time.time()
             spilu = sp_la.spilu(M_BDF2, fill_factor=100, drop_tol=1e-6)
             M_x = lambda x: spilu.solve(x)
             precond = sp_la.LinearOperator((2*ndofs_u+ndofs_p+1, 2*ndofs_u+ndofs_p+1), M_x)
+            precond_t1 = time.time()
+            print('calculated preconditioner, t = ' + str(precond_t1 - precond_t0))
+            sol_t0 = time.time()
             sol = sp_la.bicgstab(M_BDF2, rhs_BDF2, M=precond, tol=1e-8)[0]
+            sol_t1 = time.time()
+            print('solved linear system, t = ' + str(sol_t1 - sol_t0))
             ux_n1 = np.reshape(sol[0:ndofs_u], (ndofs_u, 1))
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
+            res_t0 = time.time()
             M_BDF2 = assemble_blockwise_matrix_BDF2()
             res = np.linalg.norm(M_BDF2.dot(sol) - rhs_BDF2)
+            res_t1 = time.time()
+            print('calculated residual, t = ' + str(res_t1 - res_t0))
             print('BDF2, res = ' + str(res))
             if res < TOL:
                 break
@@ -475,18 +476,30 @@ for t_ind in range(0, n_runs):
         t0_Theta = time.time()
         ux_n1 = np.reshape(u_Theta[0:ndofs_u], (ndofs_u, 1))
         uy_n1 = np.reshape(u_Theta[ndofs_u:2*ndofs_u], (ndofs_u, 1))
+        assemble_t0 = time.time()
         rhs_Theta = assemble_blockwise_force_Theta(k*dt)
         M_Theta = assemble_blockwise_matrix_Theta()
+        assemble_t1 = time.time()
+        print('assembled linear system, t = ' + str(assemble_t1 - assemble_t0))
         ### Start nonlinear solver for Theta
         for nonlin_ind in range(max_iter):
+            precond_t0 = time.time()
             spilu = sp_la.spilu(M_Theta, fill_factor=100, drop_tol=1e-6)
             M_x = lambda x: spilu.solve(x)
             precond = sp_la.LinearOperator((2*ndofs_u+ndofs_p+1, 2*ndofs_u+ndofs_p+1), M_x)
+            precond_t1 = time.time()
+            print('calculated preconditioner, t = ' + str(precond_t1 - precond_t0))
+            sol_t0 = time.time()
             sol = sp_la.bicgstab(M_Theta, rhs_Theta, M=precond, tol=1e-8)[0]
+            sol_t1 = time.time()
+            print('solved linear system, t  = ' + str(sol_t1 - sol_t0))
             ux_n1 = np.reshape(sol[0:ndofs_u], (ndofs_u, 1))
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
+            res_t0 = time.time()
             M_Theta = assemble_blockwise_matrix_Theta()
             res = np.linalg.norm(M_Theta.dot(sol) - rhs_Theta)
+            res_t1 = time.time()
+            print('calculated residual, t = ' + str(res_t1 - res_t0))
             print('Theta, res = ' + str(res))
             if res < TOL:
                 break
