@@ -114,7 +114,7 @@ fi
 
 if [[ $1 == *"R"* ]]; then
   python3 dlm_fixpoint.py convergence/annulus/ref.json
-  cp results/dlm_annulus_32_BDF1_dt5em4_hx32_hs32_k10_nu1/binary_data/cn_time_400 results/Convergence_Analysis_Annulus/reference
+  cp results/dlm_annulus_32_BDF1_dt5em4_hx32_hs32_k10_nu1/binary_data/cn_time_200 results/Convergence_Analysis_Annulus/reference
   cp results/dlm_annulus_32_BDF1_dt5em4_hx32_hs32_k10_nu1/binary_data/mesh results/Convergence_Analysis_Annulus/mesh
 fi
 
