@@ -19,7 +19,7 @@ print(results_dir)
 
 #Get mass matrix, all time integrations were being executed on the same mesh
 filename = results_dir+'mesh'
-f = file(filename,"rb")
+f = open(filename,"rb")
 topo_p = np.load(f)
 x_p = np.load(f)
 y_p = np.load(f)
@@ -55,7 +55,7 @@ stiffness_matrix = sparse.vstack([
 
 
 input_name = results_dir+'reference'
-f = file(input_name,"rb")
+f = open(input_name,"rb")
 u_reference = np.load(f)
 p_reference = np.load(f)
 xs_reference = np.load(f)
@@ -77,7 +77,7 @@ time_Theta = np.zeros(N)
 
 for k in range(1,N+1):
     input_name = results_dir+'BDF1_'+str(k)
-    f = file(input_name,"rb")
+    f = open(input_name,"rb")
     u_BDF1 = np.load(f)
     p_BDF1 = np.load(f)
     xs_BDF1 = np.load(f)
@@ -91,7 +91,7 @@ for k in range(1,N+1):
         np.append(xs_BDF1, ys_BDF1) - np.append(xs_reference, ys_reference))
 
     input_name = results_dir+'BDF1_'+str(k)+'_time'
-    f = file(input_name,"rb")
+    f = open(input_name,"rb")
     step_time = np.load(f)
     sol_time = np.load(f)
     f.close()
@@ -99,7 +99,7 @@ for k in range(1,N+1):
     time_BDF1[k-1] = step_time
 
     input_name = results_dir+'BDF2_'+str(k)
-    f = file(input_name,"rb")
+    f = open(input_name,"rb")
     u_BDF2 = np.load(f)
     p_BDF2 = np.load(f)
     xs_BDF2 = np.load(f)
@@ -113,7 +113,7 @@ for k in range(1,N+1):
         np.append(xs_BDF2, ys_BDF2) - np.append(xs_reference, ys_reference))
 
     input_name = results_dir+'BDF2_'+str(k)+'_time'
-    f = file(input_name,"rb")
+    f = open(input_name,"rb")
     step_time = np.load(f)
     sol_time = np.load(f)
     f.close()
@@ -121,7 +121,7 @@ for k in range(1,N+1):
     time_BDF2[k-1] = step_time
 
     input_name = results_dir+'Theta_'+str(k)
-    f = file(input_name,"rb")
+    f = open(input_name,"rb")
     u_Theta = np.load(f)
     p_Theta = np.load(f)
     xs_Theta = np.load(f)
@@ -135,7 +135,7 @@ for k in range(1,N+1):
         np.append(xs_Theta, ys_Theta) - np.append(xs_reference, ys_reference))
 
     input_name = results_dir+'Theta_'+str(k)+'_time'
-    f = file(input_name,"rb")
+    f = open(input_name,"rb")
     step_time = np.load(f)
     sol_time = np.load(f)
     f.close()
