@@ -325,7 +325,7 @@ dx = 1./n
 
 T = 5
 Theta = 0.5
-TOL = 1e-5
+TOL = 1e-7
 max_iter = 10
 
 n_runs = 3
@@ -415,7 +415,7 @@ for t_ind in range(0, n_runs):
         ### start nonlinear solver for BDF1
         for nonlin_ind in range(max_iter):
             precond_t0 = time.time()
-            spilu = sp_la.spilu(M_BDF1, fill_factor=100, drop_tol=1e-6)
+            spilu = sp_la.spilu(M_BDF1, fill_factor=300, drop_tol=1e-6)
             M_x = lambda x: spilu.solve(x)
             precond = sp_la.LinearOperator((2*ndofs_u+ndofs_p+1, 2*ndofs_u+ndofs_p+1), M_x)
             precond_t1 = time.time()
@@ -449,7 +449,7 @@ for t_ind in range(0, n_runs):
         ### start nonlinear solver for BDF2
         for nonlin_ind in range(max_iter):
             precond_t0 = time.time()
-            spilu = sp_la.spilu(M_BDF2, fill_factor=100, drop_tol=1e-6)
+            spilu = sp_la.spilu(M_BDF2, fill_factor=300, drop_tol=1e-6)
             M_x = lambda x: spilu.solve(x)
             precond = sp_la.LinearOperator((2*ndofs_u+ndofs_p+1, 2*ndofs_u+ndofs_p+1), M_x)
             precond_t1 = time.time()
@@ -484,7 +484,7 @@ for t_ind in range(0, n_runs):
         ### Start nonlinear solver for Theta
         for nonlin_ind in range(max_iter):
             precond_t0 = time.time()
-            spilu = sp_la.spilu(M_Theta, fill_factor=100, drop_tol=1e-6)
+            spilu = sp_la.spilu(M_Theta, fill_factor=300, drop_tol=1e-6)
             M_x = lambda x: spilu.solve(x)
             precond = sp_la.LinearOperator((2*ndofs_u+ndofs_p+1, 2*ndofs_u+ndofs_p+1), M_x)
             precond_t1 = time.time()
