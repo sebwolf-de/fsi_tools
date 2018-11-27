@@ -28,17 +28,17 @@ if [[ $1 == *"1"* ]]; then
   cp results/dlm_annulus_32_BDF1_dt25em3_hx32_hs32_k10_nu1/binary_data/cn_time_008 results/Convergence_Analysis_Annulus/BDF1_3
   cp results/dlm_annulus_32_BDF1_dt25em3_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF1_3_time
 
-  python3 dlm_fixpoint.py convergence/annulus/BDF1_dt\=1_16.json
-  cp results/dlm_annulus_32_BDF1_dt125em4_hx32_hs32_k10_nu1/binary_data/cn_time_016 results/Convergence_Analysis_Annulus/BDF1_4
-  cp results/dlm_annulus_32_BDF1_dt125em4_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF1_4_time
-
-  python3 dlm_fixpoint.py convergence/annulus/BDF1_dt\=1_32.json
-  cp results/dlm_annulus_32_BDF1_dt625em5_hx32_hs32_k10_nu1/binary_data/cn_time_032 results/Convergence_Analysis_Annulus/BDF1_5
-  cp results/dlm_annulus_32_BDF1_dt625em5_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF1_5_time
-
-  python3 dlm_fixpoint.py convergence/annulus/BDF1_dt\=1_64.json
-  cp results/dlm_annulus_32_BDF1_dt3125em6_hx32_hs32_k10_nu1/binary_data/cn_time_064 results/Convergence_Analysis_Annulus/BDF1_6
-  cp results/dlm_annulus_32_BDF1_dt3125em6_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF1_6_time
+  # python3 dlm_fixpoint.py convergence/annulus/BDF1_dt\=1_16.json
+  # cp results/dlm_annulus_32_BDF1_dt125em4_hx32_hs32_k10_nu1/binary_data/cn_time_016 results/Convergence_Analysis_Annulus/BDF1_4
+  # cp results/dlm_annulus_32_BDF1_dt125em4_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF1_4_time
+  #
+  # python3 dlm_fixpoint.py convergence/annulus/BDF1_dt\=1_32.json
+  # cp results/dlm_annulus_32_BDF1_dt625em5_hx32_hs32_k10_nu1/binary_data/cn_time_032 results/Convergence_Analysis_Annulus/BDF1_5
+  # cp results/dlm_annulus_32_BDF1_dt625em5_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF1_5_time
+  #
+  # python3 dlm_fixpoint.py convergence/annulus/BDF1_dt\=1_64.json
+  # cp results/dlm_annulus_32_BDF1_dt3125em6_hx32_hs32_k10_nu1/binary_data/cn_time_064 results/Convergence_Analysis_Annulus/BDF1_6
+  # cp results/dlm_annulus_32_BDF1_dt3125em6_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF1_6_time
 
   #python3 dlm_fixpoint.py convergence/annulus/BDF1_dt\=1_128.json
   #cp results/dlm_annulus_32_BDF1_dt15625em7_hx32_hs32_k10_nu1/binary_data/cn_time_128 results/Convergence_Analysis_Annulus/BDF1_7
@@ -60,17 +60,17 @@ if [[ $1 == *"2"* ]]; then
   cp results/dlm_annulus_32_BDF2_dt25em3_hx32_hs32_k10_nu1/binary_data/cn_time_008 results/Convergence_Analysis_Annulus/BDF2_3
   cp results/dlm_annulus_32_BDF2_dt25em3_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF2_3_time
 
-  python3 dlm_fixpoint.py convergence/annulus/BDF2_dt\=1_16.json
-  cp results/dlm_annulus_32_BDF2_dt125em4_hx32_hs32_k10_nu1/binary_data/cn_time_016 results/Convergence_Analysis_Annulus/BDF2_4
-  cp results/dlm_annulus_32_BDF2_dt125em4_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF2_4_time
-
-  python3 dlm_fixpoint.py convergence/annulus/BDF2_dt\=1_32.json
-  cp results/dlm_annulus_32_BDF2_dt625em5_hx32_hs32_k10_nu1/binary_data/cn_time_032 results/Convergence_Analysis_Annulus/BDF2_5
-  cp results/dlm_annulus_32_BDF2_dt625em5_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF2_5_time
-
-  python3 dlm_fixpoint.py convergence/annulus/BDF2_dt\=1_64.json
-  cp results/dlm_annulus_32_BDF2_dt3125em6_hx32_hs32_k10_nu1/binary_data/cn_time_064 results/Convergence_Analysis_Annulus/BDF2_6
-  cp results/dlm_annulus_32_BDF2_dt3125em6_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF2_6_time
+  # python3 dlm_fixpoint.py convergence/annulus/BDF2_dt\=1_16.json
+  # cp results/dlm_annulus_32_BDF2_dt125em4_hx32_hs32_k10_nu1/binary_data/cn_time_016 results/Convergence_Analysis_Annulus/BDF2_4
+  # cp results/dlm_annulus_32_BDF2_dt125em4_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF2_4_time
+  #
+  # python3 dlm_fixpoint.py convergence/annulus/BDF2_dt\=1_32.json
+  # cp results/dlm_annulus_32_BDF2_dt625em5_hx32_hs32_k10_nu1/binary_data/cn_time_032 results/Convergence_Analysis_Annulus/BDF2_5
+  # cp results/dlm_annulus_32_BDF2_dt625em5_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF2_5_time
+  #
+  # python3 dlm_fixpoint.py convergence/annulus/BDF2_dt\=1_64.json
+  # cp results/dlm_annulus_32_BDF2_dt3125em6_hx32_hs32_k10_nu1/binary_data/cn_time_064 results/Convergence_Analysis_Annulus/BDF2_6
+  # cp results/dlm_annulus_32_BDF2_dt3125em6_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/BDF2_6_time
 
   #python3 dlm_fixpoint.py convergence/annulus/BDF2_dt\=1_128.json
   #cp results/dlm_annulus_32_BDF2_dt15625em7_hx32_hs32_k10_nu1/binary_data/cn_time_128 results/Convergence_Analysis_Annulus/BDF2_7
@@ -93,17 +93,17 @@ if [[ $1 == *"T"* ]]; then
   cp results/dlm_annulus_32_Theta_dt25em3_hx32_hs32_k10_nu1/binary_data/cn_time_008 results/Convergence_Analysis_Annulus/Theta_3
   cp results/dlm_annulus_32_Theta_dt25em3_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/Theta_3_time
 
-  python3 dlm_fixpoint.py convergence/annulus/Theta_dt\=1_16.json
-  cp results/dlm_annulus_32_Theta_dt125em4_hx32_hs32_k10_nu1/binary_data/cn_time_016 results/Convergence_Analysis_Annulus/Theta_4
-  cp results/dlm_annulus_32_Theta_dt125em4_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/Theta_4_time
-
-  python3 dlm_fixpoint.py convergence/annulus/Theta_dt\=1_32.json
-  cp results/dlm_annulus_32_Theta_dt625em5_hx32_hs32_k10_nu1/binary_data/cn_time_032 results/Convergence_Analysis_Annulus/Theta_5
-  cp results/dlm_annulus_32_Theta_dt625em5_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/Theta_5_time
-
-  python3 dlm_fixpoint.py convergence/annulus/Theta_dt\=1_64.json
-  cp results/dlm_annulus_32_Theta_dt3125em6_hx32_hs32_k10_nu1/binary_data/cn_time_064 results/Convergence_Analysis_Annulus/Theta_6
-  cp results/dlm_annulus_32_Theta_dt3125em6_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/Theta_6_time
+  # python3 dlm_fixpoint.py convergence/annulus/Theta_dt\=1_16.json
+  # cp results/dlm_annulus_32_Theta_dt125em4_hx32_hs32_k10_nu1/binary_data/cn_time_016 results/Convergence_Analysis_Annulus/Theta_4
+  # cp results/dlm_annulus_32_Theta_dt125em4_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/Theta_4_time
+  #
+  # python3 dlm_fixpoint.py convergence/annulus/Theta_dt\=1_32.json
+  # cp results/dlm_annulus_32_Theta_dt625em5_hx32_hs32_k10_nu1/binary_data/cn_time_032 results/Convergence_Analysis_Annulus/Theta_5
+  # cp results/dlm_annulus_32_Theta_dt625em5_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/Theta_5_time
+  #
+  # python3 dlm_fixpoint.py convergence/annulus/Theta_dt\=1_64.json
+  # cp results/dlm_annulus_32_Theta_dt3125em6_hx32_hs32_k10_nu1/binary_data/cn_time_064 results/Convergence_Analysis_Annulus/Theta_6
+  # cp results/dlm_annulus_32_Theta_dt3125em6_hx32_hs32_k10_nu1/binary_data/time results/Convergence_Analysis_Annulus/Theta_6_time
 
   #python3 dlm_fixpoint.py convergence/annulus/Theta_dt\=1_128.json
   #cp results/dlm_annulus_32_Theta_dt15625em7_hx32_hs32_k10_nu1/binary_data/cn_time_128 results/Convergence_Analysis_Annulus/Theta_7
