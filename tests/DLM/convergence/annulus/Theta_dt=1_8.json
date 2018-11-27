@@ -4,7 +4,7 @@
 
   "time_integration" : "Theta",
   "delta_time_base": 25,
-  "delta_time_negative_esponent": 3,
+  "delta_time_negative_esponent": 5,
   "fluid_triangulation_intervals" : 32,
   "structure_triangulation_intervals" : 32,
 
