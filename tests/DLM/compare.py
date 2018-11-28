@@ -31,6 +31,7 @@ topo_s = np.load(f)
 xs_n = np.load(f)
 ys_n = np.load(f)
 s_lgr = np.load(f)
+t_lgr = np.load(f)
 f.close()
 
 ndofs_u = x_u.shape[0]
@@ -40,17 +41,24 @@ mass_matrix_u = sparse.vstack([
     sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), mass_1D] )
     ])
 
-ndofs_s = xs_n.shape[0]
-mass_1D = assemble.u_v_p1(topo_s,xs_n,ys_n)
+ie_s = np.arange(0,s_lgr.shape[0])
+ndofs_s = max(ie_s)+1
+mass_1D = assemble.u_v_p1_periodic(topo_s,s_lgr,t_lgr,ie_s)
 mass_matrix_s = sparse.vstack([
     sparse.hstack( [mass_1D, sparse.csr_matrix((ndofs_s,ndofs_s)) ] ),
     sparse.hstack( [sparse.csr_matrix((ndofs_s,ndofs_s)), mass_1D] )
     ])
 
 stiffness_1D = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
-stiffness_matrix = sparse.vstack([
+stiffness_matrix_u = sparse.vstack([
     sparse.hstack( [stiffness_1D, sparse.csr_matrix((ndofs_u,ndofs_u)) ] ),
     sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), stiffness_1D] )
+    ])
+
+stiffness_1D = assemble.gradu_gradv_p1_ieq(topo_s,s_lgr,t_lgr,ie_s)
+stiffness_matrix_s = sparse.vstack([
+    sparse.hstack( [stiffness_1D, sparse.csr_matrix((ndofs_s,ndofs_s)) ] ),
+    sparse.hstack( [sparse.csr_matrix((ndofs_s,ndofs_s)), stiffness_1D] )
     ])
 
 
@@ -61,6 +69,7 @@ p_reference = np.load(f)
 xs_reference = np.load(f)
 ys_reference = np.load(f)
 f.close()
+s_reference = np.append(xs_reference, ys_reference)
 
 N = 3
 
@@ -83,14 +92,16 @@ for k in range(1,N+1):
     xs_BDF1 = np.load(f)
     ys_BDF1 = np.load(f)
     f.close()
+    s_BDF1 = np.append(xs_BDF1, ys_BDF1)
 
-    #err_u_BDF1[k-1] = mth.sqrt(l2_norm(mass_matrix_u, u_BDF1 - u_reference)**2
-    #                        + l2_norm(stiffness_matrix, u_BDF1 - u_reference)**2)
-    # err_u_BDF1[k-1] = l2_norm(mass_matrix_u, u_BDF1 - u_reference)
-    # err_s_BDF1[k-1] = l2_norm(mass_matrix_s,
-    #     np.append(xs_BDF1, ys_BDF1) - np.append(xs_reference, ys_reference))
-    err_u_BDF1[k-1] = np.linalg.norm(u_BDF2 - u_reference, float('inf'))
-    err_s_BDF1[k-1] = np.linalg.norm(s_BDF2 - s_reference, float('inf'))
+    # err_u_BDF1[k-1] = mth.sqrt(l2_norm(mass_matrix_u, u_BDF1 - u_reference)**2
+    #                        + l2_norm(stiffness_matrix_u, u_BDF1 - u_reference)**2)
+    # err_s_BDF1[k-1] = mth.sqrt(l2_norm(mass_matrix_s, s_BDF1 - s_reference)**2
+    #                        + l2_norm(stiffness_matrix_s, s_BDF1 - s_reference)**2)
+    err_u_BDF1[k-1] = l2_norm(mass_matrix_u, u_BDF1 - u_reference)
+    err_s_BDF1[k-1] = l2_norm(mass_matrix_s, s_BDF1 - s_reference)
+    # err_u_BDF1[k-1] = np.linalg.norm(u_BDF1 - u_reference, float('inf'))
+    # err_s_BDF1[k-1] = np.linalg.norm(np.append(xs_BDF1, ys_BDF1) - np.append(xs_reference, ys_reference), float('inf'))
 
     input_name = results_dir+'BDF1_'+str(k)+'_time'
     f = open(input_name,"rb")
@@ -107,14 +118,16 @@ for k in range(1,N+1):
     xs_BDF2 = np.load(f)
     ys_BDF2 = np.load(f)
     f.close()
+    s_BDF2 = np.append(xs_BDF2, ys_BDF2)
 
-    #err_u_BDF2[k-1] = mth.sqrt(l2_norm(mass_matrix_u, u_BDF2 - u_reference)**2
-    #                       + l2_norm(stiffness_matrix, u_BDF2 - u_reference)**2)
-    # err_u_BDF2[k-1] = l2_norm(mass_matrix_u, u_BDF2 - u_reference)
-    # err_s_BDF2[k-1] = l2_norm(mass_matrix_s,
-    #     np.append(xs_BDF2, ys_BDF2) - np.append(xs_reference, ys_reference))
-    err_u_BDF2[k-1] = np.linalg.norm(u_BDF2 - u_reference, float('inf'))
-    err_s_BDF2[k-1] = np.linalg.norm(s_BDF2 - s_reference, float('inf'))
+    # err_u_BDF2[k-1] = mth.sqrt(l2_norm(mass_matrix_u, u_BDF2 - u_reference)**2
+    #                       + l2_norm(stiffness_matrix_u, u_BDF2 - u_reference)**2)
+    # err_s_BDF2[k-1] = mth.sqrt(l2_norm(mass_matrix_s, s_BDF2 - s_reference)**2
+    #                       + l2_norm(stiffness_matrix_s, s_BDF2 - s_reference)**2)
+    err_u_BDF2[k-1] = l2_norm(mass_matrix_u, u_BDF2 - u_reference)
+    err_s_BDF2[k-1] = l2_norm(mass_matrix_s, s_BDF2 - s_reference)
+    # err_u_BDF2[k-1] = np.linalg.norm(u_BDF2 - u_reference, float('inf'))
+    # err_s_BDF2[k-1] = np.linalg.norm(np.append(xs_BDF2, ys_BDF2) - np.append(xs_reference, ys_reference), float('inf'))
 
     input_name = results_dir+'BDF2_'+str(k)+'_time'
     f = open(input_name,"rb")
@@ -131,14 +144,16 @@ for k in range(1,N+1):
     xs_Theta = np.load(f)
     ys_Theta= np.load(f)
     f.close()
+    s_Theta = np.append(xs_Theta, ys_Theta)
 
-    #err_u_Theta[k-1] = mth.sqrt(l2_norm(mass_matrix_u, u_Theta - u_reference)**2
-    #                       + l2_norm(stiffness_matrix, u_Theta - u_reference)**2)
-    # err_u_Theta[k-1] = l2_norm(mass_matrix_u, u_Theta - u_reference)
-    # err_s_Theta[k-1] = l2_norm(mass_matrix_s,
-    #     np.append(xs_Theta, ys_Theta) - np.append(xs_reference, ys_reference))
-    err_u_Theta[k-1] = np.linalg.norm(u_Theta - u_reference, float('inf'))
-    err_s_Theta[k-1] = np.linalg.norm(s_Theta - s_reference, float('inf'))
+    # err_u_Theta[k-1] = mth.sqrt(l2_norm(mass_matrix_u, u_Theta - u_reference)**2
+    #                       + l2_norm(stiffness_matrix_u, u_Theta - u_reference)**2)
+    # err_s_Theta[k-1] = mth.sqrt(l2_norm(mass_matrix_s, s_Theta - s_reference)**2
+    #                       + l2_norm(stiffness_matrix_s, s_Theta - s_reference)**2)
+    err_u_Theta[k-1] = l2_norm(mass_matrix_u, u_Theta - u_reference)
+    err_s_Theta[k-1] = l2_norm(mass_matrix_s, s_Theta - s_reference)
+    # err_u_Theta[k-1] = np.linalg.norm(u_Theta - u_reference, float('inf'))
+    # err_s_Theta[k-1] = np.linalg.norm(np.append(xs_Theta, ys_Theta) - np.append(xs_reference, ys_reference), float('inf'))
 
     input_name = results_dir+'Theta_'+str(k)+'_time'
     f = open(input_name,"rb")
