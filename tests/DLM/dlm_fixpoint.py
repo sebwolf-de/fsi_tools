@@ -452,12 +452,11 @@ def assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n, S11):
     s_rhs_x = np.zeros((ndofs_s, 1))#-0.5*KS11.dot(dx_n) + 0.5*MST11.dot(np.reshape(l_n[0:ndofs_s],(ndofs_s)))
     s_rhs_y = np.zeros((ndofs_s, 1))#-0.5*KS22.dot(dy_n) + 0.5*MST22.dot(np.reshape(l_n[ndofs_s:2*ndofs_s],(ndofs_s)))
 
-    l_rhs_x = -1/ph.dt*MS11.dot(dx_n)
-    l_rhs_y = -1/ph.dt*MS11.dot(dy_n)
-    l_rhs = np.append(l_rhs_x, l_rhs_y) - np.reshape(0.5*H.dot(u_n), (2*ndofs_s))
+    l_rhs_x = -1/ph.dt*MS11.dot(dx_n) - 0.5*HT11.transpose().dot(ux_n)
+    l_rhs_y = -1/ph.dt*MS11.dot(dy_n) - 0.5*HT22.transpose().dot(uy_n)
 
     return stack_rhs(f_rhs_x, f_rhs_y, p_rhs,
-                     s_rhs_x, s_rhs_y, l_rhs[0:ndofs_s], l_rhs[ndofs_s:2*ndofs_s])
+                     s_rhs_x, s_rhs_y, l_rhs_x, l_rhs_y)
 
 
 def assemble_blockwise_matrix_Theta(S11):
@@ -774,10 +773,15 @@ for cn_time in range(0,len(ph.stampa)):
             mat = assemble_blockwise_matrix_BDF2()
             force = assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx_n_old, dy_n_old)
 
+    # sparse.save_npz('matrix', mat)
+    # f = open('rhs', 'wb')
+    # np.save(f, force)
+    # f.close()
 
     for k in range(0, max_iter):
         ###Solve linear system
         sol_t0 = time.time()
+
         # print('calculate preconditioner')
         # fill_factor=300
         # spilu = sp_la.spilu(mat, fill_factor=fill_factor, drop_tol=1e-10)
@@ -790,6 +794,7 @@ for cn_time in range(0,len(ph.stampa)):
 
         print('solve system')
         sol = sp_la.spsolve(mat,force)
+
         sol_t1 = time.time()
         sol_time += sol_t1 - sol_t0
 
@@ -856,10 +861,10 @@ for cn_time in range(0,len(ph.stampa)):
     diffusion = str_area/str_area_zero
     p_all_zero = bool(np.all(p_n==0))
     exploded = bool(np.amax(p_n) > 1e+10)
-    indices_out_of_domain = np.where(sx_n > 1.)[0]
-    indices_out_of_domain = np.append(indices_out_of_domain, np.where(sx_n < 0.))
-    indices_out_of_domain = np.append(indices_out_of_domain, np.where(sy_n > 1.))
-    indices_out_of_domain = np.append(indices_out_of_domain, np.where(sy_n < 0.))
+    indices_out_of_domain = np.where(sx_n > 1.+1e-8)[0]
+    indices_out_of_domain = np.append(indices_out_of_domain, np.where(sx_n < -1e-8))
+    indices_out_of_domain = np.append(indices_out_of_domain, np.where(sy_n > 1.+1e-8))
+    indices_out_of_domain = np.append(indices_out_of_domain, np.where(sy_n < -1e-8))
 
     nrg =(l2_norm(KS,np.append(dx_n, dy_n)))**2 + (l2_norm(MF,np.append(ux_n, uy_n)))**2
     energy.append(nrg)
