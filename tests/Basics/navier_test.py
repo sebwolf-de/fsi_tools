@@ -324,7 +324,7 @@ else:
 print(n)
 dx = 1./n
 
-T = 5
+T = 4
 Theta = 0.5
 TOL = 1e-7
 max_iter = 10
@@ -388,6 +388,10 @@ print('t = ' + str(t1-t0))
 err_BDF1 = np.zeros((n_runs))
 err_BDF2 = np.zeros((n_runs))
 err_Theta = np.zeros((n_runs))
+
+BDF1 = np.zeros((2*ndofs_u, n_runs))
+BDF2 = np.zeros((2*ndofs_u, n_runs))
+Theta = np.zeros((2*ndofs_u, n_runs))
 ### start loop over different time steps
 for t_ind in range(0, n_runs):
     dt = 0.5*T*2**(-t_ind)
@@ -536,6 +540,9 @@ for t_ind in range(0, n_runs):
 
 
 
+    BDF1[:,t_ind] = u_BDF1[0:2*ndofs_u].ravel()
+    BDF2[:,t_ind] = u_BDF2[0:2*ndofs_u].ravel()
+    Theta[:,t_ind] = u_Theta[0:2*ndofs_u].ravel()
     f_x = lambda x, y: analytical_u(T, x, y)[0:len(x)]
     f_y = lambda x, y: analytical_u(T, x, y)[len(x):2*len(x)]
     e_x = quadrature.l2error_on_mesh(u_BDF1[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
@@ -573,3 +580,10 @@ print('error Theta: ' + str(err_Theta))
 print('Error decay BDF1:  '+str(np.divide(err_BDF1[0:n_runs-1], err_BDF1[1:n_runs])))
 print('Error decay BDF2:  '+str(np.divide(err_BDF2[0:n_runs-1], err_BDF2[1:n_runs])))
 print('Error decay Theta: '+str(np.divide(err_Theta[0:n_runs-1], err_Theta[1:n_runs])))
+
+rate_u_BDF1 = np.log2(l2_norm(M_2D, BDF1[:,0] - BDF1[:,1]) / l2_norm(M_2D, BDF1[:,1] - BDF1[:,2]))
+rate_u_BDF2 = np.log2(l2_norm(M_2D, BDF2[:,0] - BDF2[:,1]) / l2_norm(M_2D, BDF2[:,1] - BDF2[:,2]))
+rate_u_Theta = np.log2(l2_norm(M_2D, Theta[:,0] - Theta[:,1]) / l2_norm(M_2D, Theta[:,1] - Theta[:,2]))
+print('Empirical rate BDF1: ' + str(rate_u_BDF1))
+print('Empirical rate BDF2: ' + str(rate_u_BDF2))
+print('Empirical rate Theta: ' + str(rate_u_Theta))
