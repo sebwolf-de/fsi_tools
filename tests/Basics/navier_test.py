@@ -13,21 +13,22 @@ import basis_func as shp
 import la_utils
 import lin_tri_mesh as lin_t3
 from preconditioner import BlockPreconditioner
+import quadrature
 import viewers
 
-def analytical_u(t):
-    analytical_x =  (4*np.sin(t)+5) * x_u**2 * (1-x_u)**2 * (2*y_u - 6*y_u**2 + 4*y_u**3)
-    analytical_y = -(4*np.sin(t)+5) * (2*x_u - 6*x_u**2 + 4*x_u**3) * y_u**2 * (1-y_u)**2
-    analytical = np.reshape(np.append(analytical_x, analytical_y), (2*ndofs_u, 1))
+def analytical_u(t, x, y):
+    analytical_x =  (4*np.sin(t)+5) * x**2 * (1-x)**2 * (2*y - 6*y**2 + 4*y**3)
+    analytical_y = -(4*np.sin(t)+5) * (2*x - 6*x**2 + 4*x**3) * y**2 * (1-y)**2
+    analytical = np.reshape(np.append(analytical_x, analytical_y), (2*len(x), 1))
     return analytical
 
-def analytical_p(t):
+def analytical_p(t, x_p, y_p):
     p_1 = x_p - 0.5
     p_0 = np.zeros(topo_p.shape[0])
     return np.reshape(np.append(p_1, p_0), (ndofs_p, 1))
 
-def analytical(t):
-    return sparse.vstack([analytical_u(t), analytical_p(t),0])
+def analytical(t, x_u, y_u, x_p, y_p):
+    return sparse.vstack([analytical_u(t, x_u, y_u), analytical_p(t, x_p, y_p),0])
 
 
 def f(t):
@@ -391,8 +392,8 @@ err_Theta = np.zeros((n_runs))
 for t_ind in range(0, n_runs):
     dt = 0.5*T*2**(-t_ind)
 
-    u_0 = analytical(0)
-    u_1 = analytical(dt)
+    u_0 = analytical(0, x_u, y_u, x_p, y_p)
+    u_1 = analytical(dt, x_u, y_u, x_p, y_p)
 
     u_BDF1 = u_1.toarray()
     u_BDF2 = u_1.toarray()
@@ -404,6 +405,10 @@ for t_ind in range(0, n_runs):
     ### start time loop for dt
     for k in range(2,N):
         print('t = ' + str(k*dt))
+
+        f_x = lambda x, y: analytical_u(k*dt, x, y)[0:len(x)]
+        f_y = lambda x, y: analytical_u(k*dt, x, y)[len(x):2*len(x)]
+
         t0_BDF1 = time.time()
         ux_n1 = np.reshape(u_BDF1[0:ndofs_u], (ndofs_u, 1))
         uy_n1 = np.reshape(u_BDF1[ndofs_u:2*ndofs_u], (ndofs_u, 1))
@@ -435,7 +440,11 @@ for t_ind in range(0, n_runs):
             if res < TOL:
                 break
         u_BDF1 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
-        print('error of BDF1 solution for t = ' + str(k*dt) + ': ' + str(l2_norm(M_2D, u_BDF1[0:2*ndofs_u] - analytical_u(k*dt))))
+
+        e_x = quadrature.l2error_on_mesh(u_BDF1[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
+        e_y = quadrature.l2error_on_mesh(u_BDF1[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
+        print('error of BDF1 solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
+
         t1_BDF1 = time.time()
 
         t0_BDF2 = time.time()
@@ -470,7 +479,11 @@ for t_ind in range(0, n_runs):
                 break
         u_BDF2_old = u_BDF2
         u_BDF2 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
-        print('error of BDF2 solution for t = ' + str(k*dt) + ': ' + str(l2_norm(M_2D, u_BDF2[0:2*ndofs_u] - analytical_u(k*dt))))
+
+        e_x = quadrature.l2error_on_mesh(u_BDF2[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
+        e_y = quadrature.l2error_on_mesh(u_BDF2[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
+        print('error of BDF2 solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
+
         t1_BDF2 = time.time()
 
         t0_Theta = time.time()
@@ -504,25 +517,39 @@ for t_ind in range(0, n_runs):
             if res < TOL:
                 break
         u_Theta = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
-        print('error of Theta solution for t = ' + str(k*dt) + ': ' + str(l2_norm(M_2D, u_Theta[0:2*ndofs_u] - analytical_u(k*dt))))
+
+        e_x = quadrature.l2error_on_mesh(u_Theta[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
+        e_y = quadrature.l2error_on_mesh(u_Theta[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
+        print('error of Theta solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
+
         t1_Theta = time.time()
 
-        # print l2_norm(M_2D, analytical_u(k*dt))
+        # print l2_norm(M_2D, analytical_u(k*dt, x_u, y_u, x_p, y_p))
         # print l2_norm(M_2D, u_BDF1[0:2*ndofs_u])
         #
         # viewers.quiver_vel(x_u,y_u,u_BDF1[0:2*ndofs_u],2*n,2*n,'asdf')
         # plt.show()
-        # viewers.quiver_vel(x_u,y_u,analytical_u(k*dt),2*n,2*n,'asdf')
+        # viewers.quiver_vel(x_u,y_u,analytical_u(k*dt, x_u, y_u, x_p, y_p),2*n,2*n,'asdf')
         # plt.show()
 
         ### End of time loop
 
-    err_BDF1[t_ind] = l2_norm(M_2D, u_BDF1[0:2*ndofs_u]-analytical_u(T))
-    err_BDF2[t_ind] = l2_norm(M_2D, u_BDF2[0:2*ndofs_u]-analytical_u(T))
-    err_Theta[t_ind] = l2_norm(M_2D, u_Theta[0:2*ndofs_u]-analytical_u(T))
-    # err_BDF1[t_ind] = np.linalg.norm(u_BDF1[0:2*ndofs_u]-analytical_u(T))
-    # err_BDF2[t_ind] = np.linalg.norm(u_BDF2[0:2*ndofs_u]-analytical_u(T))
-    # err_Theta[t_ind] = np.linalg.norm(u_Theta[0:2*ndofs_u]-analytical_u(T))
+
+
+    f_x = lambda x, y: analytical_u(T, x, y)[0:len(x)]
+    f_y = lambda x, y: analytical_u(T, x, y)[len(x):2*len(x)]
+    e_x = quadrature.l2error_on_mesh(u_BDF1[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
+    e_y = quadrature.l2error_on_mesh(u_BDF1[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
+    err_BDF1[t_ind] = np.sqrt(e_x**2 + e_y**2)
+    e_x = quadrature.l2error_on_mesh(u_BDF2[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
+    e_y = quadrature.l2error_on_mesh(u_BDF2[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
+    err_BDF2[t_ind] = np.sqrt(e_x**2 + e_y**2)
+    e_x = quadrature.l2error_on_mesh(u_Theta[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
+    e_y = quadrature.l2error_on_mesh(u_Theta[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
+    err_Theta[t_ind] = np.sqrt(e_x**2 + e_y**2)
+    # err_BDF1[t_ind] = np.linalg.norm(u_BDF1[0:2*ndofs_u]-analytical_u(T, x_u, y_u, x_p, y_p))
+    # err_BDF2[t_ind] = np.linalg.norm(u_BDF2[0:2*ndofs_u]-analytical_u(T, x_u, y_u, x_p, y_p))
+    # err_Theta[t_ind] = np.linalg.norm(u_Theta[0:2*ndofs_u]-analytical_u(T, x_u, y_u, x_p, y_p))
     print('t BDF1 per step  = ' + str(t1_BDF1-t0_BDF1))
     print('t BDF2 per step  = ' + str(t1_BDF2-t0_BDF2))
     print('t Theta per step = ' + str(t1_Theta-t0_Theta))
