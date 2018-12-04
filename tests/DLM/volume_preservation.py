@@ -7,9 +7,10 @@ import os
 from scipy import sparse
 from shapely.geometry import Polygon
 import sys
-from vtk import *
+sys.path.append('/usr/local/lib64/python3.7/site-packages/vtkmodules')
+import vtk
 
-import sys
+sys.path.append('../../modules')
 import assemble
 
 def read_area(k):
@@ -36,20 +37,50 @@ def read_area(k):
 
 def eval_str_area(k):
     input_name = results_dir+'cn_time_'+str(k).zfill(3)
-    f = file(input_name,"rb")
+    f = open(input_name,"rb")
     u = np.load(f)
     p = np.load(f)
     x_s = np.load(f)
     y_s = np.load(f)
     f.close()
-    area = 0
+    area_BDF1 = 0
     for row in topo_s:
         eval_p = np.zeros((3,2))
         eval_p[:,0] = x_s[row]
         eval_p[:,1] = y_s[row]
         poly = Polygon(tuple(eval_p.tolist()))
-        area+= poly.area
-    return area
+        area_BDF1+= poly.area
+
+    input_name = input_name.replace('BDF1', 'BDF2')
+    f = open(input_name,"rb")
+    u = np.load(f)
+    p = np.load(f)
+    x_s = np.load(f)
+    y_s = np.load(f)
+    f.close()
+    area_BDF2 = 0
+    for row in topo_s:
+        eval_p = np.zeros((3,2))
+        eval_p[:,0] = x_s[row]
+        eval_p[:,1] = y_s[row]
+        poly = Polygon(tuple(eval_p.tolist()))
+        area_BDF2 += poly.area
+
+    input_name = input_name.replace('BDF2', 'Theta')
+    f = open(input_name,"rb")
+    u = np.load(f)
+    p = np.load(f)
+    x_s = np.load(f)
+    y_s = np.load(f)
+    f.close()
+    area_Theta = 0
+    for row in topo_s:
+        eval_p = np.zeros((3,2))
+        eval_p[:,0] = x_s[row]
+        eval_p[:,1] = y_s[row]
+        poly = Polygon(tuple(eval_p.tolist()))
+        area_Theta += poly.area
+    return area_BDF1, area_BDF2, area_Theta
 
 def l2_norm(M,g):
     l2_g = M.dot(g)
@@ -64,7 +95,7 @@ else:
     n = 800
 
 filename = results_dir+'mesh'
-f = file(filename,"rb")
+f = open(filename,"rb")
 topo_p = np.load(f)
 x_p = np.load(f)
 y_p = np.load(f)
@@ -94,7 +125,7 @@ f.close()
 
 
 
-diffusion = np.zeros((2, n))
+diffusion = np.zeros((4, n))
 energy = np.zeros((n))
 
 str_area_zero = eval_str_area(0)
@@ -104,18 +135,27 @@ deal_area_zero = read_area(0)
 #energy[0] =(l2_norm(KS,np.append(dx_n, dy_n)))**2 + (l2_norm(MF,u))**2
 for cn_time in range(1, n):
     str_area = eval_str_area(cn_time)
-    diffusion[0, cn_time] = (str_area/str_area_zero - 1.)*100
-    deal_area = read_area(cn_time)
-    diffusion[1, cn_time] = (deal_area/deal_area_zero - 1.)*100
+    diffusion[0:3, cn_time] = (np.divide(str_area,str_area_zero)-1.)*100
+    # deal_area = read_area(cn_time)
+    # diffusion[3, cn_time] = (deal_area/deal_area_zero - 1.)*100
     # dx_n = sx_n - s_lgr
     # dy_n = sy_n - t_lgr
     #energy[cn_time] =(l2_norm(KS,np.append(dx_n, dy_n)))**2 + (l2_norm(MF,u))**2
-    #print str(cn_time).zfill(3) + ' ' + str(diffusion[cn_time]) + ' ' + str(energy[cn_time])
-
-plt.plot(np.arange(0,n), diffusion[0,:])#, diffusion[1,:])
+    print(diffusion[:,cn_time])
+plt.plot(np.arange(0,n), diffusion[0,:], label='BE')
+plt.plot(np.arange(0,n), diffusion[1,:], label='BDF2')
+plt.plot(np.arange(0,n), diffusion[2,:], label='Theta')
 plt.xlabel('time (s)')
 plt.ylabel('volume change (%)')
-plt.title('Volume preservation for the disk example (BDF1)')
+plt.title('Volume preservation for the disk example (DLM)')
+plt.grid(True)
+plt.legend()
+plt.show()
+
+plt.plot(np.arange(0,n), diffusion[3,:])
+plt.xlabel('time (s)')
+plt.ylabel('volume change (%)')
+plt.title('Volume preservation for the disk example (DealII)')
 plt.grid(True)
 plt.show()
 
