@@ -324,12 +324,12 @@ else:
 print(n)
 dx = 1./n
 
-T = 4
+T = 5
 Theta = 0.5
 TOL = 1e-7
 max_iter = 10
 
-n_runs = 3
+n_runs = 4
 
 (topo_p,x_p,y_p,topo_u,x_u,y_u,c2f) = lin_t3.mesh_t3_iso_t6(n,n,dx,dx)
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(n,n,dx,dx)
