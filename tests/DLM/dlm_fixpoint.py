@@ -541,6 +541,7 @@ def write_time():
     f = open(filename,"wb")
     np.save(f,np.average(step_time))
     np.save(f,np.average(sol_time))
+    np.save(f,residuals)
     f.close()
 
 def eval_str_area():
@@ -736,7 +737,7 @@ step_time = np.array([])
 
 energy = []
 
-max_iter = 50
+max_iter = 20
 residuals = np.zeros((len(ph.stampa), max_iter))
 
 for cn_time in range(0,len(ph.stampa)):
@@ -776,6 +777,9 @@ for cn_time in range(0,len(ph.stampa)):
     # sparse.save_npz('matrix', mat)
     # f = open('rhs', 'wb')
     # np.save(f, force)
+    # np.save(f, ndofs_u)
+    # np.save(f, ndofs_p)
+    # np.save(f, ndofs_s)
     # f.close()
 
     for k in range(0, max_iter):
@@ -834,6 +838,9 @@ for cn_time in range(0,len(ph.stampa)):
             print('Nonlinear solver converged after ' + str(k+1) + ' iterations.')
             print('-----')
             break
+    if k == max_iter-1:
+        print('Nonlinear solver did not converge in ' + str(max_iter) + ' iterations.')
+        break
 
     ###Update solution vector
     ux_n_old = ux_n
