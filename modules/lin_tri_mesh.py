@@ -199,7 +199,7 @@ def load_t3_iso_t6_file(filename_t3, filename_t6):
     topo_c = np.zeros((num_el_coarse, 4),dtype=int)
     topo_c [:,0:3] = tc
     a = x_c.shape[0]
-    topo_c[:,3] = list(range(a, a+num_el_coarse))
+    topo_c[:,3] = np.arange(a, a+num_el_coarse)
 
     return topo_c, x_c, y_c, topo_f, x_f, y_f, coarse_to_fine
 
