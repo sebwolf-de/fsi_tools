@@ -22,9 +22,14 @@ from shapely.geometry import Polygon
 from preconditioner import BlockPreconditioner
 from parameters_handler import ParametersHandler
 
+x_left = -2.
+x_right = -1.6
+y_bottom = -0.2
+y_top = 0.19
+
 def write_mesh():
     filename = results_dir+'mesh'#'./mesh/'+sim_prefix
-    f = file(filename,"wb")
+    f = open(filename,"wb")
     np.save(f,topo_p)
     np.save(f,x_p)
     np.save(f,y_p)
@@ -35,32 +40,113 @@ def write_mesh():
     f.close()
     return
 
+def apply_bc_rhs(f_rhs_x, f_rhs_y):
+    #upper boundary
+    bc_id = np.where(y_u > 1-delta_x/10)
+    f_rhs_x[bc_id,:] = 0.
+    f_rhs_y[bc_id,:] = 0.
+
+    #lower boundary
+    bc_id = np.where(y_u < -1+delta_x/10)
+    f_rhs_x[bc_id,:] = 0
+    f_rhs_y[bc_id,:] = 0
+
+    #right boundary
+
+    #left boundary
+    bc_id = np.where(x_u < -3+delta_x/10)
+    f_rhs_x[bc_id,:] = np.reshape(np.multiply(-10*(y_u[bc_id]+1), (y_u[bc_id] -1)), f_rhs_x[bc_id,:].shape)
+    f_rhs_y[bc_id,:] = 0.
+
+    #hole upper boundary
+    bc_id = np.where(np.all(np.array(
+        [y_u>y_top-delta_x/10, y_u<y_top+delta_x/10, x_u>x_left-delta_x/10, x_u<x_right+delta_x/10]
+        ),axis=0))
+    f_rhs_x[bc_id,:] = 0.
+    f_rhs_y[bc_id,:] = 0.
+
+    #hole lower boundary
+    bc_id = np.where(np.all(np.array(
+        [y_u>y_bottom-delta_x/10, y_u<y_bottom+delta_x/10, x_u>x_left-delta_x/10, x_u<x_right+delta_x/10]
+        ),axis=0))
+    f_rhs_x[bc_id,:] = 0
+    f_rhs_y[bc_id,:] = 0
+
+    #hole right boundary
+    bc_id = np.where(np.all(np.array(
+        [y_u>y_bottom-delta_x/10, y_u<y_top+delta_x/10, x_u>x_right-delta_x/10, x_u<x_right+delta_x/10]
+        ),axis=0))
+    f_rhs_x[bc_id,:] = 0.
+    f_rhs_y[bc_id,:] = 0.
+
+    #hole left boundary
+    bc_id = np.where(np.all(np.array(
+        [y_u>y_bottom-delta_x/10, y_u<y_top+delta_x/10, x_u>x_left-delta_x/10, x_u<x_left+delta_x/10]
+        ),axis=0))
+    f_rhs_x[bc_id,:] = 0.
+    f_rhs_y[bc_id,:] = 0.
+
+    return f_rhs_x, f_rhs_y
+
+def apply_bc_mat(D11, D22):
+    #upper boundary
+    bc_id = np.where(y_u > 1-delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+
+    #lower boundary
+    bc_id = np.where(y_u < -1+delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+
+    #right boundary
+    bc_id = np.where(x_u > 1-delta_x/10)
+    # D11 = la_utils.set_diag(D11, bc_id)
+    # D22 = la_utils.set_diag(D22, bc_id)
+
+    #left boundary
+    bc_id = np.where(x_u < -3+delta_x/10)
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+
+    #hole upper boundary
+    bc_id = np.where(np.all(np.array(
+        [y_u>y_top-delta_x/10, y_u<y_top+delta_x/10, x_u>x_left-delta_x/10, x_u<x_right+delta_x/10]
+        ),axis=0))
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+
+    #hole lower boundary
+    bc_id = np.where(np.all(np.array(
+        [y_u>y_bottom-delta_x/10, y_u<y_bottom+delta_x/10, x_u>x_left-delta_x/10, x_u<x_right+delta_x/10]
+        ),axis=0))
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+
+    #hole right boundary
+    bc_id = np.where(np.all(np.array(
+        [y_u>y_bottom-delta_x/10, y_u<y_top+delta_x/10, x_u>x_right-delta_x/10, x_u<x_right+delta_x/10]
+        ),axis=0))
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+
+    #hole left boundary
+    bc_id = np.where(np.all(np.array(
+        [y_u>y_bottom-delta_x/10, y_u<y_top+delta_x/10, x_u>x_left-delta_x/10, x_u<x_left+delta_x/10]
+        ),axis=0))
+    D11 = la_utils.set_diag(D11, bc_id)
+    D22 = la_utils.set_diag(D22, bc_id)
+
+    return D11, D22
+
 def assemble_blockwise_force_BDF1():
-    size = 2*ndofs_u+ndofs_p+1
+    size = 2*ndofs_u+ndofs_p
     rhs = np.zeros((size,1))
 
     f_rhs_x = ph.rho_fluid/ph.dt*M11.dot(ux_n)
     f_rhs_y = ph.rho_fluid/ph.dt*M22.dot(uy_n)
 
-    #upper boundary
-    bc_id = np.where(y_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 1.
-    f_rhs_y[bc_id,:] = 0.
-
-    #lower boundary
-    bc_id = np.where(y_u < delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
-
-    #right boundary
-    bc_id = np.where(x_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 0.
-    f_rhs_y[bc_id,:] = 0.
-
-    #left boundary
-    bc_id = np.where(x_u < delta_x/10)
-    f_rhs_x[bc_id,:] = 0.
-    f_rhs_y[bc_id,:] = 0.
+    f_rhs_x, f_rhs_y = apply_bc_rhs(f_rhs_x, f_rhs_y)
 
     rhs[0:ndofs_u,:] = f_rhs_x
     rhs[ndofs_u:2*ndofs_u,:] = f_rhs_y
@@ -73,63 +159,27 @@ def assemble_blockwise_matrix_BDF1():
     D22 = ph.rho_fluid/ph.dt*M11 + ph.nu*A11 + ph.rho_fluid*S11
     S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
     S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
+    D33 = sparse.csr_matrix((ndofs_p, ndofs_p))
 
-    #lower boundary
-    bc_id = np.where(y_u < delta_x/10)
-    D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D22, bc_id)
-
-    #upper boundary
-    bc_id = np.where(y_u > 1-delta_x/10)
-    D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D22, bc_id)
-
-    #left boundary
-    bc_id = np.where(x_u < delta_x/10)
-    D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D22, bc_id)
-
-    #right boundary
-    bc_id = np.where(x_u > 1-delta_x/10)
-    D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D22, bc_id)
-
+    (D11, D22) = apply_bc_mat(D11, D22)
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
-        sparse.hstack([D11, S12, -BT1, sparse.csr_matrix((ndofs_u, 1))]),
-        sparse.hstack([S21, D22, -BT2, sparse.csr_matrix((ndofs_u, 1))]),
-        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
-        sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
+        sparse.hstack([D11, S12, -BT1]),# sparse.csr_matrix((ndofs_u, 1))]),
+        sparse.hstack([S21, D22, -BT2]),# sparse.csr_matrix((ndofs_u, 1))]),
+        sparse.hstack([ -B,       D33])#,  mean_p.transpose()]),
+        # sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
     ], "csr")
     return mat
 
 def assemble_blockwise_force_BDF2():
-    size = 2*ndofs_u+ndofs_p+1
+    size = 2*ndofs_u+ndofs_p
     rhs = np.zeros((size,1))
 
     f_rhs_x = ph.rho_fluid/ph.dt*M11.dot(2*ux_n - 0.5*ux_n_old)
     f_rhs_y = ph.rho_fluid/ph.dt*M22.dot(2*uy_n - 0.5*uy_n_old)
 
-    #upper boundary
-    bc_id = np.where(y_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 1.
-    f_rhs_y[bc_id,:] = 0
-
-    #lower boundary
-    bc_id = np.where(y_u < delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
-
-    #right boundary
-    bc_id = np.where(x_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
-
-    #left boundary
-    bc_id = np.where(x_u < delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
+    (f_rhs_x, f_rhs_y) = apply_bc_rhs(f_rhs_x, f_rhs_y)
 
     rhs[0:ndofs_u,:] = f_rhs_x
     rhs[ndofs_u:2*ndofs_u,:] = f_rhs_y
@@ -143,37 +193,19 @@ def assemble_blockwise_matrix_BDF2():
     S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
     S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
-    #lower boundary
-    bc_id = np.where(y_u < delta_x/10)
-    D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D22, bc_id)
-
-    #upper boundary
-    bc_id = np.where(y_u > 1-delta_x/10)
-    D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D22, bc_id)
-
-    #left boundary
-    bc_id = np.where(x_u < delta_x/10)
-    D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D22, bc_id)
-
-    #right boundary
-    bc_id = np.where(x_u > 1-delta_x/10)
-    D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D22, bc_id)
+    (D11, D22) = apply_bc_mat(D11, D22)
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
-        sparse.hstack([D11, S12, -BT1, sparse.csr_matrix((ndofs_u, 1))]),
-        sparse.hstack([S21, D22, -BT2, sparse.csr_matrix((ndofs_u, 1))]),
-        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
-        sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
+        sparse.hstack([D11, S12, -BT1]),#, sparse.csr_matrix((ndofs_u, 1))]),
+        sparse.hstack([S21, D22, -BT2]),#, sparse.csr_matrix((ndofs_u, 1))]),
+        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p))])#, mean_p.transpose()]),
+        # sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
     ], "csr")
     return mat
 
 def assemble_blockwise_force_Theta(S11):
-    size = 2*ndofs_u+ndofs_p+1
+    size = 2*ndofs_u+ndofs_p
     rhs = np.zeros((size,1))
 
     f_rhs_x = ph.rho_fluid/ph.dt*M11.dot(ux_n) - ph.nu*0.5*A11.dot(ux_n) \
@@ -181,25 +213,7 @@ def assemble_blockwise_force_Theta(S11):
     f_rhs_y = ph.rho_fluid/ph.dt*M11.dot(uy_n) - ph.nu*0.5*A11.dot(uy_n) \
         - 0.5*ph.rho_fluid*S11.dot(uy_n) + 0.5*BT2.dot(p_n)
 
-    #upper boundary
-    bc_id = np.where(y_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 1.
-    f_rhs_y[bc_id,:] = 0
-
-    #lower boundary
-    bc_id = np.where(y_u < delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
-
-    #right boundary
-    bc_id = np.where(x_u > 1-delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
-
-    #left boundary
-    bc_id = np.where(x_u < delta_x/10)
-    f_rhs_x[bc_id,:] = 0
-    f_rhs_y[bc_id,:] = 0
+    (f_rhs_x, f_rhs_y) = apply_bc_rhs(f_rhs_x, f_rhs_y)
 
     rhs[0:ndofs_u,:] = f_rhs_x
     rhs[ndofs_u:2*ndofs_u,:] = f_rhs_y
@@ -212,38 +226,20 @@ def assemble_blockwise_matrix_Theta(S11):
     S12 = sparse.csr_matrix((ndofs_u, ndofs_u))
     S21 = sparse.csr_matrix((ndofs_u, ndofs_u))
 
-    #lower boundary
-    bc_id = np.where(y_u < delta_x/10)
-    D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D22, bc_id)
-
-    #upper boundary
-    bc_id = np.where(y_u > 1-delta_x/10)
-    D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D22, bc_id)
-
-    #left boundary
-    bc_id = np.where(x_u < delta_x/10)
-    D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D22, bc_id)
-
-    #right boundary
-    bc_id = np.where(x_u > 1-delta_x/10)
-    D11 = la_utils.set_diag(D11, bc_id)
-    D22 = la_utils.set_diag(D22, bc_id)
+    (D11, D22) = apply_bc_mat(D11, D22)
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
-        sparse.hstack([D11, S12, -0.5*BT1, sparse.csr_matrix((ndofs_u, 1))]),
-        sparse.hstack([S21, D22, -0.5*BT2, sparse.csr_matrix((ndofs_u, 1))]),
-        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
-        sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
+        sparse.hstack([D11, S12, -0.5*BT1]),# sparse.csr_matrix((ndofs_u, 1))]),
+        sparse.hstack([S21, D22, -0.5*BT2]),# sparse.csr_matrix((ndofs_u, 1))]),
+        sparse.hstack([-B, sparse.csr_matrix((ndofs_p,ndofs_p))])#, mean_p.transpose()]),
+        # sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u)), mean_p, sparse.csr_matrix((1,1))])
     ], "csr")
     return mat
 
 def write_output():
     filename = results_dir +'cn_time_'+str(cn_time).zfill(ph.time_index_digits)
-    f = file(filename,"wb")
+    f = open(filename,"wb")
     np.save(f,u_n)
     np.save(f,p_n)
     f.close()
@@ -272,11 +268,11 @@ nx_p = ph.n_delta_x
 delta_x = 1./nx_p
 ny_p = nx_p
 delta_y = 1./ny_p
-(topo_p,x_p,y_p,
-    topo_u,x_u,y_u,
-    c2f) = lin_t3.mesh_t3_iso_t6(nx_p, ny_p,delta_x,delta_y)
 
-(topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(nx_p,ny_p,delta_x,delta_y)
+fn = '../mesh_collection/straight_'+str(ph.n_delta_x)+'.msh'
+fnr = '../mesh_collection/straight_'+str(ph.n_delta_x)+'_refined.msh'
+(topo_p,x_p,y_p,topo_u,x_u,y_u,c2f) = \
+        lin_t3.load_t3_iso_t6_file(fn, fnr)
 
 if sum(ph.stampa) !=0:
     results_dir = ph.results_directory+'/'+ph.sim_prefix+'/binary_data/'
@@ -304,48 +300,76 @@ M22 = M11
 
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,
            topo_u,x_u,y_u,c2f)
-
+# (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1(topo_p,x_p,y_p,
+#            topo_u,x_u,y_u,c2f)
 BT = sparse.vstack([BT1,BT2])
 B = BT.transpose()
 
-#left boundary
-bc_id = np.where(x_u < delta_x/10)
-BT1 = la_utils.clear_rows(BT1,bc_id)
-BT2 = la_utils.clear_rows(BT2,bc_id)
+mean_p = np.zeros((1,ndofs_p))
+for row in topo_p:
+    x_l = x_p[row[0:3]]
+    y_l = y_p[row[0:3]]
+    eval_p = np.zeros((0,2))
+    (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_p)
+    mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.,1])
+    # mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.])
 
-#right boundary
-bc_id = np.where(x_u > 1-delta_x/10)
-BT1 = la_utils.clear_rows(BT1,bc_id)
-BT2 = la_utils.clear_rows(BT2,bc_id)
-
-#lower boundary
-bc_id = np.where(y_u < delta_x/10)
-BT1 = la_utils.clear_rows(BT1,bc_id)
-BT2 = la_utils.clear_rows(BT2,bc_id)
+mean_pT = mean_p.transpose()
 
 #upper boundary
 bc_id = np.where(y_u > 1-delta_x/10)
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
+#lower boundary
+bc_id = np.where(y_u < -1+delta_x/10)
+BT1 = la_utils.clear_rows(BT1,bc_id)
+BT2 = la_utils.clear_rows(BT2,bc_id)
+
+#right boundary
+bc_id = np.where(x_u > 1-delta_x/10)
+# BT1 = la_utils.clear_rows(BT1,bc_id)
+# BT2 = la_utils.clear_rows(BT2,bc_id)
+
+#left boundary
+bc_id = np.where(x_u < -3+delta_x/10)
+BT1 = la_utils.clear_rows(BT1,bc_id)
+BT2 = la_utils.clear_rows(BT2,bc_id)
+
+#hole upper boundary
+bc_id = np.where(np.all(np.array(
+    [y_u>y_top-delta_x/10, y_u<y_top+delta_x/10, x_u>x_left-delta_x/10, x_u<x_right+delta_x/10]
+    ),axis=0))
+BT1 = la_utils.clear_rows(BT1,bc_id)
+BT2 = la_utils.clear_rows(BT2,bc_id)
+
+#hole lower boundary
+bc_id = np.where(np.all(np.array(
+    [y_u>y_bottom-delta_x/10, y_u<y_bottom+delta_x/10, x_u>x_left-delta_x/10, x_u<x_right+delta_x/10]
+    ),axis=0))
+BT1 = la_utils.clear_rows(BT1,bc_id)
+BT2 = la_utils.clear_rows(BT2,bc_id)
+
+#hole right boundary
+bc_id = np.where(np.all(np.array(
+    [y_u>y_bottom-delta_x/10, y_u<y_top+delta_x/10, x_u>x_right-delta_x/10, x_u<x_right+delta_x/10]
+    ),axis=0))
+BT1 = la_utils.clear_rows(BT1,bc_id)
+BT2 = la_utils.clear_rows(BT2,bc_id)
+
+#hole left boundary
+bc_id = np.where(np.all(np.array(
+    [y_u>y_bottom-delta_x/10, y_u<y_top+delta_x/10, x_u>x_left-delta_x/10, x_u<x_left+delta_x/10]
+    ),axis=0))
+BT1 = la_utils.clear_rows(BT1,bc_id)
+BT2 = la_utils.clear_rows(BT2,bc_id)
 
 M = sparse.vstack([
      sparse.hstack( [M11, sparse.csr_matrix((ndofs_u,ndofs_u))] ),
      sparse.hstack( [sparse.csr_matrix((ndofs_u,ndofs_u)), M11] )
      ])
 
-mean_p = np.zeros((1,ndofs_p))
-x_l = x_p[topo_p[0,0:3]]
-y_l = y_p[topo_p[0,0:3]]
-eval_p = np.zeros((0,2))
-(phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_p)
-
-for row in topo_p:
-    mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.,1])
-
-
-max_iter = 30
-TOL = 1e-8
+max_iter = 10
 residuals = np.zeros((len(ph.stampa), max_iter))
 #### start time steppig procedure
 for cn_time in range(0,len(ph.stampa)):
@@ -366,17 +390,15 @@ for cn_time in range(0,len(ph.stampa)):
     else:
         force = assemble_blockwise_force_BDF2()
         mat = assemble_blockwise_matrix_BDF2()
+
     for k in range(max_iter):
-        # start = np.vstack([u_n1,p_n1, np.zeros((1,1))])
-        # sol = sp_la.gmres(mat, force, maxiter=1e5, tol=0.1*TOL, x0=start)
-        # print sol[1]
-        # sol = sol[0]
         sol = sp_la.spsolve(mat,force)
+
         u_n1 = np.reshape(sol[0:2*ndofs_u], u_n.shape)
         p_n1 = np.reshape(sol[2*ndofs_u:2*ndofs_u+ndofs_p], (ndofs_p, 1))
         ux_n1 = np.reshape(u_n1[0      :  ndofs_u], ux_n.shape)
         uy_n1 = np.reshape(u_n1[ndofs_u:2*ndofs_u], uy_n.shape)
-        #m = mat
+
         if ph.time_integration == 'BDF1':
             mat = assemble_blockwise_matrix_BDF1()
         elif ph.time_integration == 'Theta' or cn_time == 0:
@@ -384,43 +406,25 @@ for cn_time in range(0,len(ph.stampa)):
             mat = assemble_blockwise_matrix_Theta(S11)
         else:
             mat = assemble_blockwise_matrix_BDF2()
-        #print m - mat
+
         res = np.linalg.norm(mat.dot(sol) - force)
         residuals[cn_time,k] = res
         print('Nonlinear solver, k = ' + str(k+1).zfill(2) + ', residual = ' + str(res))
-        if res < TOL:
+        if res < ph.tolerance:
             print('Nonlinear solver converged after ' + str(k+1) + ' steps')
             break
-    # for k in range(0, max_iter):
-    #     sol_t0 = time.time()
-    #     sol = sp_la.spsolve(mat,force)
-    #     sol_t1 = time.time()
-    #     t_sol += sol_t1 - sol_t0
-    #
-    #     ux_n1 = sol[0:ndofs_u]
-    #     uy_n1 = sol[ndofs_u:2*ndofs_u]
-    #     u_n1 = sol[0:2*ndofs_u]
-    #     p_n1 = sol[2*ndofs_u:2*ndofs_u+ndofs_p]
-    #
-    #     #mat = assemble_blockwise_matrix_BDF1()
-    #     res = np.linalg.norm(mat.dot(sol) - force)
-    #     residuals[cn_time, k] = res
-    #     print 'Nonlinear solver: ' + str(k+1) + 'th iteration, res = ' + '{:.2e}'.format(res)
-    #     ### Decide whether to stop the nonlinear solver
-    #     if(res < TOL):
-    #         print 'Nonlinear solver converged after ' + str(k+1) + ' iterations.'
-    #         print '-----'
-    #         break
 
     u_n_old = u_n
     p_n_old = p_n
     ux_n_old = ux_n
     uy_n_old = uy_n
 
-    u_n = sol[0:2*ndofs_u]
+    u_n = np.reshape(sol[0:2*ndofs_u], (2*ndofs_u, 1))
     p_n = np.reshape(sol[2*ndofs_u:2*ndofs_u+ndofs_p], (ndofs_p, 1))
-    ux_n = np.reshape(u_n[0      :  ndofs_u], ux_n.shape)
-    uy_n = np.reshape(u_n[ndofs_u:2*ndofs_u], uy_n.shape)
+    bc_id = np.where(x_p > 1-delta_x/10)
+    p_n[bc_id,0] = 0
+    ux_n = np.reshape(u_n[0      :  ndofs_u], (ndofs_u, 1))
+    uy_n = np.reshape(u_n[ndofs_u:2*ndofs_u], (ndofs_u, 1))
 
     if ph.stampa[cn_time] == True:
         write_output()
