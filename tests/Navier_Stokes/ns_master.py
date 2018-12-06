@@ -22,10 +22,15 @@ from shapely.geometry import Polygon
 from preconditioner import BlockPreconditioner
 from parameters_handler import ParametersHandler
 
-x_left = -2.
-x_right = -1.6
-y_bottom = -0.2
-y_top = 0.19
+x_left = 0.
+x_right = 10.
+y_bottom = 0.
+y_top = 1.64
+
+hole_x_left = 0.6
+hole_x_right = 1.
+hole_y_bottom = 0.6
+hole_y_top = 1.
 
 def write_mesh():
     filename = results_dir+'mesh'#'./mesh/'+sim_prefix
@@ -42,46 +47,46 @@ def write_mesh():
 
 def apply_bc_rhs(f_rhs_x, f_rhs_y):
     #upper boundary
-    bc_id = np.where(y_u > 1-delta_x/10)
+    bc_id = np.where(y_u > y_top-delta_x/10)
     f_rhs_x[bc_id,:] = 0.
     f_rhs_y[bc_id,:] = 0.
 
     #lower boundary
-    bc_id = np.where(y_u < -1+delta_x/10)
+    bc_id = np.where(y_u < y_bottom+delta_x/10)
     f_rhs_x[bc_id,:] = 0
     f_rhs_y[bc_id,:] = 0
 
     #right boundary
 
     #left boundary
-    bc_id = np.where(x_u < -3+delta_x/10)
-    f_rhs_x[bc_id,:] = np.reshape(np.multiply(-10*(y_u[bc_id]+1), (y_u[bc_id] -1)), f_rhs_x[bc_id,:].shape)
+    bc_id = np.where(x_u < x_left+delta_x/10)
+    f_rhs_x[bc_id,:] = np.reshape(np.multiply(-1*(y_u[bc_id]-y_top), (y_u[bc_id] - y_bottom)), f_rhs_x[bc_id,:].shape)
     f_rhs_y[bc_id,:] = 0.
 
     #hole upper boundary
     bc_id = np.where(np.all(np.array(
-        [y_u>y_top-delta_x/10, y_u<y_top+delta_x/10, x_u>x_left-delta_x/10, x_u<x_right+delta_x/10]
+        [y_u>hole_y_top-delta_x/10, y_u<hole_y_top+delta_x/10, x_u>hole_x_left-delta_x/10, x_u<hole_x_right+delta_x/10]
         ),axis=0))
     f_rhs_x[bc_id,:] = 0.
     f_rhs_y[bc_id,:] = 0.
 
     #hole lower boundary
     bc_id = np.where(np.all(np.array(
-        [y_u>y_bottom-delta_x/10, y_u<y_bottom+delta_x/10, x_u>x_left-delta_x/10, x_u<x_right+delta_x/10]
+        [y_u>hole_y_bottom-delta_x/10, y_u<hole_y_bottom+delta_x/10, x_u>hole_x_left-delta_x/10, x_u<hole_x_right+delta_x/10]
         ),axis=0))
     f_rhs_x[bc_id,:] = 0
     f_rhs_y[bc_id,:] = 0
 
     #hole right boundary
     bc_id = np.where(np.all(np.array(
-        [y_u>y_bottom-delta_x/10, y_u<y_top+delta_x/10, x_u>x_right-delta_x/10, x_u<x_right+delta_x/10]
+        [y_u>hole_y_bottom-delta_x/10, y_u<hole_y_top+delta_x/10, x_u>hole_x_right-delta_x/10, x_u<hole_x_right+delta_x/10]
         ),axis=0))
     f_rhs_x[bc_id,:] = 0.
     f_rhs_y[bc_id,:] = 0.
 
     #hole left boundary
     bc_id = np.where(np.all(np.array(
-        [y_u>y_bottom-delta_x/10, y_u<y_top+delta_x/10, x_u>x_left-delta_x/10, x_u<x_left+delta_x/10]
+        [y_u>hole_y_bottom-delta_x/10, y_u<hole_y_top+delta_x/10, x_u>hole_x_left-delta_x/10, x_u<hole_x_left+delta_x/10]
         ),axis=0))
     f_rhs_x[bc_id,:] = 0.
     f_rhs_y[bc_id,:] = 0.
@@ -90,49 +95,49 @@ def apply_bc_rhs(f_rhs_x, f_rhs_y):
 
 def apply_bc_mat(D11, D22):
     #upper boundary
-    bc_id = np.where(y_u > 1-delta_x/10)
+    bc_id = np.where(y_u > y_top-delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
 
     #lower boundary
-    bc_id = np.where(y_u < -1+delta_x/10)
+    bc_id = np.where(y_u < y_bottom+delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
 
     #right boundary
-    bc_id = np.where(x_u > 1-delta_x/10)
+    bc_id = np.where(x_u > x_right-delta_x/10)
     # D11 = la_utils.set_diag(D11, bc_id)
     # D22 = la_utils.set_diag(D22, bc_id)
 
     #left boundary
-    bc_id = np.where(x_u < -3+delta_x/10)
+    bc_id = np.where(x_u < x_left+delta_x/10)
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
 
     #hole upper boundary
     bc_id = np.where(np.all(np.array(
-        [y_u>y_top-delta_x/10, y_u<y_top+delta_x/10, x_u>x_left-delta_x/10, x_u<x_right+delta_x/10]
+        [y_u>hole_y_top-delta_x/10, y_u<hole_y_top+delta_x/10, x_u>hole_x_left-delta_x/10, x_u<hole_x_right+delta_x/10]
         ),axis=0))
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
 
     #hole lower boundary
     bc_id = np.where(np.all(np.array(
-        [y_u>y_bottom-delta_x/10, y_u<y_bottom+delta_x/10, x_u>x_left-delta_x/10, x_u<x_right+delta_x/10]
+        [y_u>hole_y_bottom-delta_x/10, y_u<hole_y_bottom+delta_x/10, x_u>hole_x_left-delta_x/10, x_u<hole_x_right+delta_x/10]
         ),axis=0))
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
 
     #hole right boundary
     bc_id = np.where(np.all(np.array(
-        [y_u>y_bottom-delta_x/10, y_u<y_top+delta_x/10, x_u>x_right-delta_x/10, x_u<x_right+delta_x/10]
+        [y_u>hole_y_bottom-delta_x/10, y_u<hole_y_top+delta_x/10, x_u>hole_x_right-delta_x/10, x_u<hole_x_right+delta_x/10]
         ),axis=0))
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
 
     #hole left boundary
     bc_id = np.where(np.all(np.array(
-        [y_u>y_bottom-delta_x/10, y_u<y_top+delta_x/10, x_u>x_left-delta_x/10, x_u<x_left+delta_x/10]
+        [y_u>hole_y_bottom-delta_x/10, y_u<hole_y_top+delta_x/10, x_u>hole_x_left-delta_x/10, x_u<hole_x_left+delta_x/10]
         ),axis=0))
     D11 = la_utils.set_diag(D11, bc_id)
     D22 = la_utils.set_diag(D22, bc_id)
@@ -317,49 +322,49 @@ for row in topo_p:
 mean_pT = mean_p.transpose()
 
 #upper boundary
-bc_id = np.where(y_u > 1-delta_x/10)
+bc_id = np.where(y_u > y_top-delta_x/10)
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 #lower boundary
-bc_id = np.where(y_u < -1+delta_x/10)
+bc_id = np.where(y_u < y_bottom+delta_x/10)
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 #right boundary
-bc_id = np.where(x_u > 1-delta_x/10)
+bc_id = np.where(x_u > x_right-delta_x/10)
 # BT1 = la_utils.clear_rows(BT1,bc_id)
 # BT2 = la_utils.clear_rows(BT2,bc_id)
 
 #left boundary
-bc_id = np.where(x_u < -3+delta_x/10)
+bc_id = np.where(x_u < x_left+delta_x/10)
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 #hole upper boundary
 bc_id = np.where(np.all(np.array(
-    [y_u>y_top-delta_x/10, y_u<y_top+delta_x/10, x_u>x_left-delta_x/10, x_u<x_right+delta_x/10]
+    [y_u>hole_y_top-delta_x/10, y_u<hole_y_top+delta_x/10, x_u>hole_x_left-delta_x/10, x_u<hole_x_right+delta_x/10]
     ),axis=0))
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 #hole lower boundary
 bc_id = np.where(np.all(np.array(
-    [y_u>y_bottom-delta_x/10, y_u<y_bottom+delta_x/10, x_u>x_left-delta_x/10, x_u<x_right+delta_x/10]
+    [y_u>hole_y_bottom-delta_x/10, y_u<hole_y_bottom+delta_x/10, x_u>hole_x_left-delta_x/10, x_u<hole_x_right+delta_x/10]
     ),axis=0))
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 #hole right boundary
 bc_id = np.where(np.all(np.array(
-    [y_u>y_bottom-delta_x/10, y_u<y_top+delta_x/10, x_u>x_right-delta_x/10, x_u<x_right+delta_x/10]
+    [y_u>hole_y_bottom-delta_x/10, y_u<hole_y_top+delta_x/10, x_u>hole_x_right-delta_x/10, x_u<hole_x_right+delta_x/10]
     ),axis=0))
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)
 
 #hole left boundary
 bc_id = np.where(np.all(np.array(
-    [y_u>y_bottom-delta_x/10, y_u<y_top+delta_x/10, x_u>x_left-delta_x/10, x_u<x_left+delta_x/10]
+    [y_u>hole_y_bottom-delta_x/10, y_u<hole_y_top+delta_x/10, x_u>hole_x_left-delta_x/10, x_u<hole_x_left+delta_x/10]
     ),axis=0))
 BT1 = la_utils.clear_rows(BT1,bc_id)
 BT2 = la_utils.clear_rows(BT2,bc_id)

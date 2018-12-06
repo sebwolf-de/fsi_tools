@@ -10,12 +10,12 @@ from pyevtk.vtk import VtkTriangle
 from parameters_handler import ParametersHandler
 
 if len(sys.argv) > 1:
-    ph = ParametersHandler(sys.argv[1])
-else:
-    ph = ParametersHandler('simulation_parameters.json')
+    start = int(sys.argv[1])
+ph = ParametersHandler('simulation_parameters.json')
 ph.simulation_info()
 
 time_list = np.where(ph.stampa)[0]
+time_list = np.delete(time_list, np.where(time_list < start))
 
 results_dir = ph.results_directory+'/'+ph.sim_prefix+'/binary_data/'
 
@@ -77,6 +77,7 @@ for cn_time in time_list:
     k = 0
     for row in topo_p_old:
         p_vertex[3*k:3*k+3] = np.reshape(p[row[0:3]] + p[row[3]], (3))
+        # p_vertex[3*k:3*k+3] = np.reshape(p[row[0:3]], (3))
         k = k+1
 
     unstructuredGridToVTK(vtk_dir+'pressure_cn_time_'+str(cn_time).zfill(ph.time_index_digits), x_p, y_p, z_p, connectivity = topo_p, offsets = offset_p, cell_types = ctype_p, cellData = None, pointData = {"p": p_vertex})
