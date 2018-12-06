@@ -584,7 +584,7 @@ print('Error decay Theta: '+str(np.divide(err_Theta[0:n_runs-1], err_Theta[1:n_r
 rate_u_BDF1 = np.zeros(n_runs-2)
 rate_u_BDF2 = np.zeros(n_runs-2)
 rate_u_Theta = np.zeros(n_runs-2)
-for k in range(0,n_runs-2)
+for k in range(0,n_runs-2):
     rate_u_BDF1[k] = np.log2(l2_norm(M_2D, BDF1[:,k] - BDF1[:,k+1]) / l2_norm(M_2D, BDF1[:,k+1] - BDF1[:,k+2]))
     rate_u_BDF2[k] = np.log2(l2_norm(M_2D, BDF2[:,k] - BDF2[:,k+1]) / l2_norm(M_2D, BDF2[:,k+1] - BDF2[:,k+2]))
     rate_u_Theta[k] = np.log2(l2_norm(M_2D, Theta[:,k] - Theta[:,k+1]) / l2_norm(M_2D, Theta[:,k+1] - Theta[:,k+2]))
