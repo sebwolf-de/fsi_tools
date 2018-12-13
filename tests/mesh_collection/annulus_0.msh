@@ -21,3 +21,7 @@ $Elements
 9 2 2 0 5 1 2 4
 10 2 2 0 5 1 4 3
 $EndElements
+//+
+Characteristic Length {3, 4, 2, 1} = 0.03;
+//+
+Characteristic Length {3, 4, 2, 1} = 0.03;
