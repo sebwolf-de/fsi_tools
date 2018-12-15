@@ -76,7 +76,7 @@ ys_reference = np.load(f)
 f.close()
 s_reference = np.append(xs_reference, ys_reference)
 
-N = 5
+N = 3
 
 err_u_BDF1 = np.zeros(N)
 err_u_BDF2 = np.zeros(N)
@@ -118,8 +118,12 @@ for k in range(1,N+1):
     f = open(input_name,"rb")
     step_time = np.load(f)
     sol_time = np.load(f)
+    res = np.load(f)
     f.close()
 
+    print('BDF1, max_iter, mean_iter, min_iter:')
+    it = np.count_nonzero(res > 0, 1)
+    print('     ', np.max(it), np.mean(it), np.min(it))
     time_BDF1[k-1] = step_time
 
     input_name = results_dir+'BDF2_'+str(k)
@@ -144,8 +148,12 @@ for k in range(1,N+1):
     f = open(input_name,"rb")
     step_time = np.load(f)
     sol_time = np.load(f)
+    res = np.load(f)
     f.close()
 
+    print('BDF2, max_iter, mean_iter, min_iter:')
+    it = np.count_nonzero(res > 0, 1)
+    print('     ', np.max(it), np.mean(it), np.min(it))
     time_BDF2[k-1] = step_time
 
     input_name = results_dir+'Theta_'+str(k)
@@ -170,7 +178,12 @@ for k in range(1,N+1):
     f = open(input_name,"rb")
     step_time = np.load(f)
     sol_time = np.load(f)
+    res = np.load(f)
     f.close()
+
+    print('Theta, max_iter, mean_iter, min_iter:')
+    it = np.count_nonzero(res > 0, 1)
+    print('      ', np.max(it), np.mean(it), np.min(it))
 
     time_Theta[k-1] = step_time
 
