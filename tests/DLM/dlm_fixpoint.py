@@ -325,7 +325,6 @@ def assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n):
                      np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
 
 def assemble_blockwise_matrix_BDF1():
-    S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
     D11 = 1/ph.dt*MF11 + KF11 + S11
     D22 = 1/ph.dt*MF11 + KF11 + S11
 
@@ -341,35 +340,35 @@ def assemble_blockwise_matrix_BDF1():
                          sparse.csc_matrix((ndofs_u*2,ndofs_s*2)),
                          GT,
                          sparse.csc_matrix((ndofs_u*2,1))
-                         ])
+    ])
 
     mat2 = sparse.hstack([-B,
                           sparse.csc_matrix((ndofs_p,ndofs_p)),
                           sparse.csc_matrix((ndofs_p,ndofs_s*2)),
                           sparse.csc_matrix((ndofs_p,ndofs_s*2)),
                           mean_p.transpose()
-                          ])
+    ])
 
     mat3 = sparse.hstack([sparse.csc_matrix((ndofs_s*2,ndofs_u*2)),
                           sparse.csc_matrix((ndofs_s*2,ndofs_p)),
                           KS,
                           -MST,
                           sparse.csc_matrix((ndofs_s*2,1))
-                          ])
+    ])
 
     mat4 = sparse.hstack([G,
                           sparse.csc_matrix((ndofs_s*2,ndofs_p)),
                           -1/ph.dt*MS,
                           sparse.csc_matrix((ndofs_s*2,ndofs_s*2)),
                           sparse.csc_matrix((ndofs_s*2,1))
-                          ])
+    ])
 
     mat5 = sparse.hstack([sparse.csc_matrix((1,ndofs_u*2)),
                           mean_p,
                           sparse.csc_matrix((1,ndofs_s*2)),
                           sparse.csc_matrix((1,ndofs_s*2)),
                           sparse.csc_matrix((1,1))
-                          ])
+    ])
 
     mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
     mat = mat.tocsc()
@@ -386,11 +385,8 @@ def assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx
                      np.zeros((ndofs_s)), np.zeros((ndofs_s)), l_rhs_x, l_rhs_y)
 
 def assemble_blockwise_matrix_BDF2():
-    S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
     D11 = 1.5/ph.dt*MF11 + KF11 + S11
     D22 = 1.5/ph.dt*MF11 + KF11 + S11
-    # S12 = sparse.csc_matrix((ndofs_u, ndofs_u))
-    # S21 = sparse.csc_matrix((ndofs_u, ndofs_u))
 
     (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22)
 
@@ -404,53 +400,50 @@ def assemble_blockwise_matrix_BDF2():
                           sparse.csc_matrix((ndofs_u*2,ndofs_s*2)),
                           GT,
                           sparse.csc_matrix((ndofs_u*2,1))
-                          ])
+    ])
 
     mat2 = sparse.hstack([-B,
                           sparse.csc_matrix((ndofs_p,ndofs_p)),
                           sparse.csc_matrix((ndofs_p,ndofs_s*2)),
                           sparse.csc_matrix((ndofs_p,ndofs_s*2)),
                           mean_p.transpose()
-                          ])
+    ])
 
     mat3 = sparse.hstack([sparse.csc_matrix((ndofs_s*2,ndofs_u*2)),
                           sparse.csc_matrix((ndofs_s*2,ndofs_p)),
                           KS,
                           -MST,
                           sparse.csc_matrix((ndofs_s*2,1))
-                          ])
+    ])
 
     mat4 = sparse.hstack([G,
                           sparse.csc_matrix((ndofs_s*2,ndofs_p)),
                           -1.5/ph.dt*MS,
                           sparse.csc_matrix((ndofs_s*2,ndofs_s*2)),
                           sparse.csc_matrix((ndofs_s*2,1))
-                          ])
+    ])
 
     mat5 = sparse.hstack([sparse.csc_matrix((1,ndofs_u*2)),
                           mean_p,
                           sparse.csc_matrix((1,ndofs_s*2)),
                           sparse.csc_matrix((1,ndofs_s*2)),
                           sparse.csc_matrix((1,1))
-                          ])
+    ])
 
     mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
     mat = mat.tocsc()
     return mat
 
-def assemble_convective_Theta():
-    return
-
-def assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n, S11):
+def assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n):
     f_rhs_x = 1/ph.dt*MF11.dot(ux_n) - 0.5*KF11.dot(ux_n) - 0.5*S11.dot(ux_n) \
         + 0.5*BT1.dot(p_n) - 0.5*HT11.dot(l_n[0:ndofs_s])
     f_rhs_y = 1/ph.dt*MF11.dot(uy_n) - 0.5*KF11.dot(uy_n) - 0.5*S11.dot(uy_n) \
         + 0.5*BT2.dot(p_n) - 0.5*HT22.dot(l_n[ndofs_s:2*ndofs_s])
 
-    p_rhs = np.zeros((ndofs_p, 1))#-0.5*B.dot(u_n)
+    p_rhs = np.zeros((ndofs_p, 1))
 
-    s_rhs_x = np.zeros((ndofs_s, 1))#-0.5*KS11.dot(dx_n) + 0.5*MST11.dot(np.reshape(l_n[0:ndofs_s],(ndofs_s)))
-    s_rhs_y = np.zeros((ndofs_s, 1))#-0.5*KS22.dot(dy_n) + 0.5*MST22.dot(np.reshape(l_n[ndofs_s:2*ndofs_s],(ndofs_s)))
+    s_rhs_x = np.zeros((ndofs_s, 1))
+    s_rhs_y = np.zeros((ndofs_s, 1))
 
     l_rhs_x = -1/ph.dt*MS11.dot(dx_n) - 0.5*HT11.transpose().dot(ux_n)
     l_rhs_y = -1/ph.dt*MS11.dot(dy_n) - 0.5*HT22.transpose().dot(uy_n)
@@ -459,7 +452,7 @@ def assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n, S11):
                      s_rhs_x, s_rhs_y, l_rhs_x, l_rhs_y)
 
 
-def assemble_blockwise_matrix_Theta(S11):
+def assemble_blockwise_matrix_Theta():
     D11 = 1/ph.dt*MF11 + 0.5*KF11 + 0.5*S11
     D22 = 1/ph.dt*MF11 + 0.5*KF11 + 0.5*S11
 
@@ -475,35 +468,35 @@ def assemble_blockwise_matrix_Theta(S11):
                           sparse.csc_matrix((ndofs_u*2,ndofs_s*2)),
                           0.5*GT,
                           sparse.csc_matrix((ndofs_u*2,1))
-                          ])
+    ])
 
     mat2 = sparse.hstack([-B,
                           sparse.csc_matrix((ndofs_p,ndofs_p)),
                           sparse.csc_matrix((ndofs_p,ndofs_s*2)),
                           sparse.csc_matrix((ndofs_p,ndofs_s*2)),
                           mean_p.transpose()
-                          ])
+    ])
 
     mat3 = sparse.hstack([sparse.csc_matrix((ndofs_s*2,ndofs_u*2)),
                           sparse.csc_matrix((ndofs_s*2,ndofs_p)),
                           KS,
                           -MST,
                           sparse.csc_matrix((ndofs_s*2,1))
-                          ])
+    ])
 
     mat4 = sparse.hstack([0.5*G,
                           sparse.csc_matrix((ndofs_s*2,ndofs_p)),
                           -1/ph.dt*MS,
                           sparse.csc_matrix((ndofs_s*2,ndofs_s*2)),
                           sparse.csc_matrix((ndofs_s*2,1))
-                          ])
+    ])
 
     mat5 = sparse.hstack([sparse.csc_matrix((1,ndofs_u*2)),
                           mean_p,
                           sparse.csc_matrix((1,ndofs_s*2)),
                           sparse.csc_matrix((1,ndofs_s*2)),
                           sparse.csc_matrix((1,1))
-                       ])
+    ])
 
     mat = sparse.vstack([mat1,mat2,mat3,mat4,mat5])
     mat = mat.tocsc()
@@ -699,6 +692,13 @@ MST = sparse.vstack([
 MF11 = ph.rho_fluid*assemble.u_v_p1(topo_u,x_u,y_u)
 KF11 = ph.nu*assemble.gradu_gradv_p1(topo_u,x_u,y_u)
 
+nodes_p = x_p.shape[0]
+cells_p = topo_p.shape[0]
+MP = sparse.vstack([
+    sparse.hstack([assemble.u_v_p1(topo_p[:,0:3],x_p,y_p), sparse.csr_matrix((nodes_p, cells_p))]),
+    sparse.hstack([sparse.csr_matrix((cells_p, nodes_p)), sparse.eye(cells_p)])
+    ])
+
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,
            topo_u,x_u,y_u,c2f)
 
@@ -737,7 +737,7 @@ step_time = np.array([])
 
 energy = []
 
-max_iter = 20
+max_iter = 80
 residuals = np.zeros((len(ph.stampa), max_iter))
 
 for cn_time in range(0,len(ph.stampa)):
@@ -749,38 +749,37 @@ for cn_time in range(0,len(ph.stampa)):
     print('-----')
 
     print('assemble system')
-    ###Assemble kinematic coupling
+    ###Assemble kinematic coupling and nonlinear convection term
     (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n, sy_n)
     (H, HT, HT11, HT22) = (G, GT, GT11, GT22)
     ux_n1 = ux_n
     uy_n1 = uy_n
     u_n1 = u_n
     l_n1 = l_n
+    S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
 
     ###Assemble linear system and right hand side
     if ph.time_integration == 'BDF1':
         mat = assemble_blockwise_matrix_BDF1()
         force = assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n)
     elif ph.time_integration == 'Theta':
-        S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
-        mat = assemble_blockwise_matrix_Theta(S11)
-        force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n, S11)
+        mat = assemble_blockwise_matrix_Theta()
+        force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n)
     elif ph.time_integration == 'BDF2':
         if cn_time == 0:
-            S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
-            mat = assemble_blockwise_matrix_Theta(S11)
-            force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n, S11)
+            mat = assemble_blockwise_matrix_Theta()
+            force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n)
         else:
             mat = assemble_blockwise_matrix_BDF2()
             force = assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx_n_old, dy_n_old)
 
-    # sparse.save_npz('matrix', mat)
-    # f = open('rhs', 'wb')
-    # np.save(f, force)
-    # np.save(f, ndofs_u)
-    # np.save(f, ndofs_p)
-    # np.save(f, ndofs_s)
-    # f.close()
+    sparse.save_npz('matrix'+str(ph.time_integration), mat)
+    f = open('rhs', 'wb')
+    np.save(f, force)
+    np.save(f, ndofs_u)
+    np.save(f, ndofs_p)
+    np.save(f, ndofs_s)
+    f.close()
 
     for k in range(0, max_iter):
         ###Solve linear system
@@ -816,21 +815,30 @@ for cn_time in range(0,len(ph.stampa)):
 
         ###Assemble the matrices again with the new computed coupling
         (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n1, sy_n1)
+        S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
 
         if ph.time_integration == 'BDF1':
             mat = assemble_blockwise_matrix_BDF1()
         elif ph.time_integration == 'Theta':
             S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
-            mat = assemble_blockwise_matrix_Theta(S11)
+            mat = assemble_blockwise_matrix_Theta()
         elif ph.time_integration == 'BDF2':
             if cn_time == 0:
                 S11= ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
-                mat = assemble_blockwise_matrix_Theta(S11)
+                mat = assemble_blockwise_matrix_Theta()
             else:
                 mat = assemble_blockwise_matrix_BDF2()
 
         ### Calculate the residual
-        res = np.linalg.norm(mat.dot(sol) - force)
+        big_mass_matrix = sparse.vstack([
+            sparse.hstack([MF, sparse.csr_matrix((2*ndofs_u, ndofs_p + 4*ndofs_s + 1))]),
+            sparse.hstack([sparse.csr_matrix((ndofs_p, 2*ndofs_u)), MP, sparse.csr_matrix((ndofs_p, 4*ndofs_s + 1))]),
+            sparse.hstack([sparse.csr_matrix((2*ndofs_s, 2*ndofs_u+ndofs_p)), MS, sparse.csr_matrix((2*ndofs_s, 2*ndofs_s + 1))]),
+            sparse.hstack([sparse.csr_matrix((2*ndofs_s, 2*ndofs_u+ndofs_p+2*ndofs_s)), MS, sparse.csr_matrix((2*ndofs_s, 1))]),
+            sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u+ndofs_p+4*ndofs_s)), sparse.eye(1)])
+        ])
+        res = l2_norm(big_mass_matrix, mat.dot(sol) - force)
+        #res = np.linalg.norm(mat.dot(sol) - force)
         residuals[cn_time, k] = res
         print('Nonlinear solver: ' + str(k+1) + 'th iteration, res = ' + '{:.2e}'.format(res))
         ### Decide whether to stop the nonlinear solver
@@ -840,7 +848,7 @@ for cn_time in range(0,len(ph.stampa)):
             break
     if k == max_iter-1:
         print('Nonlinear solver did not converge in ' + str(max_iter) + ' iterations.')
-        break
+        #break
 
     ###Update solution vector
     ux_n_old = ux_n
