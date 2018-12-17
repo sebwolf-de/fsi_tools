@@ -21,7 +21,14 @@ from preconditioner import BlockPreconditioner
 from shapely.geometry import Polygon
 import viewers
 
+###
+# Main script for the DLM method with fixpoint iteration as a nonlinear solver
+# Cavity and Annulus example work
+# Channel and Swingbar are experimental!
+# There's still a lot to do ;-)
+###
 
+### Does not work yet
 # def start_later(cn_time):
 #     #load mesh file
 #     filename = results_dir+'/mesh'
@@ -81,7 +88,6 @@ import viewers
 #     uy_n = u_n[ndofs_u:2*ndofs_u]
 #
 #     return
-
 
 def write_mesh():
     filename = results_dir+'mesh'#'./mesh/'+sim_prefix
@@ -153,7 +159,7 @@ def fluid_rhs_apply_bc(f_rhs_x, f_rhs_y):
     elif ph.mesh_prefix == 'cavity_':
         f_rhs_x[bc_id] = 0.
         f_rhs_y[bc_id] = 0.
-    #elif ph.mesh_prefix == 'channel_':
+    # elif ph.mesh_prefix == 'channel_':
     #    f_rhs_x[bc_id] = 4 * y_u[bc_id] * (1-y_u[bc_id])
     #    f_rhs_y[bc_id] = 0
     elif ph.mesh_prefix == 'swingbar_':
@@ -551,15 +557,6 @@ def eval_str_area():
         area+= poly.area
     return (area, invertible)
 
-def get_diffusion():
-    return diffusion
-
-def get_energy():
-    return energy
-
-def get_prefix():
-    return ph.sim_prefix
-
 ###Start of the script
 
 np.set_printoptions(precision=4)
@@ -728,27 +725,35 @@ eval_p = np.zeros((0,2))
 for row in topo_p:
     mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.,1])
 
+big_mass_matrix = sparse.vstack([
+    sparse.hstack([MF, sparse.csr_matrix((2*ndofs_u, ndofs_p + 4*ndofs_s + 1))]),
+    sparse.hstack([sparse.csr_matrix((ndofs_p, 2*ndofs_u)), MP, sparse.csr_matrix((ndofs_p, 4*ndofs_s + 1))]),
+    sparse.hstack([sparse.csr_matrix((2*ndofs_s, 2*ndofs_u+ndofs_p)), MS, sparse.csr_matrix((2*ndofs_s, 2*ndofs_s + 1))]),
+    sparse.hstack([sparse.csr_matrix((2*ndofs_s, 2*ndofs_u+ndofs_p+2*ndofs_s)), MS, sparse.csr_matrix((2*ndofs_s, 1))]),
+    sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u+ndofs_p+4*ndofs_s)), sparse.eye(1)])
+])
+
 ###Simulation loop
 
 str_area_zero, _ = eval_str_area()
 
-sol_time = np.array([])
-step_time = np.array([])
-
-energy = []
+sol_time = np.zeros((len(ph.stampa)))
+step_time = np.zeros((len(ph.stampa)))
+energy = np.zeros((len(ph.stampa)))
 
 max_iter = 80
 residuals = np.zeros((len(ph.stampa), max_iter))
 
 for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
-    sol_time = 0
+    curret_sol_time = 0
+
     print('-----------------------------------')
     print('cn_time   = ' + str(cn_time))
     print('t         = ' + str(cn_time*ph.dt))
     print('-----')
 
-    print('assemble system')
+    # print('assemble system')
     ###Assemble kinematic coupling and nonlinear convection term
     (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n, sy_n)
     (H, HT, HT11, HT22) = (G, GT, GT11, GT22)
@@ -773,18 +778,20 @@ for cn_time in range(0,len(ph.stampa)):
             mat = assemble_blockwise_matrix_BDF2()
             force = assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx_n_old, dy_n_old)
 
-    sparse.save_npz('matrix'+str(ph.time_integration), mat)
-    f = open('rhs', 'wb')
-    np.save(f, force)
-    np.save(f, ndofs_u)
-    np.save(f, ndofs_p)
-    np.save(f, ndofs_s)
-    f.close()
+    # Uncomment the following to save some matrices for the evaluation scripts
+    # sparse.save_npz('matrix'+str(ph.time_integration), mat)
+    # f = open('rhs', 'wb')
+    # np.save(f, force)
+    # np.save(f, ndofs_u)
+    # np.save(f, ndofs_p)
+    # np.save(f, ndofs_s)
+    # f.close()
 
     for k in range(0, max_iter):
         ###Solve linear system
         sol_t0 = time.time()
 
+        ### Experimental code for the iterative linear solver
         # print('calculate preconditioner')
         # fill_factor=300
         # spilu = sp_la.spilu(mat, fill_factor=fill_factor, drop_tol=1e-10)
@@ -797,11 +804,10 @@ for cn_time in range(0,len(ph.stampa)):
 
         print('solve system')
         sol = sp_la.spsolve(mat,force)
-
         sol_t1 = time.time()
-        sol_time += sol_t1 - sol_t0
+        current_sol_time += sol_t1 - sol_t0
 
-        print('caclulate residual')
+        print('calculate residual')
         ###Extract current iterates
         u_n1 = sol[0:2*ndofs_u]
         ux_n1 = sol[0:ndofs_u]
@@ -813,32 +819,22 @@ for cn_time in range(0,len(ph.stampa)):
         sy_n1 = sy_zero + dy_n1
         l_n1 = sol[2*ndofs_u+ndofs_p+2*ndofs_s:2*ndofs_u+ndofs_p+4*ndofs_s]
 
-        ###Assemble the matrices again with the new computed coupling
+        ###Assemble the matrices again with the new computed iterates
         (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n1, sy_n1)
         S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
 
         if ph.time_integration == 'BDF1':
             mat = assemble_blockwise_matrix_BDF1()
         elif ph.time_integration == 'Theta':
-            S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
             mat = assemble_blockwise_matrix_Theta()
         elif ph.time_integration == 'BDF2':
             if cn_time == 0:
-                S11= ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
                 mat = assemble_blockwise_matrix_Theta()
             else:
                 mat = assemble_blockwise_matrix_BDF2()
 
         ### Calculate the residual
-        big_mass_matrix = sparse.vstack([
-            sparse.hstack([MF, sparse.csr_matrix((2*ndofs_u, ndofs_p + 4*ndofs_s + 1))]),
-            sparse.hstack([sparse.csr_matrix((ndofs_p, 2*ndofs_u)), MP, sparse.csr_matrix((ndofs_p, 4*ndofs_s + 1))]),
-            sparse.hstack([sparse.csr_matrix((2*ndofs_s, 2*ndofs_u+ndofs_p)), MS, sparse.csr_matrix((2*ndofs_s, 2*ndofs_s + 1))]),
-            sparse.hstack([sparse.csr_matrix((2*ndofs_s, 2*ndofs_u+ndofs_p+2*ndofs_s)), MS, sparse.csr_matrix((2*ndofs_s, 1))]),
-            sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u+ndofs_p+4*ndofs_s)), sparse.eye(1)])
-        ])
         res = l2_norm(big_mass_matrix, mat.dot(sol) - force)
-        #res = np.linalg.norm(mat.dot(sol) - force)
         residuals[cn_time, k] = res
         print('Nonlinear solver: ' + str(k+1) + 'th iteration, res = ' + '{:.2e}'.format(res))
         ### Decide whether to stop the nonlinear solver
@@ -848,7 +844,7 @@ for cn_time in range(0,len(ph.stampa)):
             break
     if k == max_iter-1:
         print('Nonlinear solver did not converge in ' + str(max_iter) + ' iterations.')
-        #break
+        break
 
     ###Update solution vector
     ux_n_old = ux_n
@@ -876,13 +872,14 @@ for cn_time in range(0,len(ph.stampa)):
     diffusion = str_area/str_area_zero
     p_all_zero = bool(np.all(p_n==0))
     exploded = bool(np.amax(p_n) > 1e+10)
-    indices_out_of_domain = np.where(sx_n > 1.+1e-8)[0]
+
+    indices_out_of_domain = np.where(sx_n > 1.+1e-8)
     indices_out_of_domain = np.append(indices_out_of_domain, np.where(sx_n < -1e-8))
     indices_out_of_domain = np.append(indices_out_of_domain, np.where(sy_n > 1.+1e-8))
     indices_out_of_domain = np.append(indices_out_of_domain, np.where(sy_n < -1e-8))
 
     nrg =(l2_norm(KS,np.append(dx_n, dy_n)))**2 + (l2_norm(MF,np.append(ux_n, uy_n)))**2
-    energy.append(nrg)
+    energy[cn_time] = nrg
 
     if (exploded==True or p_all_zero == True):
         diffusion = 999
@@ -909,11 +906,11 @@ for cn_time in range(0,len(ph.stampa)):
         write_output()
     step_t1 = time.time()
     print('step time = ' + str((step_t1-step_t0)))
-    print('sol  time = ' + str(sol_time))
+    print('sol  time = ' + str(current_sol_time))
     print('-----------------------------------')
 
-    step_time = np.append(step_time, step_t1-step_t0)
-    sol_time = np.append(sol_time, sol_time)
+    step_time[cn_time] = step_t1-step_t0
+    sol_time[cn_time] = current_sol_time
 
 write_time()
 print(np.log10(residuals))
