@@ -5,8 +5,8 @@
   "time_integration" : "BDF2",
   "delta_time_base": 3125,
   "delta_time_negative_esponent": 6,
-  "fluid_triangulation_intervals" : 16,
-  "structure_triangulation_intervals" : 16,
+  "fluid_triangulation_intervals" : 8,
+  "structure_triangulation_intervals" : 8,
 
   "kappa": 10,
   "reynolds_number" : 10,
