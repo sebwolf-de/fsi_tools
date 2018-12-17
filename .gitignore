@@ -2,3 +2,8 @@ tests/DLM/results
 tests/Navier_Stokes/results
 *.pyc
 *.bak
+*.out
+*.xls
+*.npz
+tests/DLM_semiimpl/results
+tests/DLM/rhs
