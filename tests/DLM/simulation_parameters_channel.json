@@ -1,0 +1,21 @@
+{
+  "solver_type" : "dlm_",
+  "mesh_prefix": "channel_",
+
+  "time_integration" : "Theta",
+  "delta_time_base": 5,
+  "delta_time_negative_esponent": 2,
+  "nonlin_tolerance" : 1e-5,
+  "fluid_triangulation_intervals" : 64,
+  "structure_triangulation_intervals" : 64,
+
+  "kappa": 100,
+  "rho_fluid" : 1,
+  "rho_structure" : 1,
+  "nu" : 0.1,
+
+  "time_intervals_to_be_simulated": 101,
+  "time_intervals_in_between_printed_results": 1,
+  "time_index_digits": 3,
+  "results_directory": "results"
+}

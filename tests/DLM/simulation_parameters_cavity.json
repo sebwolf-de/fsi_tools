@@ -6,7 +6,7 @@
     "delta_time_base": 2,
     "delta_time_negative_esponent": 2,
     "nonlin_tolerance" : 1e-5,
-    "fluid_triangulation_intervals" : 12,
+    "fluid_triangulation_intervals" : 20,
     "structure_triangulation_intervals" : 12,
 
     "kappa": 0.1,
