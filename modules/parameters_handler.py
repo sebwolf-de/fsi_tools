@@ -9,7 +9,7 @@ class ParametersHandler:
         self.time_integration = self.params.get("time_integration")
         self.tolerance = self.params.get("nonlin_tolerance")
         if self.tolerance == None:
-            self.tolerance = 1e-6
+            self.tolerance = 1e-4
         self.base = self.params.get("delta_time_base")
         self.esponente = self.params.get("delta_time_negative_esponent")
 
