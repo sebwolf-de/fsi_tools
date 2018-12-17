@@ -108,6 +108,58 @@ def l2error_on_mesh(u, f, x, y, topo, n=5):
         e += l2_error_on_triangle(t_l, u_l, f, n)**2
     return np.sqrt(e)
 
+def h1_semi_error_on_triangle(t, u, f_x, f_y, n=5):
+    """
+    Computes the error in the H1 seminorm between the numerical solution and the analytical
+    solution on one triangle.
+    The numerical solution is assumed to be linear on the triangle.
+
+    Input
+    ``t``: (3,2) array, storing the nodes of the triangle
+    ``u``: (3,1) array, storing the values of u in the nodes
+    ``f_x``: the x derivative of the function to compare to
+    ``f_y``: the y derivative of the function to compare to
+    ``n``: optional, the degree of the quadrature used
+
+    Output:
+
+    ``e`` : The error ||gradu - gradf||_2 in the H1 seminorm
+
+    """
+    e_x = lambda x, y: (np.dot(basis_func.tri_p1(t[:,0], t[:,1], np.hstack([x,y]))[0],u) - f_x(x,y))**2
+    e_y = lambda x, y: (np.dot(basis_func.tri_p1(t[:,0], t[:,1], np.hstack([x,y]))[1],u) - f_y(x,y))**2
+    q_x = quad_on_triangle(t, e_x, n)
+    q_y = quad_on_triangle(t, e_y, n)
+    return np.sqrt(q_x + q_y)
+
+def h1_semi_error_on_mesh(u, f_x, f_y, x, y, topo, n=5):
+    """
+    Computes the error in the h1 seminorm between the numerical solution and the analytical
+    solution on the whole mesh.
+    The numerical solution is assumed to be piecewise linear.
+
+    Input
+    ``u``: (n,1) array, storing the values of u in the nodes
+    ``f_x``: the x derivative o f the function to compare to
+    ``f_y``: the y derivative o f the function to compare to
+    ``x``: (n,1) array, storing the x values of the nodes
+    ``y``: (n,1) array, storing the y values of the nodes
+    ``topo``: (m,3) array, storing the connectivity of the mesh
+    ``n``: optional, the degree of the quadrature used
+
+    Output:
+
+    ``e`` : The error ||gradu - gradf||_2 in the H1 seminorm
+
+    """
+    e = 0
+    for el in topo:
+        t_l = np.hstack([np.reshape(x[el], (3,1)), np.reshape(y[el], (3,1))])
+        u_l = u[el]
+        e += h1_semi_error_on_triangle(t_l, u_l, f_x, f_y, n)**2
+    return np.sqrt(e)
+
+
 ref = {
   '1': np.array([[0.333333333333333, 0.333333333333333]]),
   '2': np.array([[0.666666666666667, 0.166666666666667],
