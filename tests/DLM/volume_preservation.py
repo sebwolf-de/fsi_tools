@@ -16,6 +16,8 @@ import assemble
 def read_area(k):
     reader = vtk.vtkXMLUnstructuredGridReader()
     filename = '../../../ans-ifem/ans-ifem/out/Cavity-solid-'+str(k).zfill(5)+'.vtu'
+    if not os.path.exists(filename):
+        return 0.2**2*np.pi
     reader.SetFileName(filename)
     reader.Update() # Needed because of GetScalarRange
 
@@ -110,6 +112,41 @@ s_lgr = np.load(f)
 t_lgr = np.load(f)
 f.close()
 
+e_f = []
+d_f = []
+for row in topo_p:
+    x_l = x_p[row[0:3]]
+    y_l = y_p[row[0:3]]
+    eval_p = np.zeros((3,2))
+    eval_p[:,0] = x_l
+    eval_p[:,1] = y_l
+    poly = Polygon(tuple(eval_p.tolist()))
+    a = poly.area
+    l = np.sqrt((x_l-np.roll(x_l,1))**2 + (y_l - np.roll(y_l,1))**2)
+    e_f.append(np.max(l))
+    d_f.append(0.25*np.prod(l)/a)
+print('maximum fluid edge' + str(np.max(e_f)))
+print('maximum fluid diam' + str(np.max(d_f)))
+
+e_s = []
+d_s = []
+for row in topo_s:
+    x_l = s_lgr[row]
+    y_l = t_lgr[row]
+    eval_p = np.zeros((3,2))
+    eval_p[:,0] = x_l
+    eval_p[:,1] = y_l
+    poly = Polygon(tuple(eval_p.tolist()))
+    a = poly.area
+    l = np.sqrt((x_l-np.roll(x_l,1))**2 + (y_l - np.roll(y_l,1))**2)
+    e_s.append(np.max(l))
+    d_s.append(0.25*np.prod(l)/a)
+print('maximum solid edge' + str(np.max(e_s)))
+print('maximum solid diam' + str(np.max(d_s)))
+
+
+
+
 
 # ie_s = np.arange(0,s_lgr.shape[0])
 # KS11 = assemble.gradu_gradv_p1_ieq(topo_s,s_lgr,t_lgr,ie_s)
@@ -129,33 +166,36 @@ diffusion = np.zeros((4, n))
 energy = np.zeros((n))
 
 str_area_zero = eval_str_area(0)
+print(str_area_zero)
+print(0.2**2*np.pi)
 deal_area_zero = read_area(0)
+print(deal_area_zero)
 # dx_n = sx_n - s_lgr
 # dy_n = sy_n - t_lgr
 #energy[0] =(l2_norm(KS,np.append(dx_n, dy_n)))**2 + (l2_norm(MF,u))**2
 for cn_time in range(1, n):
     str_area = eval_str_area(cn_time)
     diffusion[0:3, cn_time] = (np.divide(str_area,str_area_zero)-1.)*100
-    # deal_area = read_area(cn_time)
-    # diffusion[3, cn_time] = (deal_area/deal_area_zero - 1.)*100
+    deal_area = read_area(cn_time)
+    diffusion[3, cn_time] = (deal_area/deal_area_zero - 1.)*100
     # dx_n = sx_n - s_lgr
     # dy_n = sy_n - t_lgr
     #energy[cn_time] =(l2_norm(KS,np.append(dx_n, dy_n)))**2 + (l2_norm(MF,u))**2
     print(diffusion[:,cn_time])
-plt.plot(np.arange(0,n), diffusion[0,:], label='BE')
-plt.plot(np.arange(0,n), diffusion[1,:], label='BDF2')
-plt.plot(np.arange(0,n), diffusion[2,:], label='Theta')
+plt.plot(np.arange(0,n)*4./n, diffusion[0,:], label='BE')
+plt.plot(np.arange(0,n)*4./n, diffusion[1,:], label='BDF2')
+plt.plot(np.arange(0,n)*4./n, diffusion[2,:], label='Theta')
 plt.xlabel('time (s)')
 plt.ylabel('volume change (%)')
-plt.title('Volume preservation for the disk example (DLM)')
+plt.title('Volume preservation for the disk example (DLM), coarse time step')
 plt.grid(True)
 plt.legend()
 plt.show()
 
-plt.plot(np.arange(0,n), diffusion[3,:])
+plt.plot(np.arange(0,n)*0.01    , diffusion[3,:])
 plt.xlabel('time (s)')
 plt.ylabel('volume change (%)')
-plt.title('Volume preservation for the disk example (DealII)')
+plt.title('Volume preservation for the disk example (Deal.II)')
 plt.grid(True)
 plt.show()
 
