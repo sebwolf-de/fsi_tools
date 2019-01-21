@@ -388,6 +388,7 @@ print('t = ' + str(t1-t0))
 err_BDF1 = np.zeros((n_runs))
 err_BDF2 = np.zeros((n_runs))
 err_Theta = np.zeros((n_runs))
+norm_u = 0
 
 BDF1 = np.zeros((2*ndofs_u, n_runs))
 BDF2 = np.zeros((2*ndofs_u, n_runs))
@@ -545,6 +546,9 @@ for t_ind in range(0, n_runs):
     Theta[:,t_ind] = u_Theta[0:2*ndofs_u].ravel()
     f_x = lambda x, y: analytical_u(T, x, y)[0:len(x)]
     f_y = lambda x, y: analytical_u(T, x, y)[len(x):2*len(x)]
+    norm_u_x = quadrature.l2error_on_mesh(np.zeros(u_BDF1.shape), f_x, x_u, y_u, topo_u, 6)
+    norm_u_y = quadrature.l2error_on_mesh(np.zeros(u_BDF1.shape), f_y, x_u, y_u, topo_u, 6)
+    norm_u = np.sqrt(norm_u_x**2  + norm_u_y**2)
     e_x = quadrature.l2error_on_mesh(u_BDF1[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
     e_y = quadrature.l2error_on_mesh(u_BDF1[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
     err_BDF1[t_ind] = np.sqrt(e_x**2 + e_y**2)
@@ -574,9 +578,12 @@ print('------')
 print('dx = ' + str(dx))
 print('------')
 
-print('error BDF1:  ' + str(err_BDF1))
-print('error BDF2:  ' + str(err_BDF2))
-print('error Theta: ' + str(err_Theta))
+print('abs. error BDF1:  ' + str(err_BDF1))
+print('abs. error BDF2:  ' + str(err_BDF2))
+print('abs. error Theta: ' + str(err_Theta))
+print('rel. error BDF1:  ' + str(np.divide(err_BDF1, norm_u)))
+print('rel. error BDF2:  ' + str(np.divide(err_BDF2, norm_u)))
+print('rel. error Theta: ' + str(np.divide(err_Theta, norm_u)))
 print('Error decay BDF1:  '+str(np.divide(err_BDF1[0:n_runs-1], err_BDF1[1:n_runs])))
 print('Error decay BDF2:  '+str(np.divide(err_BDF2[0:n_runs-1], err_BDF2[1:n_runs])))
 print('Error decay Theta: '+str(np.divide(err_Theta[0:n_runs-1], err_Theta[1:n_runs])))
