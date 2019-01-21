@@ -49,13 +49,36 @@ def f(t):
     f_stacked = np.reshape(np.append(f_x, f_y), (2*ndofs_u, 1))
     return f_stacked
 
+def f_analytical(t, x, y):
+    ndofs = x.shape[0]
+    ## time derivative
+    f_x =  (4*np.cos(t)) * x**2 * (1-x)**2 * (2*y - 6*y**2 + 4*y**3)
+    f_y = -(4*np.cos(t)) * (2*x - 6*x**2 + 4*x**3) * y**2 * (1-y)**2
+    ## convection term
+    f_x +=  (4*np.sin(t)+5)**2 * x**2 * (1-x)**2 * (2*y - 6*y**2 + 4*y**3)**2 * (2*x - 6*x**2 + 4*x**3)
+    f_y += -(4*np.sin(t)+5)**2 * x**2 * (1-x)**2 * (2*y - 6*y**2 + 4*y**3) * (2 - 12*x + 12*x**2) * y**2 * (1-y)**2
+    f_x += -(4*np.sin(t)+5)**2 * (2*x - 6*x**2 + 4*x**3) * y**2 * (1-y)**2 * y**2 * (1-x)**2 * (2 - 12*y + 12*y**2)
+    f_y +=  (4*np.sin(t)+5)**2 * (2*x - 6*x**2 + 4*x**3)**2 * y**2 * (1-y)**2 * (2*y - 6*y**2 + 4*y**3)
+    ## diffusion term
+    f_x += -(4*np.sin(t)+5) * ((2 - 12*x + 12*x**2) * (2*y - 6*y**2 + 4*y**3) + x**2 * (1-x)**2 * (-12 + 24*y))
+    f_y += -(4*np.sin(t)+5) * (-(-12 + 24*x) * y**2 * (1-y)**2 - (2*x - 6*x**2 + 4*x**3) * (2 - 12*y + 12*y**2))
+    ## pressure gradient
+    f_x +=  -1
+    f_y +=  0
+    f_stacked = np.reshape(np.append(f_x, f_y), (2*ndofs, 1))
+    return f_stacked
+
 def assemble_blockwise_force_BDF1(t):
     size = 2*ndofs_u+ndofs_p+1
     rhs = np.zeros((size,1))
 
-    g = f(t)
-    f_rhs_x = 1./dt*M.dot(u_BDF1[0:ndofs_u]) + M.dot(g[0:ndofs_u])
-    f_rhs_y = 1./dt*M.dot(u_BDF1[ndofs_u:2*ndofs_u]) + M.dot(g[ndofs_u:2*ndofs_u])
+    #g = f(t)
+    g_1 = lambda x,y: f_analytical(t, x, y)[0:x.shape[0]]
+    g_2 = lambda x,y: f_analytical(t, x, y)[x.shape[0]:2*x.shape[0]]
+    g_1_rhs = quadrature.fem_rhs(g_1, x_u, y_u, topo_u)
+    g_2_rhs = quadrature.fem_rhs(g_2, x_u, y_u, topo_u)
+    f_rhs_x = 1./dt*M.dot(u_BDF1[0:ndofs_u]) + np.reshape(g_1_rhs, (ndofs_u, 1)) #M.dot(g[0:ndofs_u])
+    f_rhs_y = 1./dt*M.dot(u_BDF1[ndofs_u:2*ndofs_u]) + np.reshape(g_2_rhs, (ndofs_u, 1)) #M.dot(g[ndofs_u:2*ndofs_u])
 
     #upper boundary
     bc_id = np.where(y_u > 1-dx/10)
@@ -133,9 +156,13 @@ def assemble_blockwise_force_BDF2(t):
     size = 2*ndofs_u+ndofs_p+1
     rhs = np.zeros((size,1))
 
-    g = f(t)
-    f_rhs_x = M.dot(2*u_BDF2[0:ndofs_u] - 0.5*u_BDF2_old[0:ndofs_u]) + dt*M.dot(g[0:ndofs_u])
-    f_rhs_y = M.dot(2*u_BDF2[ndofs_u:2*ndofs_u] - 0.5*u_BDF2_old[ndofs_u:2*ndofs_u]) + dt*M.dot(g[ndofs_u:2*ndofs_u])
+    #g = f(t)
+    g_1 = lambda x,y: f_analytical(t, x, y)[0:x.shape[0]]
+    g_2 = lambda x,y: f_analytical(t, x, y)[x.shape[0]:2*x.shape[0]]
+    g_1_rhs = quadrature.fem_rhs(g_1, x_u, y_u, topo_u)
+    g_2_rhs = quadrature.fem_rhs(g_2, x_u, y_u, topo_u)
+    f_rhs_x = M.dot(2*u_BDF2[0:ndofs_u] - 0.5*u_BDF2_old[0:ndofs_u]) + np.reshape(dt*g_1_rhs, (ndofs_u, 1)) #M.dot(g[0:ndofs_u])
+    f_rhs_y = M.dot(2*u_BDF2[ndofs_u:2*ndofs_u] - 0.5*u_BDF2_old[ndofs_u:2*ndofs_u]) + np.reshape(dt*g_2_rhs, (ndofs_u, 1)) #M.dot(g[ndofs_u:2*ndofs_u])
 
     #upper boundary
     bc_id = np.where(y_u > 1-dx/10)
@@ -213,17 +240,26 @@ def assemble_blockwise_force_Theta(t):
     size = 2*ndofs_u+ndofs_p+1
     rhs = np.zeros((size,1))
 
-    g_now = f(t)
-    g_prev = f(t-dt)
+    # g_now = f(t)
+    # g_prev = f(t-dt)
+
+    g_1_now = lambda x,y: f_analytical(t, x, y)[0:x.shape[0]]
+    g_2_now = lambda x,y: f_analytical(t, x, y)[x.shape[0]:2*x.shape[0]]
+    g_1_prev = lambda x,y: f_analytical(t-dt, x, y)[0:x.shape[0]]
+    g_2_prev = lambda x,y: f_analytical(t-dt, x, y)[x.shape[0]:2*x.shape[0]]
+    g_1_rhs_now = quadrature.fem_rhs(g_1_now, x_u, y_u, topo_u)
+    g_2_rhs_now = quadrature.fem_rhs(g_2_now, x_u, y_u, topo_u)
+    g_1_rhs_prev = quadrature.fem_rhs(g_1_prev, x_u, y_u, topo_u)
+    g_2_rhs_prev = quadrature.fem_rhs(g_2_prev, x_u, y_u, topo_u)
     f_rhs_x = 1./dt*M.dot(u_Theta[0:ndofs_u]) - 0.5*K.dot(u_Theta[0:ndofs_u])
     f_rhs_x += - 0.5*S11.dot(u_Theta[0:ndofs_u])
     f_rhs_x +=  0.5*BT1.dot(u_Theta[2*ndofs_u:2*ndofs_u+ndofs_p])
-    f_rhs_x += 0.5*M.dot(g_now[0:ndofs_u] + g_prev[0:ndofs_u])
+    f_rhs_x += np.reshape(0.5*(g_1_rhs_now + g_1_rhs_prev), (ndofs_u, 1)) #M.dot(g_now[0:ndofs_u] + g_prev[0:ndofs_u])
 
     f_rhs_y = 1./dt*M.dot(u_Theta[ndofs_u:2*ndofs_u]) - 0.5*K.dot(u_Theta[ndofs_u:2*ndofs_u])
     f_rhs_y += - 0.5*S11.dot(u_Theta[ndofs_u:2*ndofs_u])
     f_rhs_y += 0.5*BT2.dot(u_Theta[2*ndofs_u:2*ndofs_u+ndofs_p])
-    f_rhs_y += 0.5*M.dot(g_now[ndofs_u:2*ndofs_u] + g_prev[ndofs_u:2*ndofs_u])
+    f_rhs_y += np.reshape(0.5*(g_2_rhs_now + g_2_rhs_prev), (ndofs_u, 1)) #M.dot(g_now[ndofs_u:2*ndofs_u] + g_prev[ndofs_u:2*ndofs_u])
 
     #upper boundary
     bc_id = np.where(y_u > 1-dx/10)
@@ -330,7 +366,7 @@ Theta = 0.5
 TOL = 1e-7
 max_iter = 10
 
-n_runs = 4
+n_runs = 6
 
 (topo_p,x_p,y_p,topo_u,x_u,y_u,c2f) = lin_t3.mesh_t3_iso_t6(n,n,dx,dx)
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(n,n,dx,dx)
@@ -384,6 +420,8 @@ for row in topo_p:
 
 t1 = time.time()
 print('Assembled mass, stiffness and pressure matrix, t = ' + str(t1-t0))
+
+
 
 err_BDF1 = np.zeros((n_runs))
 err_BDF2 = np.zeros((n_runs))

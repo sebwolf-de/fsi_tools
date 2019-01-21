@@ -61,6 +61,32 @@ def area(t):
     area = 0.5 * np.linalg.det(A)
     return area
 
+def fem_rhs(f, x, y, topo, n=5):
+    """
+    Computes the right hand side for a fem solver \int f v_i dx for piecewise linear
+    ansatz functions v_i
+    ``f``: function to integrate
+    ``x``: (n,1) array, storing the x values of the nodes
+    ``y``: (n,1) array, storing the y values of the nodes
+    ``topo``: (m,3) array, storing the connectivity of the mesh
+    ``n``: optional, the degree of the quadrature used
+    """
+    ndofs = x.shape[0]
+    rhs = np.zeros(ndofs)
+
+    for el in topo:
+        t_l = np.hstack([np.reshape(x[el], (3,1)), np.reshape(y[el], (3,1))])
+        f_1 = lambda x,y: (np.dot(basis_func.tri_p1(t_l[:,0], t_l[:,1], np.hstack([x,y]))[2], np.reshape(np.array([1,0,0]),(3,1))) * f(x,y))
+        f_2 = lambda x,y: (np.dot(basis_func.tri_p1(t_l[:,0], t_l[:,1], np.hstack([x,y]))[2], np.reshape(np.array([0,1,0]),(3,1))) * f(x,y))
+        f_3 = lambda x,y: (np.dot(basis_func.tri_p1(t_l[:,0], t_l[:,1], np.hstack([x,y]))[2], np.reshape(np.array([0,0,1]),(3,1))) * f(x,y))
+        quad_1 = quad_on_triangle(t_l, f_1, n)
+        quad_2 = quad_on_triangle(t_l, f_2, n)
+        quad_3 = quad_on_triangle(t_l, f_3, n)
+        rhs[el] = rhs[el] + [quad_1[0], quad_2[0], quad_3[0]]
+    return rhs
+
+
+
 def l2_error_on_triangle(t, u, f, n=5):
     """
     Computes the L2 error between the numerical solution and the analytical
