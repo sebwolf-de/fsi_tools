@@ -681,7 +681,7 @@ for t_ind in range(0, n_runs):
 print()
 print('------')
 print('dx = ' + str(dx))
-print('dt = ' + str(0.5*T*np.power(2., -np.arange(0,n_runs)))
+print('dt = ' + str(0.5*T*np.power(2., -np.arange(0,n_runs))))
 print('dt_ref = ' + str(dt_ref))
 print('------')
 
