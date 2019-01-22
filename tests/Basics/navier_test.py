@@ -421,8 +421,6 @@ for row in topo_p:
 t1 = time.time()
 print('Assembled mass, stiffness and pressure matrix, t = ' + str(t1-t0))
 
-
-
 err_BDF1 = np.zeros((n_runs))
 err_BDF2 = np.zeros((n_runs))
 err_Theta = np.zeros((n_runs))
@@ -435,7 +433,8 @@ Theta = np.zeros((2*ndofs_u, n_runs))
 ref = np.zeros((2*ndofs_u))
 
 ### calculate reference solution
-dt = 0.025
+dt_ref = 0.025
+dt = dt_ref
 N = int(np.round(T/dt+1))
 print('Calculate reference solution')
 print('dt = ' + str(dt) + ', ' + str(N) + ' time steps to solve')
@@ -682,6 +681,8 @@ for t_ind in range(0, n_runs):
 print()
 print('------')
 print('dx = ' + str(dx))
+print('dt = ' + str(0.5*T*2**(-np.arange(0,n_runs))))
+print('dt_ref = ' + str(dt_ref))
 print('------')
 
 print('error comparted to analytical solution')
@@ -720,3 +721,14 @@ for k in range(0,n_runs-2):
 print('Empirical rate BDF1: ' + str(rate_u_BDF1))
 print('Empirical rate BDF2: ' + str(rate_u_BDF2))
 print('Empirical rate Theta: ' + str(rate_u_Theta))
+
+filename = 'dx='+str(dx)
+f = open(filename,"wb")
+np.save(f,dx)
+np.save(f,0.5*T*2**(-np.arange(0,n_runs)))
+np.save(f,dt_ref)
+np.save(f,BDF1)
+np.save(f,BDF2)
+np.save(f,Theta)
+np.save(f,ref)
+f.close()
