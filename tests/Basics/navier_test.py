@@ -354,6 +354,12 @@ def apply_bc(g):
 
     return g
 
+def l2_norm(M,g):
+    l2_g = M.dot(g)
+    l2_g = np.dot(l2_g.transpose(),g)
+    l2_g = np.sqrt(l2_g)
+    return l2_g
+
 if len(sys.argv) > 1:
     n = int(sys.argv[1])
 else:
@@ -363,10 +369,10 @@ dx = 1./n
 
 T = 5
 Theta = 0.5
-TOL = 1e-7
+TOL = 1e-8
 max_iter = 10
 
-n_runs = 6
+n_runs = 5
 
 (topo_p,x_p,y_p,topo_u,x_u,y_u,c2f) = lin_t3.mesh_t3_iso_t6(n,n,dx,dx)
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(n,n,dx,dx)
@@ -418,6 +424,20 @@ eval_p = np.zeros((0,2))
 for row in topo_p:
     mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3., 1.])
 
+nodes_p = x_p.shape[0]
+cells_p = topo_p.shape[0]
+MP = sparse.vstack([
+    sparse.hstack([assemble.u_v_p1(topo_p[:,0:3],x_p,y_p), sparse.csr_matrix((nodes_p, cells_p))]),
+    sparse.hstack([sparse.csr_matrix((cells_p, nodes_p)), sparse.eye(cells_p)])
+    ])
+
+big_mass_matrix = sparse.vstack([
+    sparse.hstack([M_2D, sparse.csr_matrix((2*ndofs_u, ndofs_p + 1))]),
+    sparse.hstack([sparse.csr_matrix((ndofs_p, 2*ndofs_u)), MP, sparse.csr_matrix((ndofs_p, 1))]),
+    sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u+ndofs_p)), sparse.eye(1)])
+])
+
+
 t1 = time.time()
 print('Assembled mass, stiffness and pressure matrix, t = ' + str(t1-t0))
 
@@ -433,7 +453,7 @@ Theta = np.zeros((2*ndofs_u, n_runs))
 ref = np.zeros((2*ndofs_u))
 
 ### calculate reference solution
-dt_ref = 0.025
+dt_ref = 0.01
 dt = dt_ref
 N = int(np.round(T/dt+1))
 print('Calculate reference solution')
@@ -472,7 +492,7 @@ for k in range(2,N):
         uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
         res_t0 = time.time()
         M_Theta = assemble_blockwise_matrix_Theta()
-        res = np.linalg.norm(M_Theta.dot(sol) - rhs_Theta)
+        res = l2_norm(big_mass_matrix, M_Theta.dot(sol) - rhs_Theta)
         res_t1 = time.time()
         print('reference, res = ' + str(res))
         if res < TOL:
@@ -533,7 +553,7 @@ for t_ind in range(0, n_runs):
             # print('solved linear system, t = ' + str(solve_t1 - solve_t0))
             res_t0 = time.time()
             M_BDF1 = assemble_blockwise_matrix_BDF1()
-            res = np.linalg.norm(M_BDF1.dot(sol) - rhs_BDF1)
+            res = l2_norm(big_mass_matrix, M_BDF1.dot(sol) - rhs_BDF1)
             res_t1 = time.time()
             # print('calculated residual, t = ' + str(res_t1 - res_t0))
             print('BDF1, res = ' + str(res))
@@ -571,7 +591,7 @@ for t_ind in range(0, n_runs):
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
             res_t0 = time.time()
             M_BDF2 = assemble_blockwise_matrix_BDF2()
-            res = np.linalg.norm(M_BDF2.dot(sol) - rhs_BDF2)
+            res = l2_norm(big_mass_matrix, M_BDF2.dot(sol) - rhs_BDF2)
             res_t1 = time.time()
             # print('calculated residual, t = ' + str(res_t1 - res_t0))
             print('BDF2, res = ' + str(res))
@@ -610,7 +630,7 @@ for t_ind in range(0, n_runs):
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
             res_t0 = time.time()
             M_Theta = assemble_blockwise_matrix_Theta()
-            res = np.linalg.norm(M_Theta.dot(sol) - rhs_Theta)
+            res = l2_norm(big_mass_matrix, M_Theta.dot(sol) - rhs_Theta)
             res_t1 = time.time()
             # print('calculated residual, t = ' + str(res_t1 - res_t0))
             print('Theta, res = ' + str(res))
