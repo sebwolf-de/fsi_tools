@@ -5,16 +5,17 @@
   "time_integration" : "BDF2",
   "delta_time_base": 625,
   "delta_time_negative_esponent": 5,
-  "fluid_triangulation_intervals" : 16,
-  "structure_triangulation_intervals" : 16,
+  "fluid_triangulation_intervals" : 8,
+  "structure_triangulation_intervals" : 8,
 
   "kappa": 10,
   "reynolds_number" : 10,
   "rho_fluid" : 1,
   "rho_structure" : 1,
   "nu" : 1,
+  "fluid_behavior": "Navier-Stokes",
 
-  "time_intervals_to_be_simulated": 33,
+  "time_intervals_to_be_simulated": 32,
   "time_intervals_in_between_printed_results": 1,
   "time_index_digits": 3,
   "results_directory": "results"
