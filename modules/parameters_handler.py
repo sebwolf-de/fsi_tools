@@ -17,6 +17,7 @@ class ParametersHandler:
         self.rho_fluid = self.params.get("rho_fluid")
         self.rho_structure = self.params.get("rho_structure")
         self.nu = self.params.get("nu")
+        self.fluid_behavior = self.params.get("fluid_behavior")
 
         self.n_delta_x = self.params.get("fluid_triangulation_intervals")
         self.n_delta_s = self.params.get("structure_triangulation_intervals")

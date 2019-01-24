@@ -5,14 +5,15 @@
   "time_integration" : "Theta",
   "delta_time_base": 1,
   "delta_time_negative_esponent": 1,
-  "fluid_triangulation_intervals" : 8,
-  "structure_triangulation_intervals" : 8,
+  "fluid_triangulation_intervals" : 16,
+  "structure_triangulation_intervals" : 16,
 
   "kappa": 10,
   "reynolds_number" : 10,
   "rho_fluid" : 1,
   "rho_structure" : 1,
   "nu" : 1,
+  "fluid_behavior": "Navier-Stokes",
 
   "time_intervals_to_be_simulated": 3,
   "time_intervals_in_between_printed_results": 1,

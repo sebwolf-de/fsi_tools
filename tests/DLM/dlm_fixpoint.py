@@ -689,13 +689,6 @@ MST = sparse.vstack([
 MF11 = ph.rho_fluid*assemble.u_v_p1(topo_u,x_u,y_u)
 KF11 = ph.nu*assemble.gradu_gradv_p1(topo_u,x_u,y_u)
 
-nodes_p = x_p.shape[0]
-cells_p = topo_p.shape[0]
-MP = sparse.vstack([
-    sparse.hstack([assemble.u_v_p1(topo_p[:,0:3],x_p,y_p), sparse.csr_matrix((nodes_p, cells_p))]),
-    sparse.hstack([sparse.csr_matrix((cells_p, nodes_p)), sparse.eye(cells_p)])
-    ])
-
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,
            topo_u,x_u,y_u,c2f)
 
@@ -720,10 +713,18 @@ mean_p = np.zeros((1,ndofs_p))
 x_l = x_p[topo_p[0,0:3]]
 y_l = y_p[topo_p[0,0:3]]
 eval_p = np.zeros((0,2))
+# assume all triangles have the same shape/area
 (phi_dx,phi_dy,phi,omega) = shp.tri_p1(x_l,y_l,eval_p)
 
 for row in topo_p:
     mean_p[0,row] += omega * np.array([1./3.,1./3.,1./3.,1])
+
+nodes_p = x_p.shape[0]
+cells_p = topo_p.shape[0]
+MP = sparse.vstack([
+    sparse.hstack([assemble.u_v_p1(topo_p[:,0:3],x_p,y_p), sparse.csr_matrix((nodes_p, cells_p))]),
+    sparse.hstack([sparse.csr_matrix((cells_p, nodes_p)), omega*sparse.eye(cells_p)])
+    ])
 
 big_mass_matrix = sparse.vstack([
     sparse.hstack([MF, sparse.csr_matrix((2*ndofs_u, ndofs_p + 4*ndofs_s + 1))]),
@@ -746,7 +747,7 @@ residuals = np.zeros((len(ph.stampa), max_iter))
 
 for cn_time in range(0,len(ph.stampa)):
     step_t0 = time.time()
-    curret_sol_time = 0
+    current_sol_time = 0
 
     print('-----------------------------------')
     print('cn_time   = ' + str(cn_time))
@@ -761,7 +762,10 @@ for cn_time in range(0,len(ph.stampa)):
     uy_n1 = uy_n
     u_n1 = u_n
     l_n1 = l_n
-    S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+    if(ph.fluid_behavior == "Navier-Stokes"):
+        S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+    else:
+        S11 = sparse.csc_matrix((ndofs_u, ndofs_u))
 
     ###Assemble linear system and right hand side
     if ph.time_integration == 'BDF1':
@@ -821,7 +825,10 @@ for cn_time in range(0,len(ph.stampa)):
 
         ###Assemble the matrices again with the new computed iterates
         (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n1, sy_n1)
-        S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+        if(ph.fluid_behavior == "Navier-Stokes"):
+            S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+        else:
+            S11 = sparse.csc_matrix((ndofs_u, ndofs_u))
 
         if ph.time_integration == 'BDF1':
             mat = assemble_blockwise_matrix_BDF1()
