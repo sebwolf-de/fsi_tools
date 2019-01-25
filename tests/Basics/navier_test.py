@@ -260,7 +260,7 @@ n_runs = 5
 (topo_p,x_p,y_p) = lin_t3.mesh_t3_t0(n,n,dx,dx)
 print('Mesh generation finished')
 
-t0 = time.time()
+# t0 = time.time()
 K = assemble.gradu_gradv_p1(topo_u,x_u,y_u)
 M = assemble.u_v_p1(topo_u,x_u,y_u)
 (BT1,BT2) = assemble.divu_p_p1_iso_p2_p1p0(topo_p,x_p,y_p,topo_u,x_u,y_u,c2f)
@@ -318,9 +318,9 @@ big_mass_matrix = sparse.vstack([
     sparse.hstack([sparse.csr_matrix((ndofs_p, 2*ndofs_u)), MP, sparse.csr_matrix((ndofs_p, 1))]),
     sparse.hstack([sparse.csr_matrix((1, 2*ndofs_u+ndofs_p)), sparse.eye(1)])
 ])
-t1 = time.time()
+# t1 = time.time()
 
-print('Assembled mass, stiffness and pressure matrix, t = ' + str(t1-t0))
+print('Assembled mass, stiffness and pressure matrix')
 
 err_BDF1 = np.zeros((n_runs))
 err_BDF2 = np.zeros((n_runs))
@@ -413,137 +413,132 @@ for t_ind in range(0, n_runs):
         f_x = lambda x, y: analytical_u(k*dt, x, y)[0:len(x)]
         f_y = lambda x, y: analytical_u(k*dt, x, y)[len(x):2*len(x)]
 
-        t0_BDF1 = time.time()
+        # t0_BDF1 = time.time()
         ux_n1 = np.reshape(u_BDF1[0:ndofs_u], (ndofs_u, 1))
         uy_n1 = np.reshape(u_BDF1[ndofs_u:2*ndofs_u], (ndofs_u, 1))
-        assemble_t0 = time.time()
+        # assemble_t0 = time.time()
         rhs_BDF1 = assemble_blockwise_force_BDF1(k*dt, dt, u_BDF1)
         M_BDF1 = assemble_blockwise_matrix_BDF1(dt, ux_n1, uy_n1).tocsc()
-        assemble_t1 = time.time()
+        # assemble_t1 = time.time()
         # print('assembled linear system, t = ' + str(assemble_t1-assemble_t0))
         ### start nonlinear solver for BDF1
         for nonlin_ind in range(max_iter):
-            precond_t0 = time.time()
+            # precond_t0 = time.time()
             spilu = sp_la.spilu(M_BDF1, fill_factor=300, drop_tol=1e-6)
             M_x = lambda x: spilu.solve(x)
             precond = sp_la.LinearOperator((2*ndofs_u+ndofs_p+1, 2*ndofs_u+ndofs_p+1), M_x)
-            precond_t1 = time.time()
+            # precond_t1 = time.time()
             # print('calculated preconditioner, t = ' + str(precond_t1-precond_t0))
-            solve_t0 = time.time()
-            sol = sp_la.bicgstab(M_BDF1, rhs_BDF1, M=precond, tol=1e-8)[0]
+            # solve_t0 = time.time()
+            sol = sp_la.bicgstab(M_BDF1, rhs_BDF1, M=precond, tol=TOL)[0]
             ux_n1 = np.reshape(sol[0:ndofs_u], (ndofs_u, 1))
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
-            solve_t1 = time.time()
+            # solve_t1 = time.time()
             # print('solved linear system, t = ' + str(solve_t1 - solve_t0))
-            res_t0 = time.time()
+            # res_t0 = time.time()
             M_BDF1 = assemble_blockwise_matrix_BDF1(dt, ux_n1, uy_n1)
             res = l2_norm(big_mass_matrix, M_BDF1.dot(sol) - rhs_BDF1)
-            res_t1 = time.time()
+            # res_t1 = time.time()
             # print('calculated residual, t = ' + str(res_t1 - res_t0))
             print('BDF1, res = ' + str(res))
             if res < TOL:
                 # store the maximum number of nonlinear iterations
-                nonlin_conv_ind[0,t_ind] = np.max(nonlin_ind+1, nonlin_conv_ind[0,t_ind])
+                nonlin_conv_ind[0,t_ind] = np.maximum(nonlin_ind+1, nonlin_conv_ind[0,t_ind])
                 break
             if(nonlin_ind == max_iter-1):
                 # nonlinear iterator did not converge
                 nonlin_conv_ind[0,t_ind] = -1
-
         u_BDF1 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
 
-        e_x = quadrature.l2error_on_mesh(u_BDF1[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
-        e_y = quadrature.l2error_on_mesh(u_BDF1[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
-        print('error of BDF1 solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
+        # e_x = quadrature.l2error_on_mesh(u_BDF1[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
+        # e_y = quadrature.l2error_on_mesh(u_BDF1[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
+        # print('error of BDF1 solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
+        # t1_BDF1 = time.time()
 
-        t1_BDF1 = time.time()
-
-        t0_BDF2 = time.time()
+        # t0_BDF2 = time.time()
         ux_n1 = np.reshape(u_BDF2[0:ndofs_u], (ndofs_u, 1))
         uy_n1 = np.reshape(u_BDF2[ndofs_u:2*ndofs_u], (ndofs_u, 1))
-        assemble_t0 = time.time()
+        # assemble_t0 = time.time()
         rhs_BDF2 = assemble_blockwise_force_BDF2(k*dt, dt, u_BDF2, u_BDF2_old)
         M_BDF2 = assemble_blockwise_matrix_BDF2(dt, ux_n1, uy_n1)
-        assemble_t1 = time.time()
+        # assemble_t1 = time.time()
         # print('assembled linear system, t = ' + str(assemble_t1 - assemble_t0))
         ### start nonlinear solver for BDF2
         for nonlin_ind in range(max_iter):
-            precond_t0 = time.time()
+            # precond_t0 = time.time()
             spilu = sp_la.spilu(M_BDF2, fill_factor=300, drop_tol=1e-6)
             M_x = lambda x: spilu.solve(x)
             precond = sp_la.LinearOperator((2*ndofs_u+ndofs_p+1, 2*ndofs_u+ndofs_p+1), M_x)
-            precond_t1 = time.time()
+            # precond_t1 = time.time()
             # print('calculated preconditioner, t = ' + str(precond_t1 - precond_t0))
-            sol_t0 = time.time()
-            sol = sp_la.bicgstab(M_BDF2, rhs_BDF2, M=precond, tol=1e-8)[0]
-            sol_t1 = time.time()
+            # sol_t0 = time.time()
+            sol = sp_la.bicgstab(M_BDF2, rhs_BDF2, M=precond, tol=TOL)[0]
+            # sol_t1 = time.time()
             # print('solved linear system, t = ' + str(sol_t1 - sol_t0))
             ux_n1 = np.reshape(sol[0:ndofs_u], (ndofs_u, 1))
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
-            res_t0 = time.time()
+            # res_t0 = time.time()
             M_BDF2 = assemble_blockwise_matrix_BDF2(dt, ux_n1, uy_n1)
             res = l2_norm(big_mass_matrix, M_BDF2.dot(sol) - rhs_BDF2)
-            res_t1 = time.time()
+            # res_t1 = time.time()
             # print('calculated residual, t = ' + str(res_t1 - res_t0))
             print('BDF2, res = ' + str(res))
             if res < TOL:
                 # store the maximum number of nonlinear iterations
-                nonlin_conv_ind[1,t_ind] = np.max(nonlin_ind+1, nonlin_conv_ind[1,t_ind])
+                nonlin_conv_ind[1,t_ind] = np.maximum(nonlin_ind+1, nonlin_conv_ind[1,t_ind])
                 break
             if(nonlin_ind == max_iter-1):
                 # nonlinear iterator did not converge
                 nonlin_conv_ind[1,t_ind] = -1
-
         u_BDF2_old = u_BDF2
         u_BDF2 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
 
-        e_x = quadrature.l2error_on_mesh(u_BDF2[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
-        e_y = quadrature.l2error_on_mesh(u_BDF2[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
-        print('error of BDF2 solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
+        # e_x = quadrature.l2error_on_mesh(u_BDF2[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
+        # e_y = quadrature.l2error_on_mesh(u_BDF2[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
+        # print('error of BDF2 solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
+        # t1_BDF2 = time.time()
 
-        t1_BDF2 = time.time()
-
-        t0_Theta = time.time()
+        # t0_Theta = time.time()
         ux_n1 = np.reshape(u_Theta[0:ndofs_u], (ndofs_u, 1))
         uy_n1 = np.reshape(u_Theta[ndofs_u:2*ndofs_u], (ndofs_u, 1))
-        assemble_t0 = time.time()
+        # assemble_t0 = time.time()
         rhs_Theta = assemble_blockwise_force_Theta(k*dt, dt, u_Theta, ux_n1, uy_n1)
         M_Theta = assemble_blockwise_matrix_Theta(dt, ux_n1, uy_n1)
-        assemble_t1 = time.time()
+        # assemble_t1 = time.time()
         # print('assembled linear system, t = ' + str(assemble_t1 - assemble_t0))
         ### Start nonlinear solver for Theta
         for nonlin_ind in range(max_iter):
-            precond_t0 = time.time()
+            # precond_t0 = time.time()
             spilu = sp_la.spilu(M_Theta, fill_factor=300, drop_tol=1e-6)
             M_x = lambda x: spilu.solve(x)
             precond = sp_la.LinearOperator((2*ndofs_u+ndofs_p+1, 2*ndofs_u+ndofs_p+1), M_x)
-            precond_t1 = time.time()
+            # precond_t1 = time.time()
             # print('calculated preconditioner, t = ' + str(precond_t1 - precond_t0))
-            sol_t0 = time.time()
-            sol = sp_la.bicgstab(M_Theta, rhs_Theta, M=precond, tol=1e-8)[0]
-            sol_t1 = time.time()
+            # sol_t0 = time.time()
+            sol = sp_la.bicgstab(M_Theta, rhs_Theta, M=precond, tol=TOL)[0]
+            # sol_t1 = time.time()
             # print('solved linear system, t  = ' + str(sol_t1 - sol_t0))
             ux_n1 = np.reshape(sol[0:ndofs_u], (ndofs_u, 1))
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
-            res_t0 = time.time()
+            # res_t0 = time.time()
             M_Theta = assemble_blockwise_matrix_Theta(dt, ux_n1, uy_n1)
             res = l2_norm(big_mass_matrix, M_Theta.dot(sol) - rhs_Theta)
-            res_t1 = time.time()
+            # res_t1 = time.time()
             # print('calculated residual, t = ' + str(res_t1 - res_t0))
             print('Theta, res = ' + str(res))
             if res < TOL:
                 # store the maximum number of nonlinear iterations
-                nonlin_conv_ind[2,t_ind] = np.max(nonlin_ind+1, nonlin_conv_ind[2,t_ind])
+                nonlin_conv_ind[2,t_ind] = np.maximum(nonlin_ind+1, nonlin_conv_ind[2,t_ind])
                 break
             if(nonlin_ind == max_iter-1):
                 # nonlinear iterator did not converge
                 nonlin_conv_ind[2,t_ind] = -1
-
         u_Theta = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
 
-        e_x = quadrature.l2error_on_mesh(u_Theta[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
-        e_y = quadrature.l2error_on_mesh(u_Theta[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
-        print('error of Theta solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
-        t1_Theta = time.time()
+        # e_x = quadrature.l2error_on_mesh(u_Theta[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
+        # e_y = quadrature.l2error_on_mesh(u_Theta[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
+        # print('error of Theta solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
+        # t1_Theta = time.time()
 
         ### End of time loop
 
@@ -554,27 +549,24 @@ for t_ind in range(0, n_runs):
     f_x = lambda x, y: analytical_u(T, x, y)[0:len(x)]
     f_y = lambda x, y: analytical_u(T, x, y)[len(x):2*len(x)]
     zero_fun = lambda x, y: np.zeros(x.shape)
-    norm_u_x = quadrature.l2error_on_mesh(np.zeros(u_BDF1.shape), f_x, x_u, y_u, topo_u, 6)
-    norm_u_y = quadrature.l2error_on_mesh(np.zeros(u_BDF1.shape), f_y, x_u, y_u, topo_u, 6)
-    norm_u = np.sqrt(norm_u_x**2  + norm_u_y**2)
     e_x = quadrature.l2error_on_mesh(u_BDF1[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
     e_y = quadrature.l2error_on_mesh(u_BDF1[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
     err_BDF1[t_ind] = np.sqrt(e_x**2 + e_y**2)
-    e_x = quadrature.l2error_on_mesh(u_BDF1[0:ndofs_u] - ref[0:ndofs_u], zero_fun, x_u, y_u, topo_u, 6)
-    e_y = quadrature.l2error_on_mesh(u_BDF1[ndofs_u:2*ndofs_u] - ref[ndofs_u:2*ndofs_u], zero_fun, x_u, y_u, topo_u, 6)
-    err_BDF1_ref[t_ind] = np.sqrt(e_x**2 + e_y**2)
+    # e_x = quadrature.l2error_on_mesh(u_BDF1[0:ndofs_u] - ref[0:ndofs_u], zero_fun, x_u, y_u, topo_u, 6)
+    # e_y = quadrature.l2error_on_mesh(u_BDF1[ndofs_u:2*ndofs_u] - ref[ndofs_u:2*ndofs_u], zero_fun, x_u, y_u, topo_u, 6)
+    # err_BDF1_ref[t_ind] = np.sqrt(e_x**2 + e_y**2)
     e_x = quadrature.l2error_on_mesh(u_BDF2[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
     e_y = quadrature.l2error_on_mesh(u_BDF2[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
     err_BDF2[t_ind] = np.sqrt(e_x**2 + e_y**2)
-    e_x = quadrature.l2error_on_mesh(u_BDF2[0:ndofs_u] - ref[0:ndofs_u], zero_fun, x_u, y_u, topo_u, 6)
-    e_y = quadrature.l2error_on_mesh(u_BDF2[ndofs_u:2*ndofs_u] - ref[ndofs_u:2*ndofs_u], zero_fun, x_u, y_u, topo_u, 6)
-    err_BDF2_ref[t_ind] = np.sqrt(e_x**2 + e_y**2)
+    # e_x = quadrature.l2error_on_mesh(u_BDF2[0:ndofs_u] - ref[0:ndofs_u], zero_fun, x_u, y_u, topo_u, 6)
+    # e_y = quadrature.l2error_on_mesh(u_BDF2[ndofs_u:2*ndofs_u] - ref[ndofs_u:2*ndofs_u], zero_fun, x_u, y_u, topo_u, 6)
+    # err_BDF2_ref[t_ind] = np.sqrt(e_x**2 + e_y**2)
     e_x = quadrature.l2error_on_mesh(u_Theta[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
     e_y = quadrature.l2error_on_mesh(u_Theta[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
     err_Theta[t_ind] = np.sqrt(e_x**2 + e_y**2)
-    e_x = quadrature.l2error_on_mesh(u_Theta[0:ndofs_u] - ref[0:ndofs_u], zero_fun, x_u, y_u, topo_u, 6)
-    e_y = quadrature.l2error_on_mesh(u_Theta[ndofs_u:2*ndofs_u] - ref[ndofs_u:2*ndofs_u], zero_fun, x_u, y_u, topo_u, 6)
-    err_Theta_ref[t_ind] = np.sqrt(e_x**2 + e_y**2)
+    # e_x = quadrature.l2error_on_mesh(u_Theta[0:ndofs_u] - ref[0:ndofs_u], zero_fun, x_u, y_u, topo_u, 6)
+    # e_y = quadrature.l2error_on_mesh(u_Theta[ndofs_u:2*ndofs_u] - ref[ndofs_u:2*ndofs_u], zero_fun, x_u, y_u, topo_u, 6)
+    # err_Theta_ref[t_ind] = np.sqrt(e_x**2 + e_y**2)
 
     # err_BDF1[t_ind] = np.linalg.norm(u_BDF1[0:2*ndofs_u]-analytical_u(T, x_u, y_u, x_p, y_p))
     # err_BDF2[t_ind] = np.linalg.norm(u_BDF2[0:2*ndofs_u]-analytical_u(T, x_u, y_u, x_p, y_p))
@@ -591,6 +583,13 @@ for t_ind in range(0, n_runs):
     #     print('Error decay Theta: '+str(err_Theta[t_ind-1] / err_Theta[t_ind]))
 
     ### End of loop over timesteps
+
+
+f_x = lambda x, y: analytical_u(T, x, y)[0:len(x)]
+f_y = lambda x, y: analytical_u(T, x, y)[len(x):2*len(x)]
+norm_u_x = quadrature.l2error_on_mesh(np.zeros(u_BDF1.shape), f_x, x_u, y_u, topo_u, 6)
+norm_u_y = quadrature.l2error_on_mesh(np.zeros(u_BDF1.shape), f_y, x_u, y_u, topo_u, 6)
+norm_u = np.sqrt(norm_u_x**2  + norm_u_y**2)
 
 print()
 print('------')
