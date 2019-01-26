@@ -348,7 +348,7 @@ def assemble_blockwise_matrix_BDF1():
                          sparse.csc_matrix((ndofs_u*2,1))
     ])
 
-    mat2 = sparse.hstack([-B,
+    mat2 = sparse.hstack([-ph.dt*B,
                           sparse.csc_matrix((ndofs_p,ndofs_p)),
                           sparse.csc_matrix((ndofs_p,ndofs_s*2)),
                           sparse.csc_matrix((ndofs_p,ndofs_s*2)),
@@ -408,7 +408,7 @@ def assemble_blockwise_matrix_BDF2():
                           sparse.csc_matrix((ndofs_u*2,1))
     ])
 
-    mat2 = sparse.hstack([-B,
+    mat2 = sparse.hstack([-ph.dt*B,
                           sparse.csc_matrix((ndofs_p,ndofs_p)),
                           sparse.csc_matrix((ndofs_p,ndofs_s*2)),
                           sparse.csc_matrix((ndofs_p,ndofs_s*2)),
@@ -488,7 +488,7 @@ def assemble_blockwise_matrix_Theta():
                           sparse.csc_matrix((ndofs_u*2,1))
     ])
 
-    mat2 = sparse.hstack([-B,
+    mat2 = sparse.hstack([-ph.dt*B,
                           sparse.csc_matrix((ndofs_p,ndofs_p)),
                           sparse.csc_matrix((ndofs_p,ndofs_s*2)),
                           sparse.csc_matrix((ndofs_p,ndofs_s*2)),
@@ -794,8 +794,8 @@ for cn_time in range(1,len(ph.stampa)+1):
         force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n)
     elif ph.time_integration == 'BDF2':
         if cn_time == 1:
-            mat = assemble_blockwise_matrix_BDF1()
-            force = assemble_blockwise_force_BDF1(ux_n, uy_n, dx_n, dy_n)
+            mat = assemble_blockwise_matrix_Theta()
+            force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n)
         else:
             mat = assemble_blockwise_matrix_BDF2()
             force = assemble_blockwise_force_BDF2(ux_n, uy_n, ux_n_old, uy_n_old, dx_n, dy_n, dx_n_old, dy_n_old)
@@ -858,7 +858,8 @@ for cn_time in range(1,len(ph.stampa)+1):
             rhs = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n)
         elif ph.time_integration == 'BDF2':
             if cn_time == 1:
-                mat = assemble_blockwise_matrix_BDF1()
+                mat = assemble_blockwise_matrix_Theta()
+                force = assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n)
             else:
                 mat = assemble_blockwise_matrix_BDF2()
 
