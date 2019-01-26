@@ -754,7 +754,7 @@ sol_time = np.zeros((len(ph.stampa)))
 step_time = np.zeros((len(ph.stampa)))
 energy = np.zeros((len(ph.stampa)))
 
-max_iter = 10
+max_iter = 20
 residuals = np.zeros((len(ph.stampa), max_iter))
 
 ### Save initial condition
