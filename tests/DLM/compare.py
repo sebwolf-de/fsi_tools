@@ -94,6 +94,9 @@ time_BDF1 = np.zeros(N)
 time_BDF2 = np.zeros(N)
 time_Theta = np.zeros(N)
 
+norm_u = l2_norm(mass_matrix_u, u_reference)
+norm_s = l2_norm(mass_matrix_s, s_reference)
+
 
 for k in range(1,N+1):
     input_name = results_dir+'BDF1_'+str(k)
@@ -187,19 +190,21 @@ for k in range(1,N+1):
 
     time_Theta[k-1] = step_time
 
-print('BDF1 Error u:        '+str(err_u_BDF1))
+print('norm of u ref: ' + str(norm_u))
+print('norm of s ref: ' + str(norm_s))
+print('BDF1 Error u:        '+str(np.divide(err_u_BDF1, norm_u)))
 print('Error decay BDF1 u:  '+str(np.divide(err_u_BDF1[0:N-1], err_u_BDF1[1:N])))
-print('BDF2 Error u:        '+str(err_u_BDF2))
+print('BDF2 Error u:        '+str(np.divide(err_u_BDF2, norm_u)))
 print('Error decay BDF2 u:  '+str(np.divide(err_u_BDF2[0:N-1], err_u_BDF2[1:N])))
-print('Theta Error u:       '+str(err_u_Theta))
+print('Theta Error u:       '+str(np.divide(err_u_Theta, norm_u)))
 print('Error decay Theta u: '+str(np.divide(err_u_Theta[0:N-1], err_u_Theta[1:N])))
 
 
-print('BDF1 Error s:        '+str(err_s_BDF1))
+print('BDF1 Error s:        '+str(np.divide(err_s_BDF1, norm_s)))
 print('Error decay BDF1 s:  '+str(np.divide(err_s_BDF1[0:N-1], err_s_BDF1[1:N])))
-print('BDF2 Error s:        '+str(err_s_BDF2))
+print('BDF2 Error s:        '+str(np.divide(err_s_BDF2, norm_s)))
 print('Error decay BDF2 s:  '+str(np.divide(err_s_BDF2[0:N-1], err_s_BDF2[1:N])))
-print('Theta Error s:       '+str(err_s_Theta))
+print('Theta Error s:       '+str(np.divide(err_s_Theta, norm_s)))
 print('Error decay Theta s: '+str(np.divide(err_s_Theta[0:N-1], err_s_Theta[1:N])))
 
 print('average step time BDF1:  '+str(time_BDF1))
