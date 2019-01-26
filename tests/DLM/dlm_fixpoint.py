@@ -842,7 +842,7 @@ for cn_time in range(1,len(ph.stampa)+1):
         l_n1 = sol[2*ndofs_u+ndofs_p+2*ndofs_s:2*ndofs_u+ndofs_p+4*ndofs_s]
 
         ###Assemble the matrices again with the new computed iterates
-        if ph.time_integration == "Theta":
+        if ph.time_integration == "Theta" or (ph.time_integration == "BDF2" and cn_time==1):
             (G, GT, GT11, GT22) = assemble_kinematic_coupling(0.5*(sx_n1 + sx_n), 0.5*(sy_n1 + sy_n))
         else:
             (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n1, sy_n1)
