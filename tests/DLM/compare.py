@@ -343,7 +343,7 @@ print('$\\frac{1}{40}$ &$' + \
     '{:.2e}'.format(err_s_BDF2_rel[1]) + \
     '}$&      &$' + \
     '{:.2e}'.format(err_s_Theta_rel[1]) + \
-    '}&$$ \\\\')
+    '}$&$$ \\\\')
 
 print('$\\frac{1}{80}$ &$' + \
     '{:.2e}'.format(err_s_BDF1_rel[2]) + \
@@ -368,3 +368,7 @@ print('$\\frac{1}{320}$&$' + \
     '}$&$' + '{:.3}'.format(np.log2(decay_s_BDF2[3])) +'$&$' + \
     '{:.2e}'.format(err_s_Theta_rel[4]) + \
     '}$&$' + '{:.3}'.format(np.log2(decay_s_Theta[3])) +'$\\\\')
+
+print('BE&$'+str(iter_BDF1[1])+'$&$'+str(iter_BDF1[2])+'$&$'+str(iter_BDF1[3])+'$&$'+str(iter_BDF1[4])+'$\\\\')
+print('BDF2&$'+str(iter_BDF2[1])+'$&$'+str(iter_BDF2[2])+'$&$'+str(iter_BDF2[3])+'$&$'+str(iter_BDF2[4])+'$\\\\')
+print('Theta&$'+str(iter_Theta[1])+'$&$'+str(iter_Theta[2])+'$&$'+str(iter_Theta[3])+'$&$'+str(iter_Theta[4])+'$\\\\')
