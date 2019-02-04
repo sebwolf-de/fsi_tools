@@ -135,35 +135,30 @@ def assemble_blockwise_matrix_BDF2(dt, ux_n1, uy_n1):
     ], "csc")
     return mat
 
-def assemble_blockwise_force_Theta(t, dt, u_Theta, ux_n1, uy_n1):
-    S11 = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
-
-    g_1_now = lambda x,y: analytical_f_1(t, x, y)
-    g_2_now = lambda x,y: analytical_f_2(t, x, y)
-    g_1_prev = lambda x,y: analytical_f_1(t-dt, x, y)
-    g_2_prev = lambda x,y: analytical_f_2(t-dt, x, y)
-    g_1_rhs_now = quadrature.fem_rhs(g_1_now, x_u, y_u, topo_u)
-    g_2_rhs_now = quadrature.fem_rhs(g_2_now, x_u, y_u, topo_u)
-    g_1_rhs_prev = quadrature.fem_rhs(g_1_prev, x_u, y_u, topo_u)
-    g_2_rhs_prev = quadrature.fem_rhs(g_2_prev, x_u, y_u, topo_u)
+def assemble_blockwise_force_Theta(t, dt, S11, T11, u_Theta):
+    # g_1 = lambda x,y: analytical_f_1(t - 0.5*dt, x, y)
+    # g_2 = lambda x,y: analytical_f_2(t - 0.5*dt, x, y)
+    # g_1_rhs = quadrature.fem_rhs(g_1, x_u, y_u, topo_u)
+    # g_2_rhs = quadrature.fem_rhs(g_2, x_u, y_u, topo_u)
+    g_1 = lambda x,y: analytical_f_1(t, x, y) + analytical_f_1(t - dt, x, y)
+    g_2 = lambda x,y: analytical_f_2(t, x, y) + analytical_f_2(t - dt, x, y)
+    g_1_rhs = 0.5*quadrature.fem_rhs(g_1, x_u, y_u, topo_u)
+    g_2_rhs = 0.5*quadrature.fem_rhs(g_2, x_u, y_u, topo_u)
 
     f_rhs_x = M.dot(u_Theta[0:ndofs_u]) - dt*0.5*K.dot(u_Theta[0:ndofs_u])
-    f_rhs_x += - dt*0.5*S11.dot(u_Theta[0:ndofs_u])
-    f_rhs_x +=  dt*0.5*BT1.dot(u_Theta[2*ndofs_u:2*ndofs_u+ndofs_p])
-    f_rhs_x += np.reshape(dt*0.5*(g_1_rhs_now + g_1_rhs_prev), (ndofs_u, 1)) #M.dot(g_now[0:ndofs_u] + g_prev[0:ndofs_u])
+    f_rhs_x += - dt*0.25*(S11+T11).dot(u_Theta[0:ndofs_u])
+    f_rhs_x += np.reshape(dt*(g_1_rhs), (ndofs_u, 1)) #M.dot(g_now[0:ndofs_u] + g_prev[0:ndofs_u])
 
     f_rhs_y = M.dot(u_Theta[ndofs_u:2*ndofs_u]) - dt*0.5*K.dot(u_Theta[ndofs_u:2*ndofs_u])
-    f_rhs_y += - dt*0.5*S11.dot(u_Theta[ndofs_u:2*ndofs_u])
-    f_rhs_y += dt*0.5*BT2.dot(u_Theta[2*ndofs_u:2*ndofs_u+ndofs_p])
-    f_rhs_y += np.reshape(dt*0.5*(g_2_rhs_now + g_2_rhs_prev), (ndofs_u, 1)) #M.dot(g_now[ndofs_u:2*ndofs_u] + g_prev[ndofs_u:2*ndofs_u])
+    f_rhs_y += - dt*0.25*(S11+T11).dot(u_Theta[ndofs_u:2*ndofs_u])
+    f_rhs_y += np.reshape(dt*(g_2_rhs), (ndofs_u, 1)) #M.dot(g_now[ndofs_u:2*ndofs_u] + g_prev[ndofs_u:2*ndofs_u])
 
     return apply_rhs_bc(f_rhs_x, f_rhs_y)
 
-def assemble_blockwise_matrix_Theta(dt, ux_n1, uy_n1):
-    S11 = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+def assemble_blockwise_matrix_Theta(dt, S11, T11):
 
-    D11 = M + dt*0.5*K + dt*0.5*S11
-    D22 = M + dt*0.5*K + dt*0.5*S11
+    D11 = M + dt*0.5*K + dt*0.25*(S11+T11)
+    D22 = M + dt*0.5*K + dt*0.25*(S11+T11)
     S12 = sparse.csc_matrix((ndofs_u, ndofs_u))
     S21 = sparse.csc_matrix((ndofs_u, ndofs_u))
 
@@ -171,9 +166,9 @@ def assemble_blockwise_matrix_Theta(dt, ux_n1, uy_n1):
 
     #### assembly of Navier-Stokes system
     mat = sparse.vstack([
-        sparse.hstack([D11, S12, -dt*0.5*BT1, sparse.csc_matrix((ndofs_u, 1))]),
-        sparse.hstack([S21, D22, -dt*0.5*BT2, sparse.csc_matrix((ndofs_u, 1))]),
-        sparse.hstack([-B, sparse.csc_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
+        sparse.hstack([D11, S12, -dt*BT1, sparse.csc_matrix((ndofs_u, 1))]),
+        sparse.hstack([S21, D22, -dt*BT2, sparse.csc_matrix((ndofs_u, 1))]),
+        sparse.hstack([-dt*B, sparse.csc_matrix((ndofs_p,ndofs_p)), mean_p.transpose()]),
         sparse.hstack([sparse.csc_matrix((1, 2*ndofs_u)), mean_p, sparse.csc_matrix((1,1))])
     ], "csc")
     return mat
@@ -450,10 +445,10 @@ for t_ind in range(0, n_runs):
                 nonlin_conv_ind[0,t_ind] = -1
         u_BDF1 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
 
-        # e_x = quadrature.l2error_on_mesh(u_BDF1[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
-        # e_y = quadrature.l2error_on_mesh(u_BDF1[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
-        # print('error of BDF1 solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
-        # t1_BDF1 = time.time()
+        #e_x = quadrature.l2error_on_mesh(u_BDF1[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
+        #e_y = quadrature.l2error_on_mesh(u_BDF1[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
+        #print('error of BDF1 solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
+        #t1_BDF1 = time.time()
 
         # t0_BDF2 = time.time()
         ux_n1 = np.reshape(u_BDF2[0:ndofs_u], (ndofs_u, 1))
@@ -493,17 +488,21 @@ for t_ind in range(0, n_runs):
         u_BDF2_old = u_BDF2
         u_BDF2 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
 
-        # e_x = quadrature.l2error_on_mesh(u_BDF2[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
-        # e_y = quadrature.l2error_on_mesh(u_BDF2[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
-        # print('error of BDF2 solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
-        # t1_BDF2 = time.time()
+        #e_x = quadrature.l2error_on_mesh(u_BDF2[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
+        #e_y = quadrature.l2error_on_mesh(u_BDF2[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
+        #print('error of BDF2 solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
+        #t1_BDF2 = time.time()
 
         # t0_Theta = time.time()
         ux_n1 = np.reshape(u_Theta[0:ndofs_u], (ndofs_u, 1))
         uy_n1 = np.reshape(u_Theta[ndofs_u:2*ndofs_u], (ndofs_u, 1))
+        ux_n = ux_n1
+        uy_n = uy_n1
         # assemble_t0 = time.time()
-        rhs_Theta = assemble_blockwise_force_Theta(k*dt, dt, u_Theta, ux_n1, uy_n1)
-        M_Theta = assemble_blockwise_matrix_Theta(dt, ux_n1, uy_n1)
+        S11 = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
+        T11 = S11
+        rhs_Theta = assemble_blockwise_force_Theta(k*dt, dt, S11, T11, u_Theta)
+        M_Theta = assemble_blockwise_matrix_Theta(dt, S11, T11)
         # assemble_t1 = time.time()
         # print('assembled linear system, t = ' + str(assemble_t1 - assemble_t0))
         ### Start nonlinear solver for Theta
@@ -520,8 +519,10 @@ for t_ind in range(0, n_runs):
             # print('solved linear system, t  = ' + str(sol_t1 - sol_t0))
             ux_n1 = np.reshape(sol[0:ndofs_u], (ndofs_u, 1))
             uy_n1 = np.reshape(sol[ndofs_u:2*ndofs_u], (ndofs_u, 1))
+            S11 = assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
             # res_t0 = time.time()
-            M_Theta = assemble_blockwise_matrix_Theta(dt, ux_n1, uy_n1)
+            M_Theta = assemble_blockwise_matrix_Theta(dt, S11, T11)
+            rhs_Theta = assemble_blockwise_force_Theta(k*dt, dt, S11, T11, u_Theta)
             res = l2_norm(big_mass_matrix, M_Theta.dot(sol) - rhs_Theta)
             # res_t1 = time.time()
             # print('calculated residual, t = ' + str(res_t1 - res_t0))
@@ -535,10 +536,10 @@ for t_ind in range(0, n_runs):
                 nonlin_conv_ind[2,t_ind] = -1
         u_Theta = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
 
-        # e_x = quadrature.l2error_on_mesh(u_Theta[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
-        # e_y = quadrature.l2error_on_mesh(u_Theta[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
-        # print('error of Theta solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
-        # t1_Theta = time.time()
+        #e_x = quadrature.l2error_on_mesh(u_Theta[0:ndofs_u], f_x, x_u, y_u, topo_u, 6)
+        #e_y = quadrature.l2error_on_mesh(u_Theta[ndofs_u:2*ndofs_u], f_y, x_u, y_u, topo_u, 6)
+        #print('error of Theta solution for t = ' + str(k*dt) + ': ' + str(np.sqrt(e_x**2 + e_y**2)))
+        #t1_Theta = time.time()
 
         ### End of time loop
 
