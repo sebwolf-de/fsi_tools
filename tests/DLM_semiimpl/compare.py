@@ -67,23 +67,23 @@ stiffness_matrix_s = sparse.vstack([
     ])
 
 
-# input_name = results_dir+'reference'
-# f = open(input_name,"rb")
-# u_reference = np.load(f)
-# p_reference = np.load(f)
-# xs_reference = np.load(f)
-# ys_reference = np.load(f)
-# f.close()
-# s_reference = np.append(xs_reference, ys_reference)
+input_name = results_dir+'reference'
+f = open(input_name,"rb")
+u_reference = np.load(f)
+p_reference = np.load(f)
+xs_reference = np.load(f)
+ys_reference = np.load(f)
+f.close()
+s_reference = np.append(xs_reference, ys_reference)
 
-N = 3
+N = 5
 
-# err_u_BDF1 = np.zeros(N)
-# err_u_BDF2 = np.zeros(N)
-# err_u_Theta = np.zeros(N)
-# err_s_BDF1 = np.zeros(N)
-# err_s_BDF2 = np.zeros(N)
-# err_s_Theta = np.zeros(N)
+err_u_BDF1 = np.zeros(N)
+err_u_BDF2 = np.zeros(N)
+err_u_Theta = np.zeros(N)
+err_s_BDF1 = np.zeros(N)
+err_s_BDF2 = np.zeros(N)
+err_s_Theta = np.zeros(N)
 u_BDF1 = np.zeros((2*ndofs_u,N))
 u_BDF2 = np.zeros((2*ndofs_u,N))
 u_Theta = np.zeros((2*ndofs_u,N))
@@ -93,6 +93,22 @@ s_Theta = np.zeros((2*ndofs_s,N))
 time_BDF1 = np.zeros(N)
 time_BDF2 = np.zeros(N)
 time_Theta = np.zeros(N)
+iter_BDF1 = np.zeros(N)
+iter_BDF2 = np.zeros(N)
+iter_Theta = np.zeros(N)
+
+norm_u = l2_norm(mass_matrix_u, u_reference)
+norm_s = l2_norm(mass_matrix_s, s_reference)
+
+u_x = u_reference[0:ndofs_u]
+u_y = u_reference[ndofs_u:2*ndofs_u]
+abs_val_u = np.sqrt(u_x**2 + u_y**2)
+v = np.max(abs_val_u)
+rho = 1.0
+nu = 1.0
+l = 1.0
+re = v*rho*l/nu
+print('Reynolds number estimate: ' + str(re))
 
 
 for k in range(1,N+1):
@@ -109,8 +125,8 @@ for k in range(1,N+1):
     #                        + l2_norm(stiffness_matrix_u, u_BDF1 - u_reference)**2)
     # err_s_BDF1[k-1] = mth.sqrt(l2_norm(mass_matrix_s, s_BDF1 - s_reference)**2
     #                        + l2_norm(stiffness_matrix_s, s_BDF1 - s_reference)**2)
-    # err_u_BDF1[k-1] = l2_norm(mass_matrix_u, u_BDF1[:,k-1] - u_reference)
-    # err_s_BDF1[k-1] = l2_norm(mass_matrix_s, s_BDF1[:,k-1] - s_reference)
+    err_u_BDF1[k-1] = l2_norm(mass_matrix_u, u_BDF1[:,k-1] - u_reference)
+    err_s_BDF1[k-1] = l2_norm(mass_matrix_s, s_BDF1[:,k-1] - s_reference)
     # err_u_BDF1[k-1] = np.linalg.norm(u_BDF1 - u_reference, float('inf'))
     # err_s_BDF1[k-1] = np.linalg.norm(np.append(xs_BDF1, ys_BDF1) - np.append(xs_reference, ys_reference), float('inf'))
 
@@ -118,9 +134,13 @@ for k in range(1,N+1):
     f = open(input_name,"rb")
     step_time = np.load(f)
     sol_time = np.load(f)
+    res = np.load(f)
     f.close()
 
+    print('BDF1, res: ' + str(res))
+    iter_BDF1[k-1] = np.max(res)
     time_BDF1[k-1] = step_time
+
 
     input_name = results_dir+'BDF2_'+str(k)
     f = open(input_name,"rb")
@@ -135,8 +155,8 @@ for k in range(1,N+1):
     #                       + l2_norm(stiffness_matrix_u, u_BDF2 - u_reference)**2)
     # err_s_BDF2[k-1] = mth.sqrt(l2_norm(mass_matrix_s, s_BDF2 - s_reference)**2
     #                       + l2_norm(stiffness_matrix_s, s_BDF2 - s_reference)**2)
-    # err_u_BDF2[k-1] = l2_norm(mass_matrix_u, u_BDF2[:,k-1] - u_reference)
-    # err_s_BDF2[k-1] = l2_norm(mass_matrix_s, s_BDF2[:,k-1] - s_reference)
+    err_u_BDF2[k-1] = l2_norm(mass_matrix_u, u_BDF2[:,k-1] - u_reference)
+    err_s_BDF2[k-1] = l2_norm(mass_matrix_s, s_BDF2[:,k-1] - s_reference)
     # err_u_BDF2[k-1] = np.linalg.norm(u_BDF2 - u_reference, float('inf'))
     # err_s_BDF2[k-1] = np.linalg.norm(np.append(xs_BDF2, ys_BDF2) - np.append(xs_reference, ys_reference), float('inf'))
 
@@ -144,9 +164,12 @@ for k in range(1,N+1):
     f = open(input_name,"rb")
     step_time = np.load(f)
     sol_time = np.load(f)
+    res = np.load(f)
     f.close()
 
+    print('BDF2, res: ' + str(res))
     time_BDF2[k-1] = step_time
+    iter_BDF2[k-1] = np.max(res)
 
     input_name = results_dir+'Theta_'+str(k)
     f = open(input_name,"rb")
@@ -161,8 +184,8 @@ for k in range(1,N+1):
     #                       + l2_norm(stiffness_matrix_u, u_Theta - u_reference)**2)
     # err_s_Theta[k-1] = mth.sqrt(l2_norm(mass_matrix_s, s_Theta - s_reference)**2
     #                       + l2_norm(stiffness_matrix_s, s_Theta - s_reference)**2)
-    # err_u_Theta[k-1] = l2_norm(mass_matrix_u, u_Theta[:,k-1] - u_reference)
-    # err_s_Theta[k-1] = l2_norm(mass_matrix_s, s_Theta[:,k-1] - s_reference)
+    err_u_Theta[k-1] = l2_norm(mass_matrix_u, u_Theta[:,k-1] - u_reference)
+    err_s_Theta[k-1] = l2_norm(mass_matrix_s, s_Theta[:,k-1] - s_reference)
     # err_u_Theta[k-1] = np.linalg.norm(u_Theta - u_reference, float('inf'))
     # err_s_Theta[k-1] = np.linalg.norm(np.append(xs_Theta, ys_Theta) - np.append(xs_reference, ys_reference), float('inf'))
 
@@ -170,24 +193,46 @@ for k in range(1,N+1):
     f = open(input_name,"rb")
     step_time = np.load(f)
     sol_time = np.load(f)
+    res = np.load(f)
     f.close()
 
+    print('Theta, res: ' + str(res))
     time_Theta[k-1] = step_time
+    iter_Theta[k-1] = np.max(res)
 
-# print('BDF1 Error u:        '+str(err_u_BDF1))
-# print('Error decay BDF1 u:  '+str(np.divide(err_u_BDF1[0:N-1], err_u_BDF1[1:N])))
-# print('BDF2 Error u:        '+str(err_u_BDF2))
-# print('Error decay BDF2 u:  '+str(np.divide(err_u_BDF2[0:N-1], err_u_BDF2[1:N])))
-# print('Theta Error u:       '+str(err_u_Theta))
-# print('Error decay Theta u: '+str(np.divide(err_u_Theta[0:N-1], err_u_Theta[1:N])))
-#
-#
-# print('BDF1 Error s:        '+str(err_s_BDF1))
-# print('Error decay BDF1 s:  '+str(np.divide(err_s_BDF1[0:N-1], err_s_BDF1[1:N])))
-# print('BDF2 Error s:        '+str(err_s_BDF2))
-# print('Error decay BDF2 s:  '+str(np.divide(err_s_BDF2[0:N-1], err_s_BDF2[1:N])))
-# print('Theta Error s:       '+str(err_s_Theta))
-# print('Error decay Theta s: '+str(np.divide(err_s_Theta[0:N-1], err_s_Theta[1:N])))
+
+print('norm of u ref: ' + str(norm_u))
+print('norm of s ref: ' + str(norm_s))
+
+err_u_BDF1_rel = np.divide(err_u_BDF1, norm_u)
+err_u_BDF2_rel = np.divide(err_u_BDF2, norm_u)
+err_u_Theta_rel = np.divide(err_u_Theta, norm_u)
+
+decay_u_BDF1 = np.divide(err_u_BDF1[0:N-1], err_u_BDF1[1:N])
+decay_u_BDF2 = np.divide(err_u_BDF2[0:N-1], err_u_BDF2[1:N])
+decay_u_Theta = np.divide(err_u_Theta[0:N-1], err_u_Theta[1:N])
+
+print('BDF1 Error u:        '+str(err_u_BDF1_rel))
+print('Error decay BDF1 u:  '+str(decay_u_BDF1))
+print('BDF2 Error u:        '+str(err_u_BDF2_rel))
+print('Error decay BDF2 u:  '+str(decay_u_BDF2))
+print('Theta Error u:       '+str(err_u_Theta_rel))
+print('Error decay Theta u: '+str(decay_u_Theta))
+
+err_s_BDF1_rel = np.divide(err_s_BDF1, norm_s)
+err_s_BDF2_rel = np.divide(err_s_BDF2, norm_s)
+err_s_Theta_rel = np.divide(err_s_Theta, norm_s)
+
+decay_s_BDF1 = np.divide(err_s_BDF1[0:N-1], err_s_BDF1[1:N])
+decay_s_BDF2 = np.divide(err_s_BDF2[0:N-1], err_s_BDF2[1:N])
+decay_s_Theta = np.divide(err_s_Theta[0:N-1], err_s_Theta[1:N])
+
+print('BDF1 Error s:        '+str(err_s_BDF1_rel))
+print('Error decay BDF1 s:  '+str(decay_s_BDF1))
+print('BDF2 Error s:        '+str(err_s_BDF2_rel))
+print('Error decay BDF2 s:  '+str(decay_s_BDF2))
+print('Theta Error s:       '+str(err_s_Theta_rel))
+print('Error decay Theta s: '+str(decay_s_Theta))
 
 print('average step time BDF1:  '+str(time_BDF1))
 print('average step time BDF2:  '+str(time_BDF2))
@@ -248,3 +293,75 @@ print('l2 rate Theta s: ' + str(rate_s_Theta))
 # print('l inf rate BDF1 s: ' + str(rate_s_BDF1))
 # print('l inf rate BDF2 s: ' + str(rate_s_BDF2))
 # print('l inf rate Theta s: ' + str(rate_s_Theta))
+
+print('')
+
+print('$\\frac{1}{40}$ &$' + \
+    '{:.2e}'.format(err_u_BDF1_rel[1]) + \
+    '}$&      &$' + \
+    '{:.2e}'.format(err_u_BDF2_rel[1]) + \
+    '}$&      &$' + \
+    '{:.2e}'.format(err_u_Theta_rel[1]) + \
+    '}&$$ \\\\')
+
+print('$\\frac{1}{80}$ &$' + \
+    '{:.2e}'.format(err_u_BDF1_rel[2]) + \
+    '}$&$' + '{:.2}'.format(np.log2(decay_u_BDF1[1])) +'$&$' + \
+    '{:.2e}'.format(err_u_BDF2_rel[2]) + \
+    '}$&$' + '{:.3}'.format(np.log2(decay_u_BDF2[1])) +'$&$' + \
+    '{:.2e}'.format(err_u_Theta_rel[2]) + \
+    '}$&$' + '{:.3}'.format(np.log2(decay_u_Theta[1])) +'$\\\\')
+
+print('$\\frac{1}{160}$&$' + \
+    '{:.2e}'.format(err_u_BDF1_rel[3]) + \
+    '}$&$' + '{:.2}'.format(np.log2(decay_u_BDF1[2])) +'$&$' + \
+    '{:.2e}'.format(err_u_BDF2_rel[3]) + \
+    '}$&$' + '{:.3}'.format(np.log2(decay_u_BDF2[2])) +'$&$' + \
+    '{:.2e}'.format(err_u_Theta_rel[3]) + \
+    '}$&$' + '{:.3}'.format(np.log2(decay_u_Theta[2])) +'$\\\\')
+
+print('$\\frac{1}{320}$&$' + \
+    '{:.2e}'.format(err_u_BDF1_rel[4]) + \
+    '}$&$' + '{:.2}'.format(np.log2(decay_u_BDF1[3])) +'$&$' + \
+    '{:.2e}'.format(err_u_BDF2_rel[4]) + \
+    '}$&$' + '{:.3}'.format(np.log2(decay_u_BDF2[3])) +'$&$' + \
+    '{:.2e}'.format(err_u_Theta_rel[4]) + \
+    '}$&$' + '{:.3}'.format(np.log2(decay_u_Theta[3])) +'$\\\\')
+
+print('')
+
+print('$\\frac{1}{40}$ &$' + \
+    '{:.2e}'.format(err_s_BDF1_rel[1]) + \
+    '}$&      &$' + \
+    '{:.2e}'.format(err_s_BDF2_rel[1]) + \
+    '}$&      &$' + \
+    '{:.2e}'.format(err_s_Theta_rel[1]) + \
+    '}&$$ \\\\')
+
+print('$\\frac{1}{80}$ &$' + \
+    '{:.2e}'.format(err_s_BDF1_rel[2]) + \
+    '}$&$' + '{:.2}'.format(np.log2(decay_s_BDF1[1])) +'$&$' + \
+    '{:.2e}'.format(err_s_BDF2_rel[2]) + \
+    '}$&$' + '{:.3}'.format(np.log2(decay_s_BDF2[1])) +'$&$' + \
+    '{:.2e}'.format(err_s_Theta_rel[2]) + \
+    '}$&$' + '{:.3}'.format(np.log2(decay_s_Theta[1])) +'$\\\\')
+
+print('$\\frac{1}{160}$&$' + \
+    '{:.2e}'.format(err_s_BDF1_rel[3]) + \
+    '}$&$' + '{:.2}'.format(np.log2(decay_s_BDF1[2])) +'$&$' + \
+    '{:.2e}'.format(err_s_BDF2_rel[3]) + \
+    '}$&$' + '{:.3}'.format(np.log2(decay_s_BDF2[2])) +'$&$' + \
+    '{:.2e}'.format(err_s_Theta_rel[3]) + \
+    '}$&$' + '{:.3}'.format(np.log2(decay_s_Theta[2])) +'$\\\\')
+
+print('$\\frac{1}{320}$&$' + \
+    '{:.2e}'.format(err_s_BDF1_rel[4]) + \
+    '}$&$' + '{:.2}'.format(np.log2(decay_s_BDF1[3])) +'$&$' + \
+    '{:.2e}'.format(err_s_BDF2_rel[4]) + \
+    '}$&$' + '{:.3}'.format(np.log2(decay_s_BDF2[3])) +'$&$' + \
+    '{:.2e}'.format(err_s_Theta_rel[4]) + \
+    '}$&$' + '{:.3}'.format(np.log2(decay_s_Theta[3])) +'$\\\\')
+
+print('BE&$'+str('{:.2e}'.format(iter_BDF1[1]))+'$&$'+str('{:.2e}'.format(iter_BDF1[2]))+'$&$'+str('{:.2e}'.format(iter_BDF1[3]))+'$&$'+str('{:.2e}'.format(iter_BDF1[4]))+'$\\\\')
+print('BDF2&$'+str('{:.2e}'.format(iter_BDF2[1]))+'$&$'+str('{:.2e}'.format(iter_BDF2[2]))+'$&$'+str('{:.2e}'.format(iter_BDF2[3]))+'$&$'+str('{:.2e}'.format(iter_BDF2[4]))+'$\\\\')
+print('Theta&$'+str('{:.2e}'.format(iter_Theta[1]))+'$&$'+str('{:.2e}'.format(iter_Theta[2]))+'$&$'+str('{:.2e}'.format(iter_Theta[3]))+'$&$'+str('{:.2e}'.format(iter_Theta[4]))+'$\\\\')

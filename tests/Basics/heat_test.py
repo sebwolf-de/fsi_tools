@@ -5,6 +5,7 @@ import os
 from pyevtk.hl import unstructuredGridToVTK
 from pyevtk.vtk import VtkTriangle
 import scipy.sparse.linalg as sp_la
+import sys
 
 sys.path.append('../../modules')
 import assemble

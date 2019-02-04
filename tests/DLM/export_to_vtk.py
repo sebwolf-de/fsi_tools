@@ -18,7 +18,8 @@ else:
     ph = ParametersHandler('simulation_parameters.json')
 ph.simulation_info()
 
-time_list = np.where(ph.stampa)[0]
+time_list = np.where(ph.stampa)[0] + 1
+time_list = np.append(np.array([0]), time_list)
 
 results_dir = ph.results_directory+'/'+ph.sim_prefix+'/binary_data/'
 
