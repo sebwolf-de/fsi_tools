@@ -454,16 +454,18 @@ def assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n):
     # l_rhs_x = -MS11.dot(dx_n) - ph.dt*0.5*HT11.transpose().dot(ux_n)
     # l_rhs_y = -MS11.dot(dy_n) - ph.dt*0.5*HT22.transpose().dot(uy_n)
 
-    f_rhs_x = MF11.dot(ux_n) - ph.dt*0.5*KF11.dot(ux_n) - ph.dt*0.25*(S11 + T11).dot(ux_n)
-    f_rhs_y = MF11.dot(uy_n) - ph.dt*0.5*KF11.dot(uy_n) - ph.dt*0.25*(S11 + T11).dot(uy_n)
+    f_rhs_x = MF11.dot(ux_n) - ph.dt*0.5*KF11.dot(ux_n) - ph.dt*0.5*(T11).dot(ux_n)
+    f_rhs_x = f_rhs_x - ph.dt*0.5*(GT11_old).dot(l_n[0:ndofs_s])
+    f_rhs_y = MF11.dot(uy_n) - ph.dt*0.5*KF11.dot(uy_n) - ph.dt*0.5*(T11).dot(uy_n)
+    f_rhs_y = f_rhs_y - ph.dt*0.5*(GT22_old).dot(l_n[ndofs_s:2*ndofs_s])
 
     p_rhs = np.zeros((ndofs_p, 1))
 
     s_rhs_x = np.zeros((ndofs_s, 1))
     s_rhs_y = np.zeros((ndofs_s, 1))
 
-    l_rhs_x = -MS11.dot(dx_n) - ph.dt*0.5*(GT11).transpose().dot(ux_n)
-    l_rhs_y = -MS11.dot(dy_n) - ph.dt*0.5*(GT22).transpose().dot(uy_n)
+    l_rhs_x = -MS11.dot(dx_n) - ph.dt*0.5*(GT11_old).transpose().dot(ux_n)
+    l_rhs_y = -MS11.dot(dy_n) - ph.dt*0.5*(GT22_old).transpose().dot(uy_n)
 
 
     return stack_rhs(f_rhs_x, f_rhs_y, p_rhs,
@@ -471,8 +473,8 @@ def assemble_blockwise_force_Theta(ux_n, uy_n, u_n, p_n, dx_n, dy_n, l_n):
 
 
 def assemble_blockwise_matrix_Theta():
-    D11 = MF11 + ph.dt*0.5*KF11 + ph.dt*0.25*(S11+T11)
-    D22 = MF11 + ph.dt*0.5*KF11 + ph.dt*0.25*(S11+T11)
+    D11 = MF11 + ph.dt*0.5*KF11 + ph.dt*0.5*(S11)
+    D22 = MF11 + ph.dt*0.5*KF11 + ph.dt*0.5*(S11)
 
     (D11, D22, S12, S21) = fluid_m_apply_bc(D11, D22)
 
@@ -484,7 +486,7 @@ def assemble_blockwise_matrix_Theta():
     mat1 = sparse.hstack([A,
                           -ph.dt*BT,
                           sparse.csc_matrix((ndofs_u*2,ndofs_s*2)),
-                          ph.dt*GT,
+                          0.5*ph.dt*(GT),
                           sparse.csc_matrix((ndofs_u*2,1))
     ])
 
@@ -502,7 +504,7 @@ def assemble_blockwise_matrix_Theta():
                           sparse.csc_matrix((ndofs_s*2,1))
     ])
 
-    mat4 = sparse.hstack([ph.dt*0.5*G,
+    mat4 = sparse.hstack([0.5*ph.dt*(G),
                           sparse.csc_matrix((ndofs_s*2,ndofs_p)),
                           -MS,
                           sparse.csc_matrix((ndofs_s*2,ndofs_s*2)),
@@ -681,12 +683,18 @@ MST22 = MS11
 KS11 = ph.kappa*KS11
 KS22 = KS11
 
-(KS11, KS22, MST11, MST22) = structure_m_apply_bc(KS11, KS22, MST11, MST22)
+rhs = KS11.dot(dx_n)
+rhs = np.hstack([rhs, KS22.dot(dy_n)])
 
 MS = sparse.vstack([
     sparse.hstack([MS11,sparse.csc_matrix((ndofs_s,ndofs_s))]),
     sparse.hstack([sparse.csc_matrix((ndofs_s,ndofs_s)),MS22])
     ])
+
+l_n = sp_la.spsolve(MS, rhs)
+
+
+(KS11, KS22, MST11, MST22) = structure_m_apply_bc(KS11, KS22, MST11, MST22)
 
 KS = sparse.vstack([
     sparse.hstack([KS11,sparse.csc_matrix((ndofs_s,ndofs_s))]),
@@ -774,6 +782,7 @@ for cn_time in range(1,len(ph.stampa)+1):
     # print('assemble system')
     ###Assemble kinematic coupling and nonlinear convection term
     (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n, sy_n)
+    (G_old, GT_old, GT11_old, GT22_old) = (G, GT, GT11, GT22)
     (H, HT, HT11, HT22) = (G, GT, GT11, GT22)
     ux_n1 = ux_n
     uy_n1 = uy_n
@@ -842,10 +851,12 @@ for cn_time in range(1,len(ph.stampa)+1):
         l_n1 = sol[2*ndofs_u+ndofs_p+2*ndofs_s:2*ndofs_u+ndofs_p+4*ndofs_s]
 
         ###Assemble the matrices again with the new computed iterates
-        if ph.time_integration == "Theta":
-            (G, GT, GT11, GT22) = assemble_kinematic_coupling(0.5*(sx_n1 + sx_n), 0.5*(sy_n1 + sy_n))
-        else:
-            (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n1, sy_n1)
+        # if ph.time_integration == "Theta":
+        #     #(G, GT, GT11, GT22) = assemble_kinematic_coupling(0.5*(sx_n1 + sx_n), 0.5*(sy_n1 + sy_n))
+        #     (H, HT, HT11, HT22) = assemble_kinematic_coupling(sx_n1, sy_n1)
+        #
+        # else:
+        (G, GT, GT11, GT22) = assemble_kinematic_coupling(sx_n1, sy_n1)
         if(ph.fluid_behavior == "Navier-Stokes"):
             S11 = ph.rho_fluid*assemble.u_gradv_w_p1(topo_u, x_u, y_u, ux_n1, uy_n1)
         else:
