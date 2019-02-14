@@ -853,7 +853,7 @@ for cn_time in range(1,len(ph.stampa)+1):
         uy_asmbl = 2*uy_n - uy_n_old
         sx_asmbl = 2*sx_n - sx_n_old
         sy_asmbl = 2*sy_n - sy_n_old
-    elif ph.time_integration == 'TR':
+    elif ph.time_integration == 'CN':
         ux_asmbl = 1.5*ux_n - 0.5*ux_n_old
         uy_asmbl = 1.5*uy_n - 0.5*uy_n_old
         sx_asmbl = 1.5*sx_n - 0.5*sx_n_old
