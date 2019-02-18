@@ -38,15 +38,17 @@ In the folder
 test/Basics
 ```
 
-there are several scripts, that on basical numerical algorithms.
+there are several scripts, that are based on basic numerical algorithms.
 
 # Navier Stokes Solver
+
+This should be a solver for Navier-Stokes equation only. It is still experimental.
 
 By invoking
 ```
 python ns_master.py
 ```
-you run a solver for Navier-Stokes equation It is quite experimental yet. The script reads `simulation_parameters_ns.json`. The `plot_results_ns.py` creates some nice outputs for the velocity and pressure solution. With `export_to_vtk.py` you can export the results to view them in an external program e.g. paraview.
+you run a solver for Navier-Stokes equation. The script reads `simulation_parameters_ns.json`. The `plot_results_ns.py` creates some nice outputs for the velocity and pressure solution. With `export_to_vtk.py` you can export the results to view them in an external program e.g. paraview.
 
 # Distributed Lagrangian Multiplier Scripts
 
