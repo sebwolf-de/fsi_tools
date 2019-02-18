@@ -2,6 +2,7 @@
 
 #import matplotlib.pyplot as plt
 import numpy as np
+import gc
 import scipy.sparse.linalg as sp_la
 from scipy import sparse
 import time
@@ -68,8 +69,8 @@ def assemble_blockwise_force_BDF1(t, dt, u_BDF1):
     g_1_rhs = quadrature.fem_rhs(g_1, x_u, y_u, topo_u)
     g_2_rhs = quadrature.fem_rhs(g_2, x_u, y_u, topo_u)
 
-    f_rhs_x = M.dot(u_BDF1[0:ndofs_u]) + dt*np.reshape(g_1_rhs, (ndofs_u, 1)) #M.dot(g[0:ndofs_u])
-    f_rhs_y = M.dot(u_BDF1[ndofs_u:2*ndofs_u]) + dt*np.reshape(g_2_rhs, (ndofs_u, 1)) #M.dot(g[ndofs_u:2*ndofs_u])
+    f_rhs_x = M.dot(u_BDF1[0:ndofs_u]) + dt*np.reshape(g_1_rhs, (ndofs_u, 1)) 
+    f_rhs_y = M.dot(u_BDF1[ndofs_u:2*ndofs_u]) + dt*np.reshape(g_2_rhs, (ndofs_u, 1)) 
 
     return apply_rhs_bc(f_rhs_x, f_rhs_y)
 
@@ -97,8 +98,8 @@ def assemble_blockwise_force_BDF2(t, dt, u_BDF2, u_BDF2_old):
     g_1_rhs = quadrature.fem_rhs(g_1, x_u, y_u, topo_u)
     g_2_rhs = quadrature.fem_rhs(g_2, x_u, y_u, topo_u)
 
-    f_rhs_x = M.dot(2*u_BDF2[0:ndofs_u] - 0.5*u_BDF2_old[0:ndofs_u]) + np.reshape(dt*g_1_rhs, (ndofs_u, 1)) #M.dot(g[0:ndofs_u])
-    f_rhs_y = M.dot(2*u_BDF2[ndofs_u:2*ndofs_u] - 0.5*u_BDF2_old[ndofs_u:2*ndofs_u]) + np.reshape(dt*g_2_rhs, (ndofs_u, 1)) #M.dot(g[ndofs_u:2*ndofs_u])
+    f_rhs_x = M.dot(2*u_BDF2[0:ndofs_u] - 0.5*u_BDF2_old[0:ndofs_u]) + np.reshape(dt*g_1_rhs, (ndofs_u, 1)) 
+    f_rhs_y = M.dot(2*u_BDF2[ndofs_u:2*ndofs_u] - 0.5*u_BDF2_old[ndofs_u:2*ndofs_u]) + np.reshape(dt*g_2_rhs, (ndofs_u, 1)) 
 
     return apply_rhs_bc(f_rhs_x, f_rhs_y)
 
@@ -121,18 +122,18 @@ def assemble_blockwise_matrix_BDF2(dt, ux_n1, uy_n1):
     return mat
 
 def assemble_blockwise_force_CN(t, dt, S11, T11, u_CN):
-    g_1 = lambda x,y: analytical_f_1(t, x, y) + analytical_f_1(t - dt, x, y)
-    g_2 = lambda x,y: analytical_f_2(t, x, y) + analytical_f_2(t - dt, x, y)
-    g_1_rhs = 0.5*quadrature.fem_rhs(g_1, x_u, y_u, topo_u)
-    g_2_rhs = 0.5*quadrature.fem_rhs(g_2, x_u, y_u, topo_u)
+    g_1 = lambda x,y: analytical_f_1(t-0.5*dt, x, y)
+    g_2 = lambda x,y: analytical_f_2(t-0.5*dt, x, y)
+    g_1_rhs = quadrature.fem_rhs(g_1, x_u, y_u, topo_u)
+    g_2_rhs = quadrature.fem_rhs(g_2, x_u, y_u, topo_u)
 
     f_rhs_x = M.dot(u_CN[0:ndofs_u]) - dt*0.5*K.dot(u_CN[0:ndofs_u])
     f_rhs_x += - dt*0.25*(S11+T11).dot(u_CN[0:ndofs_u])
-    f_rhs_x += np.reshape(dt*(g_1_rhs), (ndofs_u, 1)) #M.dot(g_now[0:ndofs_u] + g_prev[0:ndofs_u])
+    f_rhs_x += np.reshape(dt*(g_1_rhs), (ndofs_u, 1)) 
 
     f_rhs_y = M.dot(u_CN[ndofs_u:2*ndofs_u]) - dt*0.5*K.dot(u_CN[ndofs_u:2*ndofs_u])
     f_rhs_y += - dt*0.25*(S11+T11).dot(u_CN[ndofs_u:2*ndofs_u])
-    f_rhs_y += np.reshape(dt*(g_2_rhs), (ndofs_u, 1)) #M.dot(g_now[ndofs_u:2*ndofs_u] + g_prev[ndofs_u:2*ndofs_u])
+    f_rhs_y += np.reshape(dt*(g_2_rhs), (ndofs_u, 1)) 
 
     return apply_rhs_bc(f_rhs_x, f_rhs_y)
 
@@ -162,11 +163,11 @@ def assemble_blockwise_force_TR(t, dt, S11, T11, u_CN):
 
     f_rhs_x = M.dot(u_CN[0:ndofs_u]) - dt*0.5*K.dot(u_CN[0:ndofs_u])
     f_rhs_x += - dt*0.5*(T11).dot(u_CN[0:ndofs_u])
-    f_rhs_x += np.reshape(dt*(g_1_rhs), (ndofs_u, 1)) #M.dot(g_now[0:ndofs_u] + g_prev[0:ndofs_u])
+    f_rhs_x += np.reshape(dt*(g_1_rhs), (ndofs_u, 1))
 
     f_rhs_y = M.dot(u_CN[ndofs_u:2*ndofs_u]) - dt*0.5*K.dot(u_CN[ndofs_u:2*ndofs_u])
     f_rhs_y += - dt*0.5*(T11).dot(u_CN[ndofs_u:2*ndofs_u])
-    f_rhs_y += np.reshape(dt*(g_2_rhs), (ndofs_u, 1)) #M.dot(g_now[ndofs_u:2*ndofs_u] + g_prev[ndofs_u:2*ndofs_u])
+    f_rhs_y += np.reshape(dt*(g_2_rhs), (ndofs_u, 1))
 
     return apply_rhs_bc(f_rhs_x, f_rhs_y)
 
@@ -423,8 +424,8 @@ for t_ind in range(0, n_runs):
     for k in range(2,N):
         print('t = ' + str(k*dt))
 
-        #f_x = lambda x, y: analytical_u(k*dt, x, y)[0:len(x)]
-        #f_y = lambda x, y: analytical_u(k*dt, x, y)[len(x):2*len(x)]
+        f_x = lambda x, y: analytical_u(k*dt, x, y)[0:len(x)]
+        f_y = lambda x, y: analytical_u(k*dt, x, y)[len(x):2*len(x)]
 
         ### BDF1/Backward Euler
         ux_n1 = np.reshape(u_BDF1[0:ndofs_u], (ndofs_u, 1))
@@ -450,6 +451,7 @@ for t_ind in range(0, n_runs):
                 # nonlinear iterator did not converge
                 nonlin_conv_ind[0,t_ind] = -1
         u_BDF1 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
+        gc.collect()
 
         ### BDF2
         ux_n1 = np.reshape(u_BDF2[0:ndofs_u], (ndofs_u, 1))
@@ -475,6 +477,7 @@ for t_ind in range(0, n_runs):
                 nonlin_conv_ind[1,t_ind] = -1
         u_BDF2_old = u_BDF2
         u_BDF2 = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
+        gc.collect()
 
         ### CN
         ux_n1 = np.reshape(u_CN[0:ndofs_u], (ndofs_u, 1))
@@ -505,6 +508,7 @@ for t_ind in range(0, n_runs):
                 # nonlinear iterator did not converge
                 nonlin_conv_ind[2,t_ind] = -1
         u_CN = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
+        gc.collect()
 
         ### TR
         ux_n1 = np.reshape(u_TR[0:ndofs_u], (ndofs_u, 1))
@@ -534,6 +538,7 @@ for t_ind in range(0, n_runs):
                 # nonlinear iterator did not converge
                 nonlin_conv_ind[3,t_ind] = -1
         u_TR = np.reshape(sol, (2*ndofs_u + ndofs_p + 1, 1))
+        gc.collect()
 
         ### End of time loop
 
