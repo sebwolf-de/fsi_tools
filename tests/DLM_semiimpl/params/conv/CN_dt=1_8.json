@@ -2,7 +2,7 @@
   "solver_type" : "dlm_",
   "mesh_prefix": "annulus_",
 
-  "time_integration" : "BDF1",
+  "time_integration" : "CN",
   "delta_time_base": 25,
   "delta_time_negative_esponent": 3,
   "fluid_triangulation_intervals" : 8,
